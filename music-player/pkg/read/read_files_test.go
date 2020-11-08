@@ -22,3 +22,37 @@ func TestReadFile(t *testing.T) {
   assert.Equal(t, result.album, testAlbum, "album must be correct")
   assert.Equal(t, result.length, testLengthSeconds, "length must be correct")
 }
+
+func TestReadMultipleFiles(t *testing.T) {
+  files := make(chan string, 1)
+  done := make(chan bool)
+
+  go func() {
+    files <- testFile
+    done <- true
+  }()
+
+  outputChan, doneChan := ReadMultipleFiles(files, done)
+
+  var results []*Song
+
+  outputDone := false
+
+  for !outputDone {
+    select {
+    case result := <- outputChan:
+      results = append(results, result)
+    case <- doneChan:
+      outputDone = true
+    }
+  }
+
+  assert.Len(t, results, 1)
+
+  assert.Equal(t, *results[0], Song{
+    title: testTitle,
+    artist: testArtist,
+    album: testAlbum,
+    length: testLengthSeconds,
+  })
+}
