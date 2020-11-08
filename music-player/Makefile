@@ -1,8 +1,11 @@
 build:
-	go build -o bin/music-player-scan ./cmd/scan
+	go build -o bin/scan ./cmd/scan
 
 clean:
 	mkdir -p bin && rm -rf ./bin/*
 
-run-scan:
+test.read:
+	go test -v ./pkg/read
+
+run.scan:
 	go run ./cmd/scan
