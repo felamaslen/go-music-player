@@ -25,14 +25,13 @@ func TestReadFile(t *testing.T) {
 
 func TestReadMultipleFiles(t *testing.T) {
   files := make(chan string, 1)
-  done := make(chan bool)
 
   go func() {
     files <- testFile
-    done <- true
+    close(files)
   }()
 
-  outputChan, doneChan := ReadMultipleFiles(files, done)
+  outputChan := ReadMultipleFiles(files)
 
   var results []*Song
 
@@ -40,10 +39,11 @@ func TestReadMultipleFiles(t *testing.T) {
 
   for !outputDone {
     select {
-    case result := <- outputChan:
-      results = append(results, result)
-    case <- doneChan:
-      outputDone = true
+    case result, more := <- outputChan:
+      if more {
+        results = append(results, result)
+      }
+      outputDone = !more
     }
   }
 
@@ -55,4 +55,24 @@ func TestReadMultipleFiles(t *testing.T) {
     album: testAlbum,
     length: testLengthSeconds,
   })
+}
+
+func TestScanDirectory(t *testing.T) {
+  files := ScanDirectory(".")
+
+  var results []string
+
+  done := false
+
+  for !done {
+    select {
+    case result, more := <- files:
+      if more {
+        results = append(results, result)
+      }
+      done = !more
+    }
+  }
+
+  assert.Equal(t, results, []string{testFile})
 }
