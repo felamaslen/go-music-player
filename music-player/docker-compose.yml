@@ -1,0 +1,12 @@
+version: "2"
+services:
+  music-player-db:
+    restart: always
+    image: postgres:10.4
+    ports:
+      - 5417:5432
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql

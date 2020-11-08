@@ -12,6 +12,26 @@ Run the following commands to run unit tests:
 
 - `make test.read`: tests the file reader module
 
+## Migrations
+
+First, make sure the following environment variables are set:
+
+- `POSTGRES_HOST`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_PORT` (**optional**, defaults to 5432)
+- `POSTGRES_DATABASE`
+
+Then, run:
+
+- `make migrate`
+
+### Creating migrations
+
+After getting the [migrate CLI tool](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate), run:
+
+- `migrate create -ext sql -dir pkg/db/migrations -seq create_some_table`
+
 ## Components
 
 ### Music scanner

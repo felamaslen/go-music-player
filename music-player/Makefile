@@ -5,7 +5,10 @@ clean:
 	mkdir -p bin && rm -rf ./bin/*
 
 test.read:
-	go test -v ./pkg/read
+	GO_ENV=test go test -v ./pkg/read
+
+migrate:
+	go run ./cmd/migrate
 
 run.scan:
 	go run ./cmd/scan
