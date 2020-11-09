@@ -2,14 +2,16 @@ package read
 
 import (
   "os"
+  "path/filepath"
 
   tag "github.com/dhowden/tag"
 
   duration "github.com/felamaslen/go-music-player/pkg/read/duration"
 )
 
-func ReadFile(fileName string) (song *Song, err error) {
-  file, errFile := os.Open(fileName)
+func ReadFile(basePath string, fileName string) (song *Song, err error) {
+  fullPath := filepath.Join(basePath, fileName)
+  file, errFile := os.Open(fullPath)
   if errFile != nil {
     return &Song{}, errFile
   }
@@ -20,11 +22,16 @@ func ReadFile(fileName string) (song *Song, err error) {
     return &Song{}, errTags
   }
 
+  durationTime, durationOk := duration.GetSongDuration(file, tags)
+
   result := Song{
-    title: tags.Title(),
-    artist: tags.Artist(),
-    album: tags.Album(),
-    length: duration.GetSongDuration(file, tags),
+    Title: tags.Title(),
+    Artist: tags.Artist(),
+    Album: tags.Album(),
+    Duration: durationTime,
+    DurationOk: durationOk,
+    BasePath: basePath,
+    RelativePath: fileName,
   }
 
   return &result, nil

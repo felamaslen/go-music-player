@@ -4,8 +4,8 @@ build:
 clean:
 	mkdir -p bin && rm -rf ./bin/*
 
-test.read:
-	GO_ENV=test go test -v ./pkg/read
+test:
+	GO_ENV=test go test -v ./...
 
 migrate:
 	go run ./cmd/migrate

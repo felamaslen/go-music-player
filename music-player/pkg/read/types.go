@@ -1,6 +1,8 @@
 package read
 
 type Song struct {
-  title, artist, album string
-  length int
+  Title, Artist, Album string
+  Duration int
+  DurationOk bool
+  BasePath, RelativePath string
 }

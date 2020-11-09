@@ -8,9 +8,7 @@ Run `make build` inside this directory. Binaries will be built and output to the
 
 ## Testing
 
-Run the following commands to run unit tests:
-
-- `make test.read`: tests the file reader module
+Run `make test` inside this directory, to run unit and integration tests.
 
 ## Migrations
 

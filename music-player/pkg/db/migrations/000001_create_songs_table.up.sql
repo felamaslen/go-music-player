@@ -4,6 +4,6 @@ CREATE TABLE songs (
   artist VARCHAR NOT NULL DEFAULT '',
   album VARCHAR NOT NULL DEFAULT '',
   duration INTEGER NULL,
-  directory VARCHAR NOT NULL,
+  base_path VARCHAR NOT NULL,
   relative_path VARCHAR NOT NULL
 );

@@ -6,7 +6,7 @@ import (
   "path/filepath"
 )
 
-func ReadMultipleFiles(files chan string) chan *Song {
+func ReadMultipleFiles(basePath string, files chan string) chan *Song {
   songs := make(chan *Song)
 
   go func() {
@@ -16,7 +16,7 @@ func ReadMultipleFiles(files chan string) chan *Song {
       select {
       case file, more := <- files:
         if more {
-          song, err := ReadFile(file)
+          song, err := ReadFile(basePath, file)
           if err == nil {
             songs <- song
           } else {
@@ -37,7 +37,7 @@ func isValidFile(file string) bool {
   return filepath.Ext(file) == ".ogg"
 }
 
-func recursiveDirScan(directory string, output chan string, root bool) {
+func recursiveDirScan(directory string, output chan string, root bool, basePath string) {
   files, err := ioutil.ReadDir(directory)
   if err != nil {
     fmt.Printf("Error scanning directory (%s): %s", directory, err)
@@ -45,10 +45,11 @@ func recursiveDirScan(directory string, output chan string, root bool) {
   }
 
   for _, file := range(files) {
-    relativePath := filepath.Join(directory, file.Name())
+    absolutePath := filepath.Join(directory, file.Name())
+    relativePath := filepath.Join(basePath, file.Name())
 
     if file.IsDir() {
-      recursiveDirScan(relativePath, output, false)
+      recursiveDirScan(absolutePath, output, false, relativePath)
     } else if isValidFile(file.Name()) {
       output <- relativePath
     }
@@ -63,7 +64,7 @@ func ScanDirectory(directory string) chan string {
   files := make(chan string)
   
   go func() {
-    recursiveDirScan(directory, files, true)
+    recursiveDirScan(directory, files, true, "")
   }()
 
   return files

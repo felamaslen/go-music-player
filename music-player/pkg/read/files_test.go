@@ -1,11 +1,13 @@
 package read
 
 import (
+  "os"
   "testing"
   "github.com/stretchr/testify/assert"
 )
 
 func TestReadMultipleFiles(t *testing.T) {
+  directory, _ := os.Getwd()
   files := make(chan string, 1)
 
   go func() {
@@ -13,7 +15,7 @@ func TestReadMultipleFiles(t *testing.T) {
     close(files)
   }()
 
-  outputChan := ReadMultipleFiles(files)
+  outputChan := ReadMultipleFiles(directory, files)
 
   var results []*Song
 
@@ -32,10 +34,13 @@ func TestReadMultipleFiles(t *testing.T) {
   assert.Len(t, results, 1)
 
   assert.Equal(t, *results[0], Song{
-    title: testTitle,
-    artist: testArtist,
-    album: testAlbum,
-    length: testLengthSeconds,
+    Title: testTitle,
+    Artist: testArtist,
+    Album: testAlbum,
+    Duration: testLengthSeconds,
+    DurationOk: true,
+    BasePath: directory,
+    RelativePath: testFile,
   })
 }
 
