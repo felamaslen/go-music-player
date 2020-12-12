@@ -99,6 +99,7 @@ func getLogLevel() logger.LogLevel {
 type config struct {
   DatabaseUrl string
   LogLevel logger.LogLevel
+  LibraryDirectory string
 }
 
 func GetConfig() config {
@@ -109,5 +110,6 @@ func GetConfig() config {
   return config{
     DatabaseUrl: getDatabaseUrl(),
     LogLevel: getLogLevel(),
+    LibraryDirectory: os.Getenv("LIBRARY_DIRECTORY"),
   }
 }
