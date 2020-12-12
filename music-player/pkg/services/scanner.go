@@ -19,6 +19,6 @@ func ScanAndInsert(musicDirectory string) {
   l.Info("Inserting data...\n")
   repository.InsertMusicIntoDatabase(songs)
 
-  l.Info("Finished scan and insert :)\n")
+  l.Info("Finished scan and insert\n")
 }
 
