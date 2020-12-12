@@ -61,18 +61,15 @@ var _ = Describe("scanning repository", func() {
       })
 
       It("should insert both songs", func() {
-	var song read.Song
+	var songs []read.Song
 
-	rows, _ := db.Queryx(`
+	db.Select(&songs, `
 	select title, artist, album, duration, base_path, relative_path, modified_date
 	from songs
 	order by title
 	`)
 
-	rows.Next()
-	rows.StructScan(&song)
-
-	Expect(song).To(Equal(read.Song{
+	Expect(songs[0]).To(Equal(read.Song{
 	  Title: "Hey Jude",
 	  Artist: "The Beatles",
 	  Album: "",
@@ -82,10 +79,7 @@ var _ = Describe("scanning repository", func() {
 	  ModifiedDate: 8876,
 	}))
 
-	rows.Next()
-	rows.StructScan(&song)
-
-	Expect(song).To(Equal(read.Song{
+	Expect(songs[1]).To(Equal(read.Song{
 	  Title: "Starman",
 	  Artist: "David Bowie",
 	  Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
@@ -94,8 +88,6 @@ var _ = Describe("scanning repository", func() {
 	  RelativePath: "otherFile.ogg",
 	  ModifiedDate: 11883,
 	}))
-
-	rows.Close()
       })
     })
 
@@ -128,22 +120,20 @@ var _ = Describe("scanning repository", func() {
       })
 
       It("should upsert the existing item", func() {
-	rows, _ := db.Queryx(`
+	var songs []read.Song
+	db.Select(&songs, `
 	select title, artist, album, duration, base_path, relative_path, modified_date from songs
 	where base_path = '/path/to' and relative_path = 'file.ogg'
 	`)
 
-	var song read.Song
-	rows.Next()
-	rows.StructScan(&song)
+	Expect(songs).To(HaveLen(1))
+	var song = songs[0]
 
 	Expect(song.Title).To(Equal("Hey Jude"))
 	Expect(song.Artist).To(Equal("The Beatles"))
 	Expect(song.Album).To(Equal(""))
 	Expect(song.Duration).To(Equal(431))
 	Expect(song.ModifiedDate).To(Equal(int64(8876)))
-
-	rows.Close()
       })
     })
   })

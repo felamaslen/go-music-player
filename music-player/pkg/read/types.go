@@ -12,6 +12,6 @@ type Song struct {
 }
 
 type File struct {
-  RelativePath string
-  ModifiedDate int64
+  RelativePath string 	`db:"relative_path"`
+  ModifiedDate int64 	`db:"modified_date"`
 }

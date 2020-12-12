@@ -87,8 +87,14 @@ var _ = Describe("reading files", func() {
 
       It("should return a channel with all the files in the directory", func() {
 	Expect(results).To(HaveLen(2))
-	Expect(results[0].RelativePath).To(Equal(read.TestSong.RelativePath))
-	Expect(results[1].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+
+	if results[0].RelativePath == read.TestSong.RelativePath {
+	  Expect(results[0].RelativePath).To(Equal(read.TestSong.RelativePath))
+	  Expect(results[1].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+	} else {
+	  Expect(results[1].RelativePath).To(Equal(read.TestSong.RelativePath))
+	  Expect(results[0].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+	}
       })
     })
 

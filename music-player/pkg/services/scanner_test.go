@@ -21,27 +21,32 @@ var _ = Describe("music scanner (integration test)", func() {
 
     db := database.GetConnection()
 
-    rows, err := db.Queryx(`
+    var songs []read.Song
+    err := db.Select(&songs, `
       select title, artist, album, duration, base_path, relative_path
       from songs
     `)
 
     Expect(err).To(BeNil())
 
-    var song read.Song
+    Expect(songs).To(HaveLen(2))
 
-    rows.Next()
-    rows.StructScan(&song)
-
-    Expect(song).To(Equal(read.Song{
+    Expect(read.Song{
       Title: read.TestSong.Title,
       Artist: read.TestSong.Artist,
       Album: read.TestSong.Album,
       Duration: read.TestSong.Duration,
       BasePath: read.TestSong.BasePath,
       RelativePath: read.TestSong.RelativePath,
-    }))
+    }).To(BeElementOf(songs))
 
-    rows.Close()
+    Expect(read.Song{
+      Title: read.TestSongNested.Title,
+      Artist: read.TestSongNested.Artist,
+      Album: read.TestSongNested.Album,
+      Duration: read.TestSongNested.Duration,
+      BasePath: read.TestSongNested.BasePath,
+      RelativePath: read.TestSongNested.RelativePath,
+    }).To(BeElementOf(songs))
   })
 })
