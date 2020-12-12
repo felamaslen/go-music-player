@@ -8,9 +8,6 @@ import (
 )
 
 func InsertMusicIntoDatabase(songs chan *read.Song) {
-  conn := GetConnection()
-  defer conn.Close(context.Background())
-
   for {
     select {
     case song, more := <- songs:
@@ -18,11 +15,12 @@ func InsertMusicIntoDatabase(songs chan *read.Song) {
         return
       }
 
-      var duration string = fmt.Sprintf("%d", song.Duration)
-      if !song.DurationOk {
-        duration = "NULL"
+      duration := "NULL"
+      if song.DurationOk {
+        duration = fmt.Sprintf("%d", song.Duration)
       }
 
+      conn := GetConnection()
       _, err := conn.Query(
         context.Background(),
         "insert into songs (title, artist, album, duration, base_path, relative_path) values ($1, $2, $3, $4, $5, $6)",
@@ -34,7 +32,9 @@ func InsertMusicIntoDatabase(songs chan *read.Song) {
         song.RelativePath,
       )
 
-      if err != nil {
+      if err == nil {
+        fmt.Printf("Inserted record successfully: %s, %s, %s, %s\n", song.RelativePath, song.Artist, song.Album, song.Title)
+      } else {
         fmt.Printf("Error inserting record: %s\n", err)
       }
     }

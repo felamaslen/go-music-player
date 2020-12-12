@@ -1,25 +1,20 @@
 package db
 
 import (
-  "context"
-  "testing"
-  "github.com/stretchr/testify/assert"
+	"context"
+	"testing"
 
-  "github.com/felamaslen/go-music-player/pkg/read"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/felamaslen/go-music-player/pkg/read"
 )
 
-func TestInsertMusicIntoDatabase(t *testing.T) {
-  conn := GetConnection()
-  conn.Query(
-    context.Background(),
-    "truncate table songs",
-  )
-  defer conn.Close(context.Background())
-
+func IntegrationTestInsertMusicIntoDatabase(t *testing.T) {
   songs := make(chan *read.Song)
 
   go func() {
     defer close(songs)
+
     songs <- &read.Song{
       Title: "Hey Jude",
       Artist: "The Beatles",
@@ -29,14 +24,23 @@ func TestInsertMusicIntoDatabase(t *testing.T) {
       BasePath: "/path/to",
       RelativePath: "file.ogg",
     }
+
+    songs <- &read.Song{
+      Title: "Starman",
+      Artist: "David Bowie",
+      Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
+      Duration: 256,
+      DurationOk: true,
+      BasePath: "/different/path",
+      RelativePath: "otherFile.ogg",
+    }
   }()
 
   InsertMusicIntoDatabase(songs)
 
-  conn = GetConnection()
+  conn := GetConnection()
 
   type Row struct {
-    id int
     title string
     artist string
     album string
@@ -45,19 +49,40 @@ func TestInsertMusicIntoDatabase(t *testing.T) {
     relative_path string
   }
 
-  var row Row
-
-  err := conn.QueryRow(
+  rows, err := conn.Query(
     context.Background(),
-    "select * from songs",
-  ).Scan(&row.id, &row.title, &row.artist, &row.album, &row.duration, &row.base_path, &row.relative_path)
+    `
+    select title, artist, album, duration, base_path, relative_path
+    from songs
+    order by title
+    `,
+  )
 
   assert.Nil(t, err)
 
-  assert.Equal(t, row.title, "Hey Jude")
-  assert.Equal(t, row.artist, "The Beatles")
-  assert.Equal(t, row.album, "")
-  assert.Equal(t, row.duration, 431)
-  assert.Equal(t, row.base_path, "/path/to")
-  assert.Equal(t, row.relative_path, "file.ogg")
+  var row Row
+
+  rows.Next()
+  rows.Scan(&row.title, &row.artist, &row.album, &row.duration, &row.base_path, &row.relative_path)
+
+  assert.Equal(t, Row{
+    title: "Hey Jude",
+    artist: "The Beatles",
+    album: "",
+    duration: 431,
+    base_path: "/path/to",
+    relative_path: "file.ogg",
+  }, row)
+
+  rows.Next()
+  rows.Scan(&row.title, &row.artist, &row.album, &row.duration, &row.base_path, &row.relative_path)
+
+  assert.Equal(t, Row{
+    title: "Starman",
+    artist: "David Bowie",
+    album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
+    duration: 256,
+    base_path: "/different/path",
+    relative_path: "otherFile.ogg",
+  }, row)
 }
