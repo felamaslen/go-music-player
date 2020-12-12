@@ -1,14 +1,12 @@
 package testing
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path"
 	"runtime"
 
-	"github.com/felamaslen/go-music-player/pkg/db"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/felamaslen/go-music-player/pkg/database"
 )
 
 func ChangeToRootDir() {
@@ -25,16 +23,10 @@ func init() {
   ChangeToRootDir()
 }
 
-func PrepareDatabaseForTesting() *pgxpool.Conn {
-  fmt.Println("Preparing database for testing")
+func PrepareDatabaseForTesting() {
+  database.MigrateDatabase()
 
-  db.MigrateDatabase()
-  conn := db.GetConnection()
+  db := database.GetConnection()
 
-  conn.Query(
-    context.Background(),
-    "truncate table songs",
-  )
-
-  return conn
+  db.MustExec("truncate table songs")
 }

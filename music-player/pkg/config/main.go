@@ -63,7 +63,7 @@ func getDatabaseUrl() string {
     log.Fatal("Must set POSTGRES_DATABASE")
   }
 
-  databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", user, password, host, portNumeric, database)
+  databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", user, password, host, portNumeric, database)
 
   return databaseUrl
 }

@@ -1,8 +1,11 @@
 package read
 
 type Song struct {
-  Title, Artist, Album string
-  Duration int
+  Title string 		`db:"title"`
+  Artist string 	`db:"artist"`
+  Album string 		`db:"album"`
+  Duration int 		`db:"duration"`
   DurationOk bool
-  BasePath, RelativePath string
+  BasePath string 	`db:"base_path"`
+  RelativePath string 	`db:"relative_path"`
 }
