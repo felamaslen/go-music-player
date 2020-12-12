@@ -1,13 +1,15 @@
 package config
 
 import (
-  "os"
-  "log"
-  "fmt"
-  "strconv"
-  "path/filepath"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"strconv"
 
-  "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
+
+	"github.com/felamaslen/go-music-player/pkg/logger"
 )
 
 func getEnvFile() (string, bool) {
@@ -23,6 +25,8 @@ func getEnvFile() (string, bool) {
   }
 }
 
+var envLoaded = false
+
 func loadEnv() {
   envFileBase, loadEnvFile := getEnvFile()
   cwd, _ := os.Getwd()
@@ -30,7 +34,9 @@ func loadEnv() {
   if loadEnvFile {
     err := godotenv.Load(envFile)
     if err != nil {
-      log.Fatal("Error loading dotenv file: ", err)
+      log.Printf("Error loading dotenv file: %v\n", err)
+    } else {
+      envLoaded = true
     }
   }
 }
@@ -62,16 +68,46 @@ func getDatabaseUrl() string {
   return databaseUrl
 }
 
-type config struct {
-  DatabaseUrl string
+const defaultLogLevel = logger.LevelInfo
+
+func getLogLevel() logger.LogLevel {
+  level, hasLevel := os.LookupEnv("LOG_LEVEL")
+  if !hasLevel {
+    return defaultLogLevel
+  }
+  levelInt, err := strconv.Atoi(level)
+  if err != nil {
+    return defaultLogLevel
+  }
+  switch levelInt {
+  case 0:
+    return logger.LevelNone
+  case 1:
+    return logger.LevelError
+  case 2:
+    return logger.LevelWarn
+  case 3:
+    return logger.LevelInfo
+  case 4:
+    return logger.LevelVerbose
+  case 5:
+    return logger.LevelDebug
+  }
+  return defaultLogLevel
 }
 
-func getConfig() config {
-  loadEnv()
+type config struct {
+  DatabaseUrl string
+  LogLevel logger.LogLevel
+}
+
+func GetConfig() config {
+  if !envLoaded {
+    loadEnv()
+  }
 
   return config{
     DatabaseUrl: getDatabaseUrl(),
+    LogLevel: getLogLevel(),
   }
 }
-
-var Config = getConfig()
