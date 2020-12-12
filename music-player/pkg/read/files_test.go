@@ -1,25 +1,38 @@
 package read_test
 
 import (
+	"os"
+	"path"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/felamaslen/go-music-player/pkg/database"
 	"github.com/felamaslen/go-music-player/pkg/read"
-	_ "github.com/felamaslen/go-music-player/pkg/testing"
+	setup "github.com/felamaslen/go-music-player/pkg/testing"
 )
 
 var _ = Describe("reading files", func() {
+
+  db := database.GetConnection()
+
+  BeforeEach(func() {
+    setup.PrepareDatabaseForTesting()
+  })
 
   Describe("reading file info", func() {
     var results []*read.Song
 
     BeforeEach(func() {
       results = nil
-      files := make(chan string, 1)
+      files := make(chan *read.File, 1)
 
       go func() {
 	defer close(files)
-	files <- read.TestSong.RelativePath
+	files <- &read.File{
+	  RelativePath: read.TestSong.RelativePath,
+	  ModifiedDate: 100123,
+	}
       }()
 
       outputChan := read.ReadMultipleFiles(read.TestDirectory, files)
@@ -42,14 +55,17 @@ var _ = Describe("reading files", func() {
     })
 
     It("should get the correct info from the file", func() {
-      Expect(*results[0]).To(Equal(read.TestSong))
+      var expectedResult = read.TestSong
+      expectedResult.ModifiedDate = 100123
+
+      Expect(*results[0]).To(Equal(expectedResult))
     })
   })
 
   Describe("scanning a directory recursively", func() {
-    var results []string
+    var results []*read.File
 
-    BeforeEach(func() {
+    var testScanDirectory = func() {
       results = nil
       files := read.ScanDirectory(read.TestDirectory)
 
@@ -64,13 +80,42 @@ var _ = Describe("reading files", func() {
 	  done = !more
 	}
       }
+    }
+
+    Context("when the database is empty", func() {
+      BeforeEach(testScanDirectory)
+
+      It("should return a channel with all the files in the directory", func() {
+	Expect(results).To(HaveLen(2))
+	Expect(results[0].RelativePath).To(Equal(read.TestSong.RelativePath))
+	Expect(results[1].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+      })
     })
 
-    It("should return a channel with all the files in the directory", func() {
-      Expect(results).To(Equal([]string{
-	read.TestSong.RelativePath,
-	read.TestSongNested.RelativePath,
-      }))
+    Context("when the database already contains one of the files", func() {
+      BeforeEach(func() {
+	info, _ := os.Stat(path.Join(read.TestSong.BasePath, read.TestSong.RelativePath))
+	
+	db.MustExec(
+	  `
+	  insert into songs (title, artist, album, base_path, relative_path, modified_date)
+	  values ($1, $2, $3, $4, $5, $6)
+	  `,
+	  "old title",
+	  "old artist",
+	  "old album",
+	  read.TestSong.BasePath,
+	  read.TestSong.RelativePath,
+	  info.ModTime().Unix(),
+	)
+
+	testScanDirectory()
+      })
+
+      It("should only return those files which do not exist in the database", func() {
+	Expect(results).To(HaveLen(1))
+	Expect(results[0].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+      })
     })
   })
 })

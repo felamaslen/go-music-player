@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -12,7 +11,6 @@ import (
 func ChangeToRootDir() {
   _, filename, _, _ := runtime.Caller(0)
   dir := path.Join(path.Dir(filename), "../..")
-  fmt.Printf("Changing dir to %v\n", dir)
   err := os.Chdir(dir)
   if err != nil {
     panic(err)

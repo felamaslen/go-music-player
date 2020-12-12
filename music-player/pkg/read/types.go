@@ -8,4 +8,10 @@ type Song struct {
   DurationOk bool
   BasePath string 	`db:"base_path"`
   RelativePath string 	`db:"relative_path"`
+  ModifiedDate int64 	`db:"modified_date"` 
+}
+
+type File struct {
+  RelativePath string
+  ModifiedDate int64
 }

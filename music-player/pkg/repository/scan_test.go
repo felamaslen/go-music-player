@@ -33,6 +33,7 @@ var _ = Describe("scanning repository", func() {
 	  DurationOk: true,
 	  BasePath: "/path/to",
 	  RelativePath: "file.ogg",
+	  ModifiedDate: 8876,
 	}
 
 	songs <- &read.Song{
@@ -43,6 +44,7 @@ var _ = Describe("scanning repository", func() {
 	  DurationOk: true,
 	  BasePath: "/different/path",
 	  RelativePath: "otherFile.ogg",
+	  ModifiedDate: 11883,
 	}
       }()
 
@@ -62,7 +64,7 @@ var _ = Describe("scanning repository", func() {
 	var song read.Song
 
 	rows, _ := db.Queryx(`
-	select title, artist, album, duration, base_path, relative_path
+	select title, artist, album, duration, base_path, relative_path, modified_date
 	from songs
 	order by title
 	`)
@@ -77,6 +79,7 @@ var _ = Describe("scanning repository", func() {
 	  Duration: 431,
 	  BasePath: "/path/to",
 	  RelativePath: "file.ogg",
+	  ModifiedDate: 8876,
 	}))
 
 	rows.Next()
@@ -89,6 +92,7 @@ var _ = Describe("scanning repository", func() {
 	  Duration: 256,
 	  BasePath: "/different/path",
 	  RelativePath: "otherFile.ogg",
+	  ModifiedDate: 11883,
 	}))
 
 	rows.Close()
@@ -99,14 +103,15 @@ var _ = Describe("scanning repository", func() {
       BeforeEach(func() {
 	db.MustExec(
 	  `
-	  insert into songs (title, artist, album, base_path, relative_path)
-	  values ($1, $2, $3, $4, $5)
+	  insert into songs (title, artist, album, base_path, relative_path, modified_date)
+	  values ($1, $2, $3, $4, $5, $6)
 	  `,
 	  "my title",
 	  "my artist",
 	  "my album",
 	  "/path/to",
 	  "file.ogg",
+	  7782,
 	)
 
 	testInsertSongs()
@@ -124,7 +129,7 @@ var _ = Describe("scanning repository", func() {
 
       It("should upsert the existing item", func() {
 	rows, _ := db.Queryx(`
-	select title, artist, album, duration, base_path, relative_path from songs
+	select title, artist, album, duration, base_path, relative_path, modified_date from songs
 	where base_path = '/path/to' and relative_path = 'file.ogg'
 	`)
 
@@ -136,6 +141,7 @@ var _ = Describe("scanning repository", func() {
 	Expect(song.Artist).To(Equal("The Beatles"))
 	Expect(song.Album).To(Equal(""))
 	Expect(song.Duration).To(Equal(431))
+	Expect(song.ModifiedDate).To(Equal(int64(8876)))
 
 	rows.Close()
       })

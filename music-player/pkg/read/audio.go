@@ -9,8 +9,8 @@ import (
   duration "github.com/felamaslen/go-music-player/pkg/read/duration"
 )
 
-func ReadFile(basePath string, fileName string) (song *Song, err error) {
-  fullPath := filepath.Join(basePath, fileName)
+func ReadFile(basePath string, scannedFile *File) (song *Song, err error) {
+  fullPath := filepath.Join(basePath, scannedFile.RelativePath)
   file, errFile := os.Open(fullPath)
   if errFile != nil {
     return &Song{}, errFile
@@ -31,7 +31,8 @@ func ReadFile(basePath string, fileName string) (song *Song, err error) {
     Duration: durationTime,
     DurationOk: durationOk,
     BasePath: basePath,
-    RelativePath: fileName,
+    RelativePath: scannedFile.RelativePath,
+    ModifiedDate: scannedFile.ModifiedDate,
   }
 
   return &result, nil
