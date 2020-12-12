@@ -30,7 +30,16 @@ func InsertMusicIntoDatabase(songs chan *read.Song) {
       }
 
       query, err := db.Query(
-        "insert into songs (title, artist, album, duration, base_path, relative_path) values ($1, $2, $3, $4, $5, $6)",
+        `
+        insert into songs (title, artist, album, duration, base_path, relative_path)
+        values ($1, $2, $3, $4, $5, $6)
+        on conflict (base_path, relative_path) do update
+        set
+          title = excluded.title
+          ,artist = excluded.artist
+          ,album = excluded.album
+          ,duration = excluded.duration
+        `,
         song.Title,
         song.Artist,
         song.Album,

@@ -20,7 +20,7 @@ var _ = Describe("scanning repository", func() {
   Describe("when the channel sends two files", func() {
     var songs chan *read.Song
 
-    BeforeEach(func() {
+    var testInsertSongs = func() {
       songs = make(chan *read.Song)
 
       go func() {
@@ -47,48 +47,98 @@ var _ = Describe("scanning repository", func() {
       }()
 
       repository.InsertMusicIntoDatabase(songs)
+    }
+
+    Context("when the songs do not already exist in the database", func() {
+      BeforeEach(testInsertSongs)
+
+      It("should insert the correct number of songs", func() {
+	var count int
+	db.Get(&count, "select count(*) from songs")
+	Expect(count).To(Equal(2))
+      })
+
+      It("should insert both songs", func() {
+	var song read.Song
+
+	rows, _ := db.Queryx(`
+	select title, artist, album, duration, base_path, relative_path
+	from songs
+	order by title
+	`)
+
+	rows.Next()
+	rows.StructScan(&song)
+
+	Expect(song).To(Equal(read.Song{
+	  Title: "Hey Jude",
+	  Artist: "The Beatles",
+	  Album: "",
+	  Duration: 431,
+	  BasePath: "/path/to",
+	  RelativePath: "file.ogg",
+	}))
+
+	rows.Next()
+	rows.StructScan(&song)
+
+	Expect(song).To(Equal(read.Song{
+	  Title: "Starman",
+	  Artist: "David Bowie",
+	  Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
+	  Duration: 256,
+	  BasePath: "/different/path",
+	  RelativePath: "otherFile.ogg",
+	}))
+
+	rows.Close()
+      })
     })
 
-    It("should insert the correct number of songs", func() {
-      var count int
-      db.Get(&count, "select count(*) from songs")
-      Expect(count).To(Equal(2))
-    })
+    Context("when there is already a file in the database with the same name", func() {
+      BeforeEach(func() {
+	db.MustExec(
+	  `
+	  insert into songs (title, artist, album, base_path, relative_path)
+	  values ($1, $2, $3, $4, $5)
+	  `,
+	  "my title",
+	  "my artist",
+	  "my album",
+	  "/path/to",
+	  "file.ogg",
+	)
 
-    It("should insert both songs", func() {
-      var song read.Song
+	testInsertSongs()
+      })
 
-      rows, _ := db.Queryx(`
-      select title, artist, album, duration, base_path, relative_path
-      from songs
-      order by title
-      `)
+      It("should not add an additional row for the same file", func() {
+	var count int
+	db.Get(&count, `
+	select count(*) from songs
+	where base_path = '/path/to' and relative_path = 'file.ogg'
+	`)
 
-      rows.Next()
-      rows.StructScan(&song)
+	Expect(count).To(Equal(1))
+      })
 
-      Expect(song).To(Equal(read.Song{
-        Title: "Hey Jude",
-        Artist: "The Beatles",
-        Album: "",
-        Duration: 431,
-        BasePath: "/path/to",
-        RelativePath: "file.ogg",
-      }))
+      It("should upsert the existing item", func() {
+	rows, _ := db.Queryx(`
+	select title, artist, album, duration, base_path, relative_path from songs
+	where base_path = '/path/to' and relative_path = 'file.ogg'
+	`)
 
-      rows.Next()
-      rows.StructScan(&song)
+	var song read.Song
+	rows.Next()
+	rows.StructScan(&song)
 
-      Expect(song).To(Equal(read.Song{
-        Title: "Starman",
-        Artist: "David Bowie",
-        Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
-        Duration: 256,
-        BasePath: "/different/path",
-        RelativePath: "otherFile.ogg",
-      }))
+	Expect(song.Title).To(Equal("Hey Jude"))
+	Expect(song.Artist).To(Equal("The Beatles"))
+	Expect(song.Album).To(Equal(""))
+	Expect(song.Duration).To(Equal(431))
 
-      rows.Close()
+	rows.Close()
+      })
     })
   })
 })
