@@ -9,6 +9,8 @@ test:
 
 migrate:
 	go run ./cmd/migrate
+migrate.make:
+	migrate create -ext sql -dir migrations -seq $(NAME)
 
 run.scan:
 	go run ./cmd/scan
