@@ -1,21 +1,21 @@
 package read
 
 import (
-  "os"
-  "testing"
-  "github.com/stretchr/testify/assert"
+	"testing"
+
+	_ "github.com/felamaslen/go-music-player/pkg/testing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReadMultipleFiles(t *testing.T) {
-  directory, _ := os.Getwd()
   files := make(chan string, 1)
 
   go func() {
-    files <- testFile
+    files <- TestSong.RelativePath
     close(files)
   }()
 
-  outputChan := ReadMultipleFiles(directory, files)
+  outputChan := ReadMultipleFiles(TestDirectory, files)
 
   var results []*Song
 
@@ -33,19 +33,11 @@ func TestReadMultipleFiles(t *testing.T) {
 
   assert.Len(t, results, 1)
 
-  assert.Equal(t, *results[0], Song{
-    Title: testTitle,
-    Artist: testArtist,
-    Album: testAlbum,
-    Duration: testLengthSeconds,
-    DurationOk: true,
-    BasePath: directory,
-    RelativePath: testFile,
-  })
+  assert.Equal(t, TestSong, *results[0])
 }
 
 func TestScanDirectory(t *testing.T) {
-  files := ScanDirectory(".")
+  files := ScanDirectory(TestDirectory)
 
   var results []string
 
@@ -61,5 +53,5 @@ func TestScanDirectory(t *testing.T) {
     }
   }
 
-  assert.Equal(t, results, []string{testFile})
+  assert.Equal(t, results, []string{TestSong.RelativePath, TestSongNested.RelativePath})
 }

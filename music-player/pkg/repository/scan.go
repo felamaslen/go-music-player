@@ -1,26 +1,35 @@
-package db
+package repository
 
 import (
-  "fmt"
-  "context"
+	"context"
+	"fmt"
 
-  "github.com/felamaslen/go-music-player/pkg/read"
+	"github.com/felamaslen/go-music-player/pkg/config"
+	"github.com/felamaslen/go-music-player/pkg/db"
+	"github.com/felamaslen/go-music-player/pkg/logger"
+	"github.com/felamaslen/go-music-player/pkg/read"
 )
 
 func InsertMusicIntoDatabase(songs chan *read.Song) {
+  var l = logger.CreateLogger(config.GetConfig().LogLevel)
+
   for {
     select {
     case song, more := <- songs:
       if !more {
+        l.Verbose("Finished inserting songs\n")
         return
       }
+
+      l.Debug("Adding song: %v\n", song)
 
       duration := "NULL"
       if song.DurationOk {
         duration = fmt.Sprintf("%d", song.Duration)
       }
 
-      conn := GetConnection()
+      conn := db.GetConnection()
+
       _, err := conn.Query(
         context.Background(),
         "insert into songs (title, artist, album, duration, base_path, relative_path) values ($1, $2, $3, $4, $5, $6)",
@@ -32,10 +41,10 @@ func InsertMusicIntoDatabase(songs chan *read.Song) {
         song.RelativePath,
       )
 
-      if err == nil {
-        fmt.Printf("Inserted record successfully: %s, %s, %s, %s\n", song.RelativePath, song.Artist, song.Album, song.Title)
-      } else {
-        fmt.Printf("Error inserting record: %s\n", err)
+      conn.Conn().Close(context.Background())
+
+      if err != nil {
+        l.Error("Error inserting record: %s\n", err)
       }
     }
   }

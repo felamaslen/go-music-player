@@ -1,12 +1,14 @@
 package main
 
 import (
-  "fmt"
-  "github.com/felamaslen/go-music-player/pkg/db"
+	"github.com/felamaslen/go-music-player/pkg/db"
+	"github.com/felamaslen/go-music-player/pkg/read"
+	"github.com/felamaslen/go-music-player/pkg/services"
 )
 
-func main() {
-  fmt.Println("Hello world! TODO: start scanning music into database")
+const musicDirectory = read.TestDirectory
 
-  db.InsertMusicIntoDatabase()
+func main() {
+  services.ScanAndInsert(musicDirectory)
+  db.EndPool()
 }

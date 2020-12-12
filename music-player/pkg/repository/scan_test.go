@@ -1,4 +1,4 @@
-package db
+package repository
 
 import (
 	"context"
@@ -6,10 +6,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/felamaslen/go-music-player/pkg/db"
 	"github.com/felamaslen/go-music-player/pkg/read"
+	setup "github.com/felamaslen/go-music-player/pkg/testing"
 )
 
-func IntegrationTestInsertMusicIntoDatabase(t *testing.T) {
+func TestInsertMusicIntoDatabase(t *testing.T) {
+  setup.PrepareDatabaseForTesting()
+
   songs := make(chan *read.Song)
 
   go func() {
@@ -38,16 +42,7 @@ func IntegrationTestInsertMusicIntoDatabase(t *testing.T) {
 
   InsertMusicIntoDatabase(songs)
 
-  conn := GetConnection()
-
-  type Row struct {
-    title string
-    artist string
-    album string
-    duration int
-    base_path string
-    relative_path string
-  }
+  conn := db.GetConnection()
 
   rows, err := conn.Query(
     context.Background(),
@@ -60,29 +55,29 @@ func IntegrationTestInsertMusicIntoDatabase(t *testing.T) {
 
   assert.Nil(t, err)
 
-  var row Row
+  var row read.Song
 
   rows.Next()
-  rows.Scan(&row.title, &row.artist, &row.album, &row.duration, &row.base_path, &row.relative_path)
+  rows.Scan(&row.Title, &row.Artist, &row.Album, &row.Duration, &row.BasePath, &row.RelativePath)
 
-  assert.Equal(t, Row{
-    title: "Hey Jude",
-    artist: "The Beatles",
-    album: "",
-    duration: 431,
-    base_path: "/path/to",
-    relative_path: "file.ogg",
+  assert.Equal(t, read.Song{
+    Title: "Hey Jude",
+    Artist: "The Beatles",
+    Album: "",
+    Duration: 431,
+    BasePath: "/path/to",
+    RelativePath: "file.ogg",
   }, row)
 
   rows.Next()
-  rows.Scan(&row.title, &row.artist, &row.album, &row.duration, &row.base_path, &row.relative_path)
+  rows.Scan(&row.Title, &row.Artist, &row.Album, &row.Duration, &row.BasePath, &row.RelativePath)
 
-  assert.Equal(t, Row{
-    title: "Starman",
-    artist: "David Bowie",
-    album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
-    duration: 256,
-    base_path: "/different/path",
-    relative_path: "otherFile.ogg",
+  assert.Equal(t, read.Song{
+    Title: "Starman",
+    Artist: "David Bowie",
+    Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
+    Duration: 256,
+    BasePath: "/different/path",
+    RelativePath: "otherFile.ogg",
   }, row)
 }

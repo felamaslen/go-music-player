@@ -1,26 +1,35 @@
 package read
 
 import (
-  "fmt"
-  "io/ioutil"
-  "path/filepath"
+	"io/ioutil"
+	"path/filepath"
+
+	config "github.com/felamaslen/go-music-player/pkg/config"
+	"github.com/felamaslen/go-music-player/pkg/logger"
 )
 
 func ReadMultipleFiles(basePath string, files chan string) chan *Song {
+  var l = logger.CreateLogger(config.GetConfig().LogLevel)
+
   songs := make(chan *Song)
 
   go func() {
-    defer close(songs)
+    defer func() {
+      l.Verbose("Finished reading files")
+      close(songs)
+    }()
 
     for {
       select {
       case file, more := <- files:
         if more {
+          l.Verbose("Reading file: %s\n", file)
           song, err := ReadFile(basePath, file)
+
           if err == nil {
             songs <- song
           } else {
-            fmt.Printf("Error reading file (%s): %s\n", file, err)
+            l.Error("Error reading file (%s): %s\n", file, err)
           }
         } else {
           return
@@ -37,10 +46,23 @@ func isValidFile(file string) bool {
   return filepath.Ext(file) == ".ogg"
 }
 
-func recursiveDirScan(directory string, output chan string, root bool, basePath string) {
+func recursiveDirScan(l *logger.Logger, directory string, output *chan string, root bool, basePath string) {
+  if (root) {
+    l.Verbose("Scanning root directory: %s\n", directory)
+
+    defer func() {
+      l.Verbose("Finished recursive directory scan")
+      close(*output)
+    }()
+  } else {
+    l.Debug("Scanning subdirectory: %s\n", directory)
+  }
+
+
   files, err := ioutil.ReadDir(directory)
+
   if err != nil {
-    fmt.Printf("Error scanning directory (%s): %s", directory, err)
+    l.Fatal("Error scanning directory: (%s): %s", directory, err)
     return
   }
 
@@ -49,22 +71,22 @@ func recursiveDirScan(directory string, output chan string, root bool, basePath 
     relativePath := filepath.Join(basePath, file.Name())
 
     if file.IsDir() {
-      recursiveDirScan(absolutePath, output, false, relativePath)
+      recursiveDirScan(l, absolutePath, output, false, relativePath)
     } else if isValidFile(file.Name()) {
-      output <- relativePath
-    }
-  }
+      l.Verbose("Found file: %s\n", relativePath)
 
-  if (root) {
-    close(output)
+      *output <- relativePath
+    }
   }
 }
 
 func ScanDirectory(directory string) chan string {
+  l := logger.CreateLogger(config.GetConfig().LogLevel)
+
   files := make(chan string)
   
   go func() {
-    recursiveDirScan(directory, files, true, "")
+    recursiveDirScan(l, directory, &files, true, "")
   }()
 
   return files

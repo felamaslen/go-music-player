@@ -1,24 +1,29 @@
 package read
 
 import (
-  "os"
-  "testing"
-  "github.com/stretchr/testify/assert"
+	"os"
+	"path"
+	"testing"
+
+	_ "github.com/felamaslen/go-music-player/pkg/testing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReadFile(t *testing.T) {
-  basePath, _ := os.Getwd()
+  rootDir, _ := os.Getwd()
+  basePath := path.Join(rootDir, TestDirectory)
 
-  result, err := ReadFile(basePath, testFile)
+  result, err := ReadFile(basePath, TestSong.RelativePath)
 
   assert.Nil(t, err)
 
-  assert.Equal(t, result.Title, testTitle, "title must be correct")
-  assert.Equal(t, result.Artist, testArtist, "artist must be correct")
-  assert.Equal(t, result.Album, testAlbum, "album must be correct")
-  assert.Equal(t, result.Duration, testLengthSeconds, "duration must be correct")
-  assert.True(t, result.DurationOk, "duration must be fetched successfully")
-
-  assert.Equal(t, result.BasePath, basePath)
-  assert.Equal(t, result.RelativePath, testFile)
+  assert.Equal(t, Song{
+    Title: "Impact Moderato",
+    Artist: "Kevin MacLeod",
+    Album: "YouTube Audio Library",
+    Duration: 74,
+    DurationOk: true,
+    BasePath: basePath,
+    RelativePath: "file_example_OOG_1MG.ogg",
+  }, *result)
 }

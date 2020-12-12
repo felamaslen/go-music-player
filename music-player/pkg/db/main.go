@@ -13,7 +13,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
-	"github.com/felamaslen/go-music-player/pkg/config"
+	config "github.com/felamaslen/go-music-player/pkg/config"
 )
 
 var pool *pgxpool.Pool
@@ -21,7 +21,7 @@ var pool *pgxpool.Pool
 func GetConnection() *pgxpool.Conn {
   if pool == nil {
     var err error
-    pool, err = pgxpool.Connect(context.Background(), config.Config.DatabaseUrl)
+    pool, err = pgxpool.Connect(context.Background(), config.GetConfig().DatabaseUrl)
 
     if err != nil {
       fmt.Fprintf(os.Stderr, "Unable to acquire database connection pool: %v\n", err)
@@ -38,9 +38,21 @@ func GetConnection() *pgxpool.Conn {
   return conn
 }
 
-func MigrateDatabase(migrationDirectory string) {
-  databaseUrl := fmt.Sprintf("%s?sslmode=disable", config.Config.DatabaseUrl)
-  directoryUrl := fmt.Sprintf("file://%s", filepath.Join(migrationDirectory, "migrations"))
+func EndPool() {
+  if pool == nil {
+    return
+  }
+  pool.Close()
+}
+
+func MigrateDatabase() {
+  cwd, err := os.Getwd()
+  if err != nil {
+    log.Fatal("Error getting directory:", err)
+    return
+  }
+  databaseUrl := fmt.Sprintf("%s?sslmode=disable", config.GetConfig().DatabaseUrl)
+  directoryUrl := fmt.Sprintf("file://%s", filepath.Join(cwd, "migrations"))
 
   m, err := migrate.New(directoryUrl, databaseUrl)
   if err != nil {
