@@ -38,13 +38,9 @@ func GetConnection() *pgxpool.Conn {
   return conn
 }
 
-func MigrateDatabase() {
+func MigrateDatabase(migrationDirectory string) {
   databaseUrl := fmt.Sprintf("%s?sslmode=disable", config.Config.DatabaseUrl)
-  cwd, err := os.Getwd()
-  if err != nil {
-    log.Fatal("Error getting working dir: ", err)
-  }
-  directoryUrl := fmt.Sprintf("file://%s", filepath.Join(cwd, "migrations"))
+  directoryUrl := fmt.Sprintf("file://%s", filepath.Join(migrationDirectory, "migrations"))
 
   m, err := migrate.New(directoryUrl, databaseUrl)
   if err != nil {
