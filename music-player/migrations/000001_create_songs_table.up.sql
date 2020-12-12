@@ -1,0 +1,9 @@
+CREATE TABLE songs (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR NOT NULL DEFAULT '',
+  artist VARCHAR NOT NULL DEFAULT '',
+  album VARCHAR NOT NULL DEFAULT '',
+  duration INTEGER NULL,
+  base_path VARCHAR NOT NULL,
+  relative_path VARCHAR NOT NULL
+);
