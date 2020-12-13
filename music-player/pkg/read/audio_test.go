@@ -26,6 +26,7 @@ var _ = Describe("reading audio files", func() {
       Expect(err).To(BeNil())
 
       Expect(*result).To(Equal(read.Song{
+	TrackNumber: 23,
 	Title: "Impact Moderato",
 	Artist: "Kevin MacLeod",
 	Album: "YouTube Audio Library",

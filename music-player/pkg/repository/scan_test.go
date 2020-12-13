@@ -26,6 +26,7 @@ var _ = Describe("scanning repository", func() {
       go func() {
 	defer close(songs)
 	songs <- &read.Song{
+	  TrackNumber: 7,
 	  Title: "Hey Jude",
 	  Artist: "The Beatles",
 	  Album: "",
@@ -37,6 +38,7 @@ var _ = Describe("scanning repository", func() {
 	}
 
 	songs <- &read.Song{
+	  TrackNumber: 11,
 	  Title: "Starman",
 	  Artist: "David Bowie",
 	  Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
@@ -64,12 +66,13 @@ var _ = Describe("scanning repository", func() {
 	var songs []read.Song
 
 	db.Select(&songs, `
-	select title, artist, album, duration, base_path, relative_path, modified_date
+	select track_number, title, artist, album, duration, base_path, relative_path, modified_date
 	from songs
 	order by title
 	`)
 
 	Expect(songs[0]).To(Equal(read.Song{
+	  TrackNumber: 7,
 	  Title: "Hey Jude",
 	  Artist: "The Beatles",
 	  Album: "",
@@ -80,6 +83,7 @@ var _ = Describe("scanning repository", func() {
 	}))
 
 	Expect(songs[1]).To(Equal(read.Song{
+	  TrackNumber: 11,
 	  Title: "Starman",
 	  Artist: "David Bowie",
 	  Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
@@ -122,13 +126,23 @@ var _ = Describe("scanning repository", func() {
       It("should upsert the existing item", func() {
 	var songs []read.Song
 	db.Select(&songs, `
-	select title, artist, album, duration, base_path, relative_path, modified_date from songs
+	select
+	  track_number
+	  ,title
+	  ,artist
+	  ,album
+	  ,duration
+	  ,base_path
+	  ,relative_path
+	  ,modified_date
+	from songs
 	where base_path = '/path/to' and relative_path = 'file.ogg'
 	`)
 
 	Expect(songs).To(HaveLen(1))
 	var song = songs[0]
 
+	Expect(song.TrackNumber).To(Equal(7))
 	Expect(song.Title).To(Equal("Hey Jude"))
 	Expect(song.Artist).To(Equal("The Beatles"))
 	Expect(song.Album).To(Equal(""))

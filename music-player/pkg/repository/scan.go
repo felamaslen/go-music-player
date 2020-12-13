@@ -33,6 +33,7 @@ func InsertMusicIntoDatabase(songs chan *read.Song) {
         `
         insert into songs (
           title
+          ,track_number
           ,artist
           ,album
           ,duration
@@ -40,16 +41,18 @@ func InsertMusicIntoDatabase(songs chan *read.Song) {
           ,relative_path
           ,modified_date
         )
-        values ($1, $2, $3, $4, $5, $6, $7)
+        values ($1, $2, $3, $4, $5, $6, $7, $8)
         on conflict (base_path, relative_path) do update
         set
           title = excluded.title
+          ,track_number = excluded.track_number
           ,artist = excluded.artist
           ,album = excluded.album
           ,duration = excluded.duration
           ,modified_date = excluded.modified_date
         `,
         song.Title,
+        song.TrackNumber,
         song.Artist,
         song.Album,
         duration,

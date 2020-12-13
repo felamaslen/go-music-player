@@ -3,6 +3,7 @@ package read
 const TestDirectory = "pkg/read/testdata"
 
 var TestSong = Song{
+  TrackNumber: 23,
   Title: "Impact Moderato",
   Artist: "Kevin MacLeod",
   Album: "YouTube Audio Library",
@@ -13,6 +14,7 @@ var TestSong = Song{
 }
 
 var TestSongNested = Song{
+  TrackNumber: 14,
   Title: "Clementi: Piano Sonata in D major, Op 25 No 6 - Movement 2: Un poco andante",
   Artist: "Howard Shelley",
   Album: "Clementi: The Complete Piano Sonatas, Vol. 4",
