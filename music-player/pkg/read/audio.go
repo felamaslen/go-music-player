@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	tag "github.com/dhowden/tag"
-
 	duration "github.com/felamaslen/go-music-player/pkg/read/duration"
 )
 
@@ -15,6 +14,7 @@ func ReadFile(basePath string, scannedFile *File) (song *Song, err error) {
   if errFile != nil {
     return &Song{}, errFile
   }
+
   defer file.Close()
 
   tags, errTags := tag.ReadFrom(file)
@@ -22,10 +22,7 @@ func ReadFile(basePath string, scannedFile *File) (song *Song, err error) {
     return &Song{}, errTags
   }
 
-  durationTime, durationOk := duration.GetSongDuration(file, tags)
-  if !durationOk {
-    durationTime = 0
-  }
+  durationSeconds := duration.GetSongDurationSeconds(file, tags)
 
   trackNumber, _ := tags.Track()
 
@@ -34,7 +31,7 @@ func ReadFile(basePath string, scannedFile *File) (song *Song, err error) {
     Title: tags.Title(),
     Artist: tags.Artist(),
     Album: tags.Album(),
-    Duration: durationTime,
+    Duration: durationSeconds,
     BasePath: basePath,
     RelativePath: scannedFile.RelativePath,
     ModifiedDate: scannedFile.ModifiedDate,

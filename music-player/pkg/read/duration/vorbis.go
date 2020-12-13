@@ -1,22 +1,28 @@
 package duration
 
 import (
-  "fmt"
-  ov "github.com/anyhon/engine/audio/ov"
+	"log"
+	"os"
+
+	ov "github.com/anyhon/engine/audio/ov"
 )
 
-func GetSongDurationVorbis(fileName string) (duration int, ok bool) {
+func GetSongDurationSecondsVorbis(file *os.File) int {
+  fileName := file.Name()
   ovFile, ovErr := ov.Fopen(fileName)
   if ovErr != nil {
-    fmt.Printf("Error opening file for ogg vorbis duration: %s\n", ovErr)
-    return 0, false
+    // TODO: log these errors to the DB
+    log.Printf("[vorbis] Error opening file (%s): %v\n", fileName, ovErr)
+    return 0
   }
 
-  result, errTimeTotal := ov.TimeTotal(ovFile, -1)
-  if errTimeTotal != nil {
-    fmt.Printf("Error calling TimeTotal for ogg vorbis file: %s\n", errTimeTotal)
-    return 0, false
+  result, timeErr := ov.TimeTotal(ovFile, -1)
+  if timeErr != nil {
+    log.Printf("[vorbis] Error getting duration (%s): %v\n", fileName, timeErr)
+    return 0
   }
 
-  return int(result), true
+  ov.Clear(ovFile)
+
+  return int(result)
 }

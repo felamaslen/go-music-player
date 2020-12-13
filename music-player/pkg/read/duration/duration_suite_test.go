@@ -1,4 +1,4 @@
-package read_test
+package duration_test
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestRepository(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Read Suite")
+	RunSpecs(t, "Audio duration Suite")
 }
