@@ -1,18 +1,18 @@
 package duration
 
 import (
-  "os"
   "fmt"
+  "os"
 
   tag "github.com/dhowden/tag"
 )
 
-func GetSongDuration(file *os.File, tags tag.Metadata) (duration int, ok bool) {
+func GetSongDurationSeconds(file *os.File, tags tag.Metadata) int {
   switch tags.Format() {
   case "VORBIS":
-    return GetSongDurationVorbis(file.Name())
+    return GetSongDurationSecondsVorbis(file)
   default:
     fmt.Printf("Unrecognised format: %s\n", tags.Format())
-    return 0, false
+    return 0
   }
 }

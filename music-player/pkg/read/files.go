@@ -5,17 +5,23 @@ import (
 	"path/filepath"
 
 	config "github.com/felamaslen/go-music-player/pkg/config"
+	"github.com/felamaslen/go-music-player/pkg/database"
 	"github.com/felamaslen/go-music-player/pkg/logger"
+	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
-func ReadMultipleFiles(basePath string, files chan string) chan *Song {
+const BATCH_SIZE = 100
+const LOG_EVERY = 100;
+
+func ReadMultipleFiles(basePath string, files chan *File) chan *Song {
   var l = logger.CreateLogger(config.GetConfig().LogLevel)
 
   songs := make(chan *Song)
 
   go func() {
     defer func() {
-      l.Verbose("Finished reading files")
+      l.Verbose("[READ] Finished reading files")
       close(songs)
     }()
 
@@ -23,13 +29,13 @@ func ReadMultipleFiles(basePath string, files chan string) chan *Song {
       select {
       case file, more := <- files:
         if more {
-          l.Verbose("Reading file: %s\n", file)
+          l.Debug("[READ] %s\n", file.RelativePath)
           song, err := ReadFile(basePath, file)
 
           if err == nil {
             songs <- song
           } else {
-            l.Error("Error reading file (%s): %s\n", file, err)
+            l.Error("[READ] Error (%s): %v\n", file.RelativePath, err)
           }
         } else {
           return
@@ -46,48 +52,165 @@ func isValidFile(file string) bool {
   return filepath.Ext(file) == ".ogg"
 }
 
-func recursiveDirScan(l *logger.Logger, directory string, output *chan string, root bool, basePath string) {
-  if (root) {
-    l.Verbose("Scanning root directory: %s\n", directory)
+func recursiveDirScan(
+  db *sqlx.DB,
+  l *logger.Logger,
+  allFiles *chan *File,
+  rootDirectory string,
+  relativePath string,
+  isRoot bool,
+) {
+  directoryToScan := filepath.Join(rootDirectory, relativePath)
+
+  if (isRoot) {
+    l.Verbose("[SCAN] (root): %s\n", directoryToScan)
 
     defer func() {
-      l.Verbose("Finished recursive directory scan")
-      close(*output)
+      l.Verbose("[SCAN] Finished scanning directory")
+      close(*allFiles)
     }()
   } else {
-    l.Debug("Scanning subdirectory: %s\n", directory)
+    l.Debug("[SCAN] %s\n", directoryToScan)
   }
 
-
-  files, err := ioutil.ReadDir(directory)
+  files, err := ioutil.ReadDir(directoryToScan)
 
   if err != nil {
-    l.Fatal("Error scanning directory: (%s): %s", directory, err)
-    return
+    l.Error("[SCAN] Error (%s): %v", directoryToScan, err)
+    return // TODO: add this to a table of failed directories
   }
 
   for _, file := range(files) {
-    absolutePath := filepath.Join(directory, file.Name())
-    relativePath := filepath.Join(basePath, file.Name())
+    fileRelativePath := filepath.Join(relativePath, file.Name())
 
     if file.IsDir() {
-      recursiveDirScan(l, absolutePath, output, false, relativePath)
+      recursiveDirScan(
+        db,
+        l,
+        allFiles,
+        rootDirectory,
+        fileRelativePath,
+        false,
+      )
     } else if isValidFile(file.Name()) {
-      l.Verbose("Found file: %s\n", relativePath)
-
-      *output <- relativePath
+      *allFiles <- &File{
+        RelativePath: fileRelativePath,
+        ModifiedDate: file.ModTime().Unix(),
+      }
     }
   }
 }
 
-func ScanDirectory(directory string) chan string {
+func batchFilterFiles(
+  db *sqlx.DB,
+  l *logger.Logger,
+  filteredOutput *chan *File,
+  allFiles *chan *File,
+  basePath string,
+) {
+  defer close(*filteredOutput)
+
+  var batch [BATCH_SIZE]*File
+  var batchSize = 0
+  var numFiltered = 0
+
+  var processBatch = func() {
+    if batchSize == 0 {
+      return
+    }
+
+    l.Debug("[FILTER] Processing batch\n")
+
+    var relativePaths pq.StringArray
+    var modifiedDates pq.Int64Array
+
+    for i := 0; i < batchSize; i++ {
+      relativePaths = append(relativePaths, batch[i].RelativePath)
+      modifiedDates = append(modifiedDates, batch[i].ModifiedDate)
+    }
+
+    newOrUpdatedFiles, err := db.Queryx(
+      `
+      select r.relative_path, r.modified_date
+      from (
+        select * from unnest($1::varchar[], $2::bigint[])
+        as t(relative_path, modified_date)
+      ) r
+
+      left join songs on
+        songs.base_path = $3
+        and songs.relative_path = r.relative_path
+        and songs.modified_date = r.modified_date
+
+      where songs.id is null
+      `,
+      relativePaths,
+      modifiedDates,
+      basePath,
+    )
+
+    if err != nil {
+      l.Fatal("[FILTER] Fatal error! %v\n", err)
+    }
+
+    for newOrUpdatedFiles.Next() {
+      var file File
+      newOrUpdatedFiles.StructScan(&file)
+
+      l.Verbose("[NEW] %s\n", file.RelativePath)
+
+      *filteredOutput <- &file
+    }
+
+    batchSize = 0
+    newOrUpdatedFiles.Close()
+  }
+
+  for {
+    select {
+    case file, more := <- *allFiles:
+      if !more {
+        processBatch()
+        l.Verbose("[FILTER] Finished filtering %d files\n", numFiltered)
+        return
+      }
+
+      batch[batchSize] = file
+      batchSize++
+
+      numFiltered++
+      if numFiltered % LOG_EVERY == 0 {
+        l.Verbose("[FILTER] Processed %d\n", numFiltered)
+      }
+
+      if batchSize >= BATCH_SIZE {
+        processBatch()
+      }
+    }
+  }
+}
+
+func ScanDirectory(directory string) chan *File {
+  db := database.GetConnection()
   l := logger.CreateLogger(config.GetConfig().LogLevel)
 
-  files := make(chan string)
-  
+  filteredOutput := make(chan *File)
+  allFiles := make(chan *File)
+
   go func() {
-    recursiveDirScan(l, directory, &files, true, "")
+    batchFilterFiles(db, l, &filteredOutput, &allFiles, directory)
   }()
 
-  return files
+  go func() {
+    recursiveDirScan(
+      db,
+      l,
+      &allFiles,
+      directory,
+      "",
+      true,
+    )
+  }()
+
+  return filteredOutput
 }

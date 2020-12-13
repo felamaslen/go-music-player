@@ -1,51 +1,52 @@
-package services
+package services_test
 
 import (
-	"context"
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
-	"github.com/felamaslen/go-music-player/pkg/db"
+	"github.com/felamaslen/go-music-player/pkg/database"
 	"github.com/felamaslen/go-music-player/pkg/read"
+	"github.com/felamaslen/go-music-player/pkg/services"
 	setup "github.com/felamaslen/go-music-player/pkg/testing"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestIntegrationScanAndInsert(t *testing.T) {
-  setup.PrepareDatabaseForTesting()
+var _ = Describe("music scanner (integration test)", func() {
 
-  ScanAndInsert(read.TestDirectory)
+  BeforeEach(func() {
+    setup.PrepareDatabaseForTesting()
+  })
 
-  conn := db.GetConnection()
+  It("should recursively scan files from a directory and add them to the database", func() {
+    services.ScanAndInsert(read.TestDirectory)
 
-  rows, err := conn.Query(
-    context.Background(),
-    `
-    select
-      title as "Title"
-      ,artist as "Artist"
-      ,album as "Album"
-      ,coalesce(duration, 0) as "Duration"
-      ,duration is not null as "DurationOk"
-      ,base_path as "BasePath"
-      ,relative_path as "RelativePath"
-    from songs
-    `,
-  )
+    db := database.GetConnection()
 
-  assert.Nil(t, err)
+    var songs []read.Song
+    err := db.Select(&songs, `
+      select title, artist, album, duration, base_path, relative_path
+      from songs
+    `)
 
-  var song read.Song
+    Expect(err).To(BeNil())
 
-  rows.Next()
-  rows.Scan(&song.Title, &song.Artist, &song.Album, &song.Duration, &song.DurationOk, &song.BasePath, &song.RelativePath)
+    Expect(songs).To(HaveLen(2))
 
-  assert.Equal(t, read.Song{
-    Title: read.TestSong.Title,
-    Artist: read.TestSong.Artist,
-    Album: read.TestSong.Album,
-    Duration: read.TestSong.Duration,
-    DurationOk: true,
-    BasePath: read.TestSong.BasePath,
-    RelativePath: read.TestSong.RelativePath,
-  }, song)
-}
+    Expect(read.Song{
+      Title: read.TestSong.Title,
+      Artist: read.TestSong.Artist,
+      Album: read.TestSong.Album,
+      Duration: read.TestSong.Duration,
+      BasePath: read.TestSong.BasePath,
+      RelativePath: read.TestSong.RelativePath,
+    }).To(BeElementOf(songs))
+
+    Expect(read.Song{
+      Title: read.TestSongNested.Title,
+      Artist: read.TestSongNested.Artist,
+      Album: read.TestSongNested.Album,
+      Duration: read.TestSongNested.Duration,
+      BasePath: read.TestSongNested.BasePath,
+      RelativePath: read.TestSongNested.RelativePath,
+    }).To(BeElementOf(songs))
+  })
+})

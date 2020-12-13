@@ -28,7 +28,7 @@ Then, run:
 
 After getting the [migrate CLI tool](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate), run:
 
-- `migrate create -ext sql -dir pkg/db/migrations -seq create_some_table`
+- `NAME=create_some_table make migrate.make`
 
 ## Components
 

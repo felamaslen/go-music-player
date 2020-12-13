@@ -1,15 +1,18 @@
 package main
 
 import (
-	"os"
-
-	"github.com/felamaslen/go-music-player/pkg/read"
+	"github.com/felamaslen/go-music-player/pkg/config"
+	"github.com/felamaslen/go-music-player/pkg/database"
 	"github.com/felamaslen/go-music-player/pkg/services"
 )
 
-const musicDirectory = read.TestDirectory
-
 func main() {
-  services.ScanAndInsert(musicDirectory)
-  os.Exit(0)
+  var libraryDirectory = config.GetConfig().LibraryDirectory
+  if len(libraryDirectory) == 0 {
+    panic("Must set LIBRARY_DIRECTORY")
+  }
+
+  services.ScanAndInsert(libraryDirectory)
+
+  database.EndPool()
 }

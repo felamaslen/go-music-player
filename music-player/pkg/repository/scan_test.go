@@ -1,83 +1,152 @@
-package repository
+package repository_test
 
 import (
-	"context"
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/felamaslen/go-music-player/pkg/db"
+	"github.com/felamaslen/go-music-player/pkg/database"
 	"github.com/felamaslen/go-music-player/pkg/read"
+	"github.com/felamaslen/go-music-player/pkg/repository"
 	setup "github.com/felamaslen/go-music-player/pkg/testing"
 )
 
-func TestInsertMusicIntoDatabase(t *testing.T) {
-  setup.PrepareDatabaseForTesting()
+var _ = Describe("scanning repository", func() {
+  db := database.GetConnection()
 
-  songs := make(chan *read.Song)
+  BeforeEach(func() {
+    setup.PrepareDatabaseForTesting()
+  })
 
-  go func() {
-    defer close(songs)
+  Describe("when the channel sends two files", func() {
+    var songs chan *read.Song
 
-    songs <- &read.Song{
-      Title: "Hey Jude",
-      Artist: "The Beatles",
-      Album: "",
-      Duration: 431,
-      DurationOk: true,
-      BasePath: "/path/to",
-      RelativePath: "file.ogg",
+    var testInsertSongs = func() {
+      songs = make(chan *read.Song)
+
+      go func() {
+	defer close(songs)
+	songs <- &read.Song{
+	  TrackNumber: 7,
+	  Title: "Hey Jude",
+	  Artist: "The Beatles",
+	  Album: "",
+	  Duration: 431,
+	  BasePath: "/path/to",
+	  RelativePath: "file.ogg",
+	  ModifiedDate: 8876,
+	}
+
+	songs <- &read.Song{
+	  TrackNumber: 11,
+	  Title: "Starman",
+	  Artist: "David Bowie",
+	  Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
+	  Duration: 256,
+	  BasePath: "/different/path",
+	  RelativePath: "otherFile.ogg",
+	  ModifiedDate: 11883,
+	}
+      }()
+
+      repository.InsertMusicIntoDatabase(songs)
     }
 
-    songs <- &read.Song{
-      Title: "Starman",
-      Artist: "David Bowie",
-      Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
-      Duration: 256,
-      DurationOk: true,
-      BasePath: "/different/path",
-      RelativePath: "otherFile.ogg",
-    }
-  }()
+    Context("when the songs do not already exist in the database", func() {
+      BeforeEach(testInsertSongs)
 
-  InsertMusicIntoDatabase(songs)
+      It("should insert the correct number of songs", func() {
+	var count int
+	db.Get(&count, "select count(*) from songs")
+	Expect(count).To(Equal(2))
+      })
 
-  conn := db.GetConnection()
+      It("should insert both songs", func() {
+	var songs []read.Song
 
-  rows, err := conn.Query(
-    context.Background(),
-    `
-    select title, artist, album, duration, base_path, relative_path
-    from songs
-    order by title
-    `,
-  )
+	db.Select(&songs, `
+	select track_number, title, artist, album, duration, base_path, relative_path, modified_date
+	from songs
+	order by title
+	`)
 
-  assert.Nil(t, err)
+	Expect(songs[0]).To(Equal(read.Song{
+	  TrackNumber: 7,
+	  Title: "Hey Jude",
+	  Artist: "The Beatles",
+	  Album: "",
+	  Duration: 431,
+	  BasePath: "/path/to",
+	  RelativePath: "file.ogg",
+	  ModifiedDate: 8876,
+	}))
 
-  var row read.Song
+	Expect(songs[1]).To(Equal(read.Song{
+	  TrackNumber: 11,
+	  Title: "Starman",
+	  Artist: "David Bowie",
+	  Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
+	  Duration: 256,
+	  BasePath: "/different/path",
+	  RelativePath: "otherFile.ogg",
+	  ModifiedDate: 11883,
+	}))
+      })
+    })
 
-  rows.Next()
-  rows.Scan(&row.Title, &row.Artist, &row.Album, &row.Duration, &row.BasePath, &row.RelativePath)
+    Context("when there is already a file in the database with the same name", func() {
+      BeforeEach(func() {
+	db.MustExec(
+	  `
+	  insert into songs (title, artist, album, base_path, relative_path, modified_date)
+	  values ($1, $2, $3, $4, $5, $6)
+	  `,
+	  "my title",
+	  "my artist",
+	  "my album",
+	  "/path/to",
+	  "file.ogg",
+	  7782,
+	)
 
-  assert.Equal(t, read.Song{
-    Title: "Hey Jude",
-    Artist: "The Beatles",
-    Album: "",
-    Duration: 431,
-    BasePath: "/path/to",
-    RelativePath: "file.ogg",
-  }, row)
+	testInsertSongs()
+      })
 
-  rows.Next()
-  rows.Scan(&row.Title, &row.Artist, &row.Album, &row.Duration, &row.BasePath, &row.RelativePath)
+      It("should not add an additional row for the same file", func() {
+	var count int
+	db.Get(&count, `
+	select count(*) from songs
+	where base_path = '/path/to' and relative_path = 'file.ogg'
+	`)
 
-  assert.Equal(t, read.Song{
-    Title: "Starman",
-    Artist: "David Bowie",
-    Album: "The Rise and Fall of Ziggy Stardust and the Spiders from Mars",
-    Duration: 256,
-    BasePath: "/different/path",
-    RelativePath: "otherFile.ogg",
-  }, row)
-}
+	Expect(count).To(Equal(1))
+      })
+
+      It("should upsert the existing item", func() {
+	var songs []read.Song
+	db.Select(&songs, `
+	select
+	  track_number
+	  ,title
+	  ,artist
+	  ,album
+	  ,duration
+	  ,base_path
+	  ,relative_path
+	  ,modified_date
+	from songs
+	where base_path = '/path/to' and relative_path = 'file.ogg'
+	`)
+
+	Expect(songs).To(HaveLen(1))
+	var song = songs[0]
+
+	Expect(song.TrackNumber).To(Equal(7))
+	Expect(song.Title).To(Equal("Hey Jude"))
+	Expect(song.Artist).To(Equal("The Beatles"))
+	Expect(song.Album).To(Equal(""))
+	Expect(song.Duration).To(Equal(431))
+	Expect(song.ModifiedDate).To(Equal(int64(8876)))
+      })
+    })
+  })
+})

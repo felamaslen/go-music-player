@@ -1,20 +1,16 @@
 package testing
 
 import (
-	"context"
-	"fmt"
 	"os"
 	"path"
 	"runtime"
 
-	"github.com/felamaslen/go-music-player/pkg/db"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/felamaslen/go-music-player/pkg/database"
 )
 
 func ChangeToRootDir() {
   _, filename, _, _ := runtime.Caller(0)
   dir := path.Join(path.Dir(filename), "../..")
-  fmt.Printf("Changing dir to %v\n", dir)
   err := os.Chdir(dir)
   if err != nil {
     panic(err)
@@ -25,16 +21,10 @@ func init() {
   ChangeToRootDir()
 }
 
-func PrepareDatabaseForTesting() *pgxpool.Conn {
-  fmt.Println("Preparing database for testing")
+func PrepareDatabaseForTesting() {
+  database.MigrateDatabase()
 
-  db.MigrateDatabase()
-  conn := db.GetConnection()
+  db := database.GetConnection()
 
-  conn.Query(
-    context.Background(),
-    "truncate table songs",
-  )
-
-  return conn
+  db.MustExec("truncate table songs")
 }

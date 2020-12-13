@@ -1,6 +1,6 @@
-FROM golang:1.15.3-alpine
+FROM golang:1.15-alpine
 
-RUN apk add make
+RUN apk update && apk add make gcc libc-dev libvorbis-dev
 
 WORKDIR /app
 COPY . .
@@ -8,4 +8,10 @@ COPY . .
 RUN make clean
 RUN make build
 
-CMD bin/music-player-scan
+RUN apk del make gcc libc-dev libvorbis-dev && \
+  apk update && apk add libvorbis
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
+ENV PATH="/app/bin:${PATH}"
