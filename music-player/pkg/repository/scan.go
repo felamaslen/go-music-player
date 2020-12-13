@@ -1,72 +1,121 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/felamaslen/go-music-player/pkg/config"
 	"github.com/felamaslen/go-music-player/pkg/database"
 	"github.com/felamaslen/go-music-player/pkg/logger"
 	"github.com/felamaslen/go-music-player/pkg/read"
+	"github.com/lib/pq"
 )
+
+const BATCH_SIZE = 100
+const LOG_EVERY = 100;
 
 func InsertMusicIntoDatabase(songs chan *read.Song) {
   var l = logger.CreateLogger(config.GetConfig().LogLevel)
 
   db := database.GetConnection()
 
+  var batch [BATCH_SIZE]*read.Song
+  var batchSize = 0
+  var numAdded = 0
+
+  var processBatch = func() {
+    if batchSize == 0 {
+      return
+    }
+
+    l.Debug("[INSERT] Processing batch\n")
+
+    var trackNumbers pq.Int64Array
+    var titles pq.StringArray
+    var artists pq.StringArray
+    var albums pq.StringArray
+    var durations pq.Int64Array
+
+    var modifiedDates pq.Int64Array
+
+    var basePaths pq.StringArray
+    var relativePaths pq.StringArray
+
+    for i := 0; i < batchSize; i++ {
+      trackNumbers = append(trackNumbers, int64(batch[i].TrackNumber))
+      titles = append(titles, batch[i].Title)
+      artists = append(artists, batch[i].Artist)
+      albums = append(albums, batch[i].Album)
+      durations = append(durations, int64(batch[i].Duration))
+
+      modifiedDates = append(modifiedDates, batch[i].ModifiedDate)
+
+      basePaths = append(basePaths, batch[i].BasePath)
+      relativePaths = append(relativePaths, batch[i].RelativePath)
+    }
+
+    db.MustExec(
+      `
+      insert into songs (
+        track_number
+        ,title
+        ,artist
+        ,album
+        ,duration
+        ,modified_date
+        ,base_path
+        ,relative_path
+      )
+      select * from unnest(
+        $1::integer[]
+        ,$2::varchar[]
+        ,$3::varchar[]
+        ,$4::varchar[]
+        ,$5::integer[]
+        ,$6::bigint[]
+        ,$7::varchar[]
+        ,$8::varchar[]
+      )
+      on conflict (base_path, relative_path) do update
+      set
+        track_number = excluded.track_number
+        ,title = excluded.title
+        ,artist = excluded.artist
+        ,album = excluded.album
+        ,duration = excluded.duration
+        ,modified_date = excluded.modified_date
+      `,
+      trackNumbers,
+      titles,
+      artists,
+      albums,
+      durations,
+      modifiedDates,
+      basePaths,
+      relativePaths,
+    )
+
+    l.Debug("[INSERT] Processed batch\n")
+
+    batchSize = 0
+  }
+
   for {
     select {
     case song, more := <- songs:
       if !more {
-        l.Verbose("Finished inserting songs\n")
+        processBatch()
+        l.Verbose("[INSERT] Finished inserting %d songs\n", numAdded)
         return
       }
 
-      l.Debug("Adding song: %v\n", song)
+      batch[batchSize] = song
+      batchSize++
 
-      duration := "NULL"
-      if song.DurationOk {
-        duration = fmt.Sprintf("%d", song.Duration)
+      numAdded++
+      if numAdded % LOG_EVERY == 0 {
+        l.Verbose("[INSERT] Inserted %d\n", numAdded)
       }
 
-      query, err := db.Query(
-        `
-        insert into songs (
-          title
-          ,track_number
-          ,artist
-          ,album
-          ,duration
-          ,base_path
-          ,relative_path
-          ,modified_date
-        )
-        values ($1, $2::integer, $3, $4, $5::integer, $6, $7, $8::integer)
-        on conflict (base_path, relative_path) do update
-        set
-          title = excluded.title
-          ,track_number = excluded.track_number
-          ,artist = excluded.artist
-          ,album = excluded.album
-          ,duration = excluded.duration
-          ,modified_date = excluded.modified_date
-        `,
-        song.Title,
-        song.TrackNumber,
-        song.Artist,
-        song.Album,
-        duration,
-        song.BasePath,
-        song.RelativePath,
-        song.ModifiedDate,
-      )
-
-      query.Close()
-
-      if err == nil {
-        l.Info("Added %s\n", song.RelativePath)
-      } else {
-        l.Error("Error inserting record: %s\n", err)
+      if batchSize >= BATCH_SIZE {
+        processBatch()
       }
     }
   }

@@ -23,6 +23,9 @@ func ReadFile(basePath string, scannedFile *File) (song *Song, err error) {
   }
 
   durationTime, durationOk := duration.GetSongDuration(file, tags)
+  if !durationOk {
+    durationTime = 0
+  }
 
   trackNumber, _ := tags.Track()
 
@@ -32,7 +35,6 @@ func ReadFile(basePath string, scannedFile *File) (song *Song, err error) {
     Artist: tags.Artist(),
     Album: tags.Album(),
     Duration: durationTime,
-    DurationOk: durationOk,
     BasePath: basePath,
     RelativePath: scannedFile.RelativePath,
     ModifiedDate: scannedFile.ModifiedDate,

@@ -31,7 +31,6 @@ var _ = Describe("reading audio files", func() {
 	Artist: "Kevin MacLeod",
 	Album: "YouTube Audio Library",
 	Duration: 74,
-	DurationOk: true,
 	BasePath: basePath,
 	RelativePath: "file_example_OOG_1MG.ogg",
 	ModifiedDate: 102118,

@@ -116,7 +116,6 @@ func batchFilterFiles(
 
   var processBatch = func() {
     if batchSize == 0 {
-      l.Verbose("[FILTER] Finished filtering files\n")
       return
     }
 
@@ -158,7 +157,7 @@ func batchFilterFiles(
       var file File
       newOrUpdatedFiles.StructScan(&file)
 
-      l.Debug("[FILTER] %s\n", file.RelativePath)
+      l.Verbose("[NEW] %s\n", file.RelativePath)
 
       *filteredOutput <- &file
     }
@@ -172,6 +171,7 @@ func batchFilterFiles(
     case file, more := <- *allFiles:
       if !more {
         processBatch()
+        l.Verbose("[FILTER] Finished filtering %d files\n", numFiltered)
         return
       }
 
