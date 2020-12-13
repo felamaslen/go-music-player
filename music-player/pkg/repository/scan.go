@@ -41,7 +41,7 @@ func InsertMusicIntoDatabase(songs chan *read.Song) {
           ,relative_path
           ,modified_date
         )
-        values ($1, $2, $3, $4, $5, $6, $7, $8)
+        values ($1, $2::integer, $3, $4, $5::integer, $6, $7, $8::integer)
         on conflict (base_path, relative_path) do update
         set
           title = excluded.title
