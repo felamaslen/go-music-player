@@ -82,7 +82,8 @@ func recursiveDirScan(
   files, err := ioutil.ReadDir(directoryToScan)
 
   if err != nil {
-    l.Fatal("Error scanning directory: (%s): %s", directoryToScan, err)
+    l.Error("Error scanning directory: (%s): %s", directoryToScan, err)
+    return batchIndex
   }
 
   for _, file := range(files) {
