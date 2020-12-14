@@ -96,8 +96,31 @@ func getLogLevel() logger.LogLevel {
   return defaultLogLevel
 }
 
+func getPort() int {
+  var defaultPort = 3000
+  port, hasPort := os.LookupEnv("PORT")
+  if !hasPort {
+    return defaultPort
+  }
+  result, err := strconv.Atoi(port)
+  if err != nil {
+    return defaultPort
+  }
+  return result
+}
+
+func getRedisUrl() string {
+  url, hasUrl := os.LookupEnv("REDIS_URL")
+  if !hasUrl {
+    return "localhost:6379"
+  }
+  return url
+}
+
 type config struct {
   DatabaseUrl string
   LogLevel logger.LogLevel
   LibraryDirectory string
+  Port int
+  RedisUrl string
 }

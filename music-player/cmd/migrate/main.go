@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/felamaslen/go-music-player/pkg/db"
+	"github.com/felamaslen/go-music-player/pkg/database"
 )
 
 func main() {
-  db.MigrateDatabase()
+  database.MigrateDatabase()
 }

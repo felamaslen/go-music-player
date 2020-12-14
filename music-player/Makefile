@@ -14,3 +14,5 @@ migrate.make:
 
 run.scan:
 	go run ./cmd/scan
+run.server:
+	go run ./cmd/server
