@@ -1,5 +1,14 @@
-build:
+build.scan:
 	go build -o bin/scan ./cmd/scan
+build.migrate:
+	go build -o bin/migrate ./cmd/migrate
+build.server:
+	go build -o bin/server ./cmd/server
+
+build:
+	make build.scan
+	make build.migrate
+	make build.server
 
 clean:
 	mkdir -p bin && rm -rf ./bin/*
