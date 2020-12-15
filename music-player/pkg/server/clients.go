@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/felamaslen/go-music-player/pkg/logger"
 	"github.com/go-redis/redis/v7"
@@ -21,45 +22,55 @@ func endSubscription(sub *redis.PubSub) error {
   return nil
 }
 
-func (c *Client) exposeToNetwork(l *logger.Logger, rdb *redis.Client) error {
-  // Expose the client to all pods running the server
-  if _, err := rdb.SAdd(KEY_CLIENT_NAMES, c.name).Result(); err != nil {
-    return err
-  }
-
-  allClients, err := rdb.SMembers(KEY_CLIENT_NAMES).Result()
+func publishClientList(l *logger.Logger, rdb *redis.Client) error {
+  clients, err := rdb.ZRangeWithScores(KEY_CLIENT_NAMES, 0, -1).Result()
   if err != nil {
     return err
   }
 
-  if err := publishAction(rdb, &Action{
-    Type: ClientConnected,
-    Payload: allClients,
-  }); err != nil {
-    return err
+  var members []*Member
+  for _, m := range(clients) {
+    members = append(members, &Member{
+      Name: m.Member.(string),
+      LastPing: int64(m.Score),
+    })
   }
 
+  actionClientListUpdated := Action{
+    Type: ClientListUpdated,
+    Payload: members,
+  }
+
+  if err := publishAction(rdb, &actionClientListUpdated); err != nil {
+    return err
+  }
+  return nil
+}
+
+func (c *Client) exposeToNetwork(l *logger.Logger, rdb *redis.Client) error {
+  // Expose the client to all pods running the server
+  now := time.Now().Unix()
+
+  if _, err := rdb.ZAdd(KEY_CLIENT_NAMES, &redis.Z{
+    Score: float64(now),
+    Member: c.name,
+  }).Result(); err != nil {
+    return err
+  }
+  if err := publishClientList(l, rdb); err != nil {
+    return err
+  }
   return nil
 }
 
 func (c *Client) disposeFromNetwork(l *logger.Logger, rdb *redis.Client) error {
   // Make sure other clients know when one goes away
-  if _, err := rdb.SRem(KEY_CLIENT_NAMES, c.name).Result(); err != nil {
+  if _, err := rdb.ZRem(KEY_CLIENT_NAMES, c.name).Result(); err != nil {
     return err
   }
-
-  allClients, err := rdb.SMembers(KEY_CLIENT_NAMES).Result()
-  if err != nil {
+  if err := publishClientList(l, rdb); err != nil {
     return err
   }
-
-  if err := publishAction(rdb, &Action{
-    Type: ClientDisconnected,
-    Payload: allClients,
-  }); err != nil {
-    return err
-  }
-
   return nil
 }
 
@@ -68,15 +79,19 @@ func (c *Client) subscribeToMe(l *logger.Logger, rdb *redis.Client) {
   // onward publishing to other pods where necessary, via internal pubsub
 
   for {
-    select {
-    case <- c.closeChan:
+    var actionFromClient Action
+    if err := c.conn.ReadJSON(&actionFromClient); err != nil {
+      l.Verbose("calling close(c.closeChan) %s\n", c.name)
+      close(c.closeChan)
       return
-    default:
-      var actionFromClient Action
-      if err := c.conn.ReadJSON(&actionFromClient); err != nil {
-	return
-      }
+    }
 
+    if actionFromClient.Type == "PING" {
+      c.conn.WriteJSON(Action{
+	Type: "PONG",
+      })
+      c.exposeToNetwork(l, rdb)
+    } else {
       l.Debug("[->Client] %s (%s)\n", actionFromClient.Type, c.name)
 
       actionFromClient.FromClient = &c.name
@@ -101,7 +116,6 @@ func (c *Client) onConnect(l *logger.Logger, rdb *redis.Client) error {
 
 func (c *Client) onDisconnect(l *logger.Logger, rdb *redis.Client) error {
   l.Verbose("[Client disconnected] %s\n", c.name)
-  close(c.closeChan)
 
   if err := c.disposeFromNetwork(l, rdb); err != nil {
     l.Error("Error disposing client from network: %v\n", err)

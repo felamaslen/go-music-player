@@ -2,7 +2,9 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/felamaslen/go-music-player/pkg/logger"
 	"github.com/go-redis/redis/v7"
@@ -44,16 +46,19 @@ func handleClientSubscription(thisPodClients *map[string]*Client) RouteHandler {
 
     defer conn.Close()
 
-    conn.SetCloseHandler(func(code int, text string) error {
-      if _, ok := (*thisPodClients)[client.name]; ok {
-	delete(*thisPodClients, client.name)
+    go func() {
+      for {
+	select {
+	case <- client.closeChan:
+	  l.Verbose("Caught closeChan call, closing... %s\n", client.name)
+	  if _, ok := (*thisPodClients)[client.name]; ok {
+	    delete(*thisPodClients, client.name)
+	  }
+	  client.onDisconnect(l, rdb)
+	  return
+	}
       }
-
-      if err := client.onDisconnect(l, rdb); err != nil {
-	return err
-      }
-      return nil
-    })
+    }()
 
     if err := client.onConnect(l, rdb); err != nil {
       l.Error("Error connecting client: %v\n", err)
@@ -101,9 +106,19 @@ func subscribeToBroadcast(
   }
 }
 
+func pruneDisappearedClients(l *logger.Logger, rdb *redis.Client) {
+  for {
+    now := time.Now().Unix()
+    rdb.ZRemRangeByScore(KEY_CLIENT_NAMES, "0", fmt.Sprintf("%d", now - CLIENT_TTL_SEC))
+
+    time.Sleep(CLIENT_TTL_SEC * time.Second)
+  }
+}
+
 func initPubsub(l *logger.Logger, rdb *redis.Client, router *mux.Router) {
   thisPodClients := make(map[string]*Client)
   go subscribeToBroadcast(l, rdb, &thisPodClients)
+  go pruneDisappearedClients(l, rdb)
 
   router.Path("/pubsub").Methods("GET").HandlerFunc(
     routeHandler(l, rdb, handleClientSubscription(&thisPodClients)),

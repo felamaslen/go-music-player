@@ -4,3 +4,7 @@ export function getPubsubUrl(): string {
     apiUrl.port ? `:${apiUrl.port}` : ''
   }/pubsub`;
 }
+
+export function getSongUrl(songId: number): string {
+  return `${process.env.REACT_APP_API_URL}/stream?songid=${songId}`;
+}

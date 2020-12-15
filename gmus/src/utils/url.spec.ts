@@ -1,4 +1,4 @@
-import { getPubsubUrl } from './url';
+import { getPubsubUrl, getSongUrl } from './url';
 
 describe(getPubsubUrl.name, () => {
   it('should return a websocket URL', () => {
@@ -23,5 +23,12 @@ describe(getPubsubUrl.name, () => {
       expect.assertions(1);
       expect(getPubsubUrl()).toBe(expectedPubsubUrl);
     });
+  });
+});
+
+describe(getSongUrl.name, () => {
+  it('should return a correct URL', () => {
+    expect.assertions(1);
+    expect(getSongUrl(12372)).toBe('http://my-api.url:1234/stream?songid=12372');
   });
 });

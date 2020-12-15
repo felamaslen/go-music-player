@@ -1,13 +1,14 @@
-import { ActionTypeLocal, ActionTypeRemote, AnyAction, RemoteAction } from '../actions';
+import { ActionTypeLocal, ActionTypeRemote, RemoteAction } from '../actions';
+import { GlobalState } from '../reducer';
 
-export function globalEffects(lastAction: AnyAction | null): RemoteAction | null {
-  if (!lastAction) {
+export function globalEffects(state: GlobalState): RemoteAction | null {
+  if (!state.lastAction) {
     return null;
   }
 
-  switch (lastAction.type) {
+  switch (state.lastAction.type) {
     case ActionTypeLocal.StateSet:
-      return { type: ActionTypeRemote.StateSet, payload: lastAction.payload };
+      return { type: ActionTypeRemote.StateSet, payload: state.player };
 
     default:
       return null;

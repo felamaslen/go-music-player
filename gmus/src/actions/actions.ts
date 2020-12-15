@@ -1,4 +1,4 @@
-import { MusicPlayer } from '../types/state';
+import { Member, MusicPlayer } from '../types/state';
 
 interface Action<T extends string = string, P = unknown> {
   type: T;
@@ -7,30 +7,36 @@ interface Action<T extends string = string, P = unknown> {
 
 export enum ActionTypeRemote {
   StateSet = 'STATE_SET',
-  ClientConnected = 'CLIENT_CONNECTED',
-  ClientDisconnected = 'CLIENT_DISCONNECTED',
+  ClientListUpdated = 'CLIENT_LIST_UPDATED',
 }
 
 // Remote actions - these only come FROM the socket
 export type ActionStateSetRemote = Action<ActionTypeRemote.StateSet, MusicPlayer | null>;
 
-export type ActionClientConnected = Action<ActionTypeRemote.ClientConnected, string[]>;
-export type ActionClientDisconnected = Action<ActionTypeRemote.ClientDisconnected, string[]>;
+export type ActionClientListUpdated = Action<ActionTypeRemote.ClientListUpdated, Member[]>;
 
-export type RemoteAction = ActionStateSetRemote | ActionClientConnected | ActionClientDisconnected;
+export type RemoteAction = ActionStateSetRemote | ActionClientListUpdated;
 
 // Local actions - these are dispatched from this client
 export enum ActionTypeLocal {
+  NameSet = '@@local/NAME_SET',
   StateSet = '@@local/STATE_SET',
 }
 
-export type ActionStateSetLocal = Action<ActionTypeLocal.StateSet, MusicPlayer>;
+export type ActionNameSet = Action<ActionTypeLocal.NameSet, string>;
 
-export const stateSet = (state: MusicPlayer): ActionStateSetLocal => ({
+export const nameSet = (name: string): ActionNameSet => ({
+  type: ActionTypeLocal.NameSet,
+  payload: name,
+});
+
+export type ActionStateSetLocal = Action<ActionTypeLocal.StateSet, Partial<MusicPlayer>>;
+
+export const stateSet = (state: Partial<MusicPlayer> = {}): ActionStateSetLocal => ({
   type: ActionTypeLocal.StateSet,
   payload: state,
 });
 
-export type LocalAction = ActionStateSetLocal;
+export type LocalAction = ActionNameSet | ActionStateSetLocal;
 
 export type AnyAction = LocalAction | RemoteAction;

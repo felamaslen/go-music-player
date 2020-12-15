@@ -1,6 +1,11 @@
+export type Member = {
+  name: string;
+  lastPing: number;
+};
+
 export type MusicPlayer = {
   songId: number | null;
   playing: boolean;
-  playTimeSeconds: number;
-  currentClient: string;
+  currentTime: number;
+  master: string;
 };

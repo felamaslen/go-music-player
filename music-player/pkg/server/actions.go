@@ -10,8 +10,7 @@ type ActionType string
 
 const (
   StateSet ActionType = "STATE_SET"
-  ClientConnected ActionType = "CLIENT_CONNECTED"
-  ClientDisconnected ActionType = "CLIENT_DISCONNECTED"
+  ClientListUpdated = "CLIENT_LIST_UPDATED"
 )
 
 type Action struct {

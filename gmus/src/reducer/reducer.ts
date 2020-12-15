@@ -1,33 +1,45 @@
-import { ActionTypeLocal, ActionTypeRemote, AnyAction } from '../actions';
+import { ActionStateSetRemote, ActionTypeLocal, ActionTypeRemote, AnyAction } from '../actions';
+import { isMaster } from '../selectors';
 import { MusicPlayer } from '../types/state';
+import { GlobalState } from './types';
 
-export type GlobalState = {
-  lastAction: AnyAction | null;
-  player: MusicPlayer;
-  clientList: string[];
-};
-
-const nullPlayer: MusicPlayer = {
+export const nullPlayer: MusicPlayer = {
   songId: null,
   playing: false,
-  playTimeSeconds: 0,
-  currentClient: '',
+  currentTime: 0,
+  master: '',
 };
 
 export const initialState: GlobalState = {
   lastAction: null,
   player: nullPlayer,
   clientList: [],
+  myClientName: '',
 };
+
+function onRemoteStateSet(state: GlobalState, action: ActionStateSetRemote): GlobalState {
+  const isAndWillBeMaster =
+    isMaster(state) && !(action.payload?.master && action.payload.master !== state.player.master);
+
+  const currentTime = isAndWillBeMaster
+    ? state.player.currentTime
+    : action.payload?.currentTime ?? state.player.currentTime;
+
+  return { ...state, player: { ...(action.payload ?? nullPlayer), currentTime } };
+}
 
 export function globalReducer(state: GlobalState, action: AnyAction): GlobalState {
   switch (action.type) {
     case ActionTypeRemote.StateSet:
-    case ActionTypeLocal.StateSet:
-      return { ...state, player: action.payload ?? nullPlayer };
+      return onRemoteStateSet(state, action);
 
-    case ActionTypeRemote.ClientConnected:
-    case ActionTypeRemote.ClientDisconnected:
+    case ActionTypeLocal.StateSet:
+      return { ...state, player: { ...state.player, ...action.payload } };
+
+    case ActionTypeLocal.NameSet:
+      return { ...state, myClientName: action.payload };
+
+    case ActionTypeRemote.ClientListUpdated:
       return { ...state, clientList: action.payload };
 
     default:

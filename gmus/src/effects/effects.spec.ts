@@ -1,4 +1,5 @@
 import { ActionStateSetRemote, ActionTypeLocal, ActionTypeRemote, stateSet } from '../actions';
+import { composedGlobalReducer, initialState } from '../reducer';
 import { MusicPlayer } from '../types/state';
 import { globalEffects } from './effects';
 
@@ -10,11 +11,11 @@ describe(globalEffects.name, () => {
       const localPlayer: MusicPlayer = {
         songId: 123,
         playing: false,
-        playTimeSeconds: 83,
-        currentClient: 'my-client',
+        currentTime: 83,
+        master: 'my-client',
       };
 
-      const result = globalEffects(stateSet(localPlayer));
+      const result = globalEffects(composedGlobalReducer(initialState, stateSet(localPlayer)));
 
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
