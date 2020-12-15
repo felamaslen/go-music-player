@@ -27,8 +27,6 @@ func handleClientSubscription(thisPodClients *map[string]*Client) RouteHandler {
       return nil
     }
 
-    l.Verbose("[Client connected] %s\n", clientName)
-
     conn, err := upgrader.Upgrade(w, r, nil)
     if err != nil {
       w.WriteHeader(400)

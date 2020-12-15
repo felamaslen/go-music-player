@@ -1,42 +1,39 @@
 import { Member, MusicPlayer } from '../types/state';
+import { ActionErrorOccurred } from './error';
+import { ActionLocal, ActionRemote, ActionTypeLocal, ActionTypeRemote } from './types';
 
-interface Action<T extends string = string, P = unknown> {
-  type: T;
-  payload: P;
-}
+export * from './types';
 
-export enum ActionTypeRemote {
-  StateSet = 'STATE_SET',
-  ClientListUpdated = 'CLIENT_LIST_UPDATED',
-}
+export type ActionStateSetRemote = ActionRemote<ActionTypeRemote.StateSet, MusicPlayer | null>;
 
-// Remote actions - these only come FROM the socket
-export type ActionStateSetRemote = Action<ActionTypeRemote.StateSet, MusicPlayer | null>;
-
-export type ActionClientListUpdated = Action<ActionTypeRemote.ClientListUpdated, Member[]>;
+export type ActionClientListUpdated = ActionRemote<ActionTypeRemote.ClientListUpdated, Member[]>;
 
 export type RemoteAction = ActionStateSetRemote | ActionClientListUpdated;
 
-// Local actions - these are dispatched from this client
-export enum ActionTypeLocal {
-  NameSet = '@@local/NAME_SET',
-  StateSet = '@@local/STATE_SET',
-}
-
-export type ActionNameSet = Action<ActionTypeLocal.NameSet, string>;
+export type ActionNameSet = ActionLocal<ActionTypeLocal.NameSet, string>;
 
 export const nameSet = (name: string): ActionNameSet => ({
   type: ActionTypeLocal.NameSet,
   payload: name,
 });
 
-export type ActionStateSetLocal = Action<ActionTypeLocal.StateSet, Partial<MusicPlayer>>;
+export type ActionStateSetLocal = ActionLocal<
+  ActionTypeLocal.StateSet,
+  Omit<Partial<MusicPlayer>, 'seekTime'>
+>;
 
 export const stateSet = (state: Partial<MusicPlayer> = {}): ActionStateSetLocal => ({
   type: ActionTypeLocal.StateSet,
   payload: state,
 });
 
-export type LocalAction = ActionNameSet | ActionStateSetLocal;
+export type ActionSeeked = ActionLocal<ActionTypeLocal.Seeked, number>;
+
+export const seeked = (time: number): ActionSeeked => ({
+  type: ActionTypeLocal.Seeked,
+  payload: time,
+});
+
+export type LocalAction = ActionErrorOccurred | ActionNameSet | ActionStateSetLocal | ActionSeeked;
 
 export type AnyAction = LocalAction | RemoteAction;

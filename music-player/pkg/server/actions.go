@@ -32,11 +32,11 @@ func broadcastAction(thisPodClients *map[string]*Client, action *Action) []error
 }
 
 func publishAction(rdb *redis.Client, action *Action) error {
-  payload, err := json.Marshal(action)
+  pubsubPayload, err := json.Marshal(action)
   if err != nil {
     return err
   }
-  if _, err := rdb.Publish(TOPIC_BROADCAST, payload).Result(); err != nil {
+  if _, err := rdb.Publish(TOPIC_BROADCAST, pubsubPayload).Result(); err != nil {
     return err
   }
   return nil

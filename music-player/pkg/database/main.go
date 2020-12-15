@@ -23,7 +23,7 @@ func GetConnection() *sqlx.DB {
     return db
   }
 
-  db := sqlx.MustConnect("pgx", config.GetConfig().DatabaseUrl)
+  db = sqlx.MustConnect("pgx", config.GetConfig().DatabaseUrl)
 
   return db
 }

@@ -30,7 +30,8 @@ type Member struct {
 type MusicPlayer struct {
   SongId int 		`json:"songId"`
   Playing bool 		`json:"playing"`
-  PlayTimeSeconds int 	`json:"currentTime"`
+  CurrentTime float32 	`json:"currentTime"`
+  SeekTime int 		`json:"setTime"`
 
   Master string 	`json:"master"`
 }

@@ -2,7 +2,8 @@ import { nanoid } from 'nanoid';
 import { Dispatch, useCallback, useEffect, useRef, useState } from 'react';
 import { useStorageState } from 'react-storage-hooks';
 
-import { AnyAction } from '../actions';
+import { AnyAction, LocalAction, RemoteAction } from '../actions';
+import { errorOccurred } from '../actions/error';
 import { socketKeepaliveTimeout } from '../constants/system';
 import { globalEffects } from '../effects';
 import { GlobalState } from '../reducer';
@@ -16,23 +17,42 @@ export function useOnMessage(dispatch: Dispatch<AnyAction>): OnMessage {
   return useCallback<OnMessage>(
     ({ data }: MessageEvent<unknown>): void => {
       try {
-        const action = JSON.parse(data as string) as AnyAction;
+        const action = JSON.parse(data as string) as RemoteAction;
         dispatch(action);
       } catch (err) {
-        console.warn('Error parsing message from websocket', err.message);
+        dispatch(errorOccurred(`Error parsing message from websocket: ${err.message}`));
       }
     },
     [dispatch],
   );
 }
 
-export function useDispatchEffects(socket: WebSocket, state: GlobalState): void {
+export function useDispatchWithEffects(
+  state: GlobalState,
+  dispatch: Dispatch<AnyAction>,
+  socket: WebSocket | null,
+): Dispatch<LocalAction> {
+  const [lastAction, setLastAction] = useState<LocalAction | null>(null);
+
+  const dispatchWithEffects = useCallback(
+    (action: LocalAction): void => {
+      setLastAction(action);
+      dispatch(action);
+    },
+    [dispatch],
+  );
+
   useEffect(() => {
-    const remoteEffect = globalEffects(state);
-    if (remoteEffect) {
-      socket.send(JSON.stringify(remoteEffect));
+    if (lastAction) {
+      const effect = globalEffects(state, lastAction);
+      setLastAction(null);
+      if (effect && socket && socket.readyState === socket.OPEN) {
+        socket.send(JSON.stringify(effect));
+      }
     }
-  }, [socket, state]);
+  }, [state, lastAction, socket]);
+
+  return dispatchWithEffects;
 }
 
 export function useSocket(

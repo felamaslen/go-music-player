@@ -3,11 +3,11 @@ import WS from 'jest-websocket-mock';
 import React, { Dispatch } from 'react';
 import * as storageHooks from 'react-storage-hooks';
 
-import { AnyAction, RemoteAction } from '../actions';
+import { AnyAction, LocalAction, RemoteAction } from '../actions';
 import * as effects from '../effects/effects';
 import { GlobalState } from '../reducer';
 
-import { useDispatchEffects, useOnMessage, useSocket } from './socket';
+import { useOnMessage, useDispatchWithEffects, useSocket } from './socket';
 
 jest.mock('nanoid', () => ({
   nanoid: (): string => 'A5v3D',
@@ -49,33 +49,99 @@ describe(useOnMessage.name, () => {
   });
 });
 
-describe(useDispatchEffects.name, () => {
+describe(useDispatchWithEffects.name, () => {
   const someAction = ({
     type: 'SOME_ACTION',
     payload: 'yes',
-  } as unknown) as RemoteAction;
+  } as unknown) as LocalAction;
 
-  const state = {} as GlobalState;
+  const state = ({ my: 'state' } as unknown) as GlobalState;
+
+  const dispatch: Dispatch<AnyAction> = jest.fn();
 
   const socket = ({
     send: jest.fn(),
+    OPEN: WebSocket.OPEN,
+    readyState: WebSocket.OPEN,
   } as unknown) as WebSocket;
 
+  const someEffect = ({
+    type: 'SOME_EFFECT',
+    payload: {
+      fromClient: 'us',
+      data: 'yes',
+    },
+  } as unknown) as RemoteAction;
+
   const TestComponent: React.FC = () => {
-    useDispatchEffects(socket, state);
-    return null;
+    const dispatchWithEffects = useDispatchWithEffects(state, dispatch, socket);
+
+    return (
+      <>
+        <button onClick={(): void => dispatchWithEffects(someAction)}>Dispatch!</button>
+      </>
+    );
   };
 
-  describe('when an action is dispatched locally which produces an effect', () => {
-    it('should send the effect action to the socket', async () => {
-      expect.assertions(2);
+  describe('when an action is dispatched', () => {
+    let globalEffectsSpy: jest.SpyInstance;
 
-      jest.spyOn(effects, 'globalEffects').mockReturnValueOnce(someAction);
+    describe('and no effect is associated', () => {
+      beforeEach(() => {
+        globalEffectsSpy = jest.spyOn(effects, 'globalEffects').mockReturnValueOnce(null);
+      });
 
-      render(<TestComponent />);
+      it('should dispatch the action to the local store', () => {
+        expect.assertions(2);
+        const { getByText } = render(<TestComponent />);
+        act(() => {
+          fireEvent.click(getByText('Dispatch!'));
+        });
 
-      expect(socket.send).toHaveBeenCalledTimes(1);
-      expect(socket.send).toHaveBeenCalledWith(JSON.stringify(someAction));
+        expect(dispatch).toHaveBeenCalledTimes(1);
+        expect(dispatch).toHaveBeenCalledWith(someAction);
+      });
+
+      it('should not send a message to the socket', () => {
+        expect.assertions(1);
+        const { getByText } = render(<TestComponent />);
+        act(() => {
+          fireEvent.click(getByText('Dispatch!'));
+        });
+
+        expect(socket.send).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('and an effect is associated', () => {
+      beforeEach(() => {
+        globalEffectsSpy = jest.spyOn(effects, 'globalEffects').mockReturnValueOnce(someEffect);
+      });
+
+      it('should dispatch the action to the local store', () => {
+        expect.assertions(2);
+        const { getByText } = render(<TestComponent />);
+        act(() => {
+          fireEvent.click(getByText('Dispatch!'));
+        });
+
+        expect(dispatch).toHaveBeenCalledTimes(1);
+        expect(dispatch).toHaveBeenCalledWith(someAction);
+      });
+
+      it('should send a message to the socket', () => {
+        expect.assertions(4);
+        const { getByText } = render(<TestComponent />);
+        act(() => {
+          fireEvent.click(getByText('Dispatch!'));
+        });
+
+        expect(globalEffectsSpy).toHaveBeenCalledTimes(1);
+        expect(globalEffectsSpy).toHaveBeenCalledWith(state, someAction);
+
+        expect(socket.send).toHaveBeenCalledTimes(1);
+        expect(socket.send).toHaveBeenCalledWith(JSON.stringify(someEffect));
+      });
     });
   });
 });

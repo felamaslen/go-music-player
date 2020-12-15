@@ -81,7 +81,6 @@ func (c *Client) subscribeToMe(l *logger.Logger, rdb *redis.Client) {
   for {
     var actionFromClient Action
     if err := c.conn.ReadJSON(&actionFromClient); err != nil {
-      l.Verbose("calling close(c.closeChan) %s\n", c.name)
       close(c.closeChan)
       return
     }
@@ -104,6 +103,8 @@ func (c *Client) subscribeToMe(l *logger.Logger, rdb *redis.Client) {
 }
 
 func (c *Client) onConnect(l *logger.Logger, rdb *redis.Client) error {
+  l.Verbose("[Client connected] %s\n", c.name)
+
   if err := c.exposeToNetwork(l, rdb); err != nil {
     l.Error("Error exposing new client to network: %v\n", err)
     return err

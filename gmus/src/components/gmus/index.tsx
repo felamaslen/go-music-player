@@ -1,20 +1,20 @@
-import { useThrottleCallback } from '@react-hook/throttle';
 import React, { Dispatch, useCallback, useEffect, useRef, useState } from 'react';
 
-import { AnyAction, stateSet } from '../../actions';
+import { LocalAction, seeked, stateSet } from '../../actions';
 import { masterStateUpdateTimeout } from '../../constants/system';
-import { useDispatchEffects, useKeepalive } from '../../hooks/socket';
+import { useKeepalive } from '../../hooks/socket';
 import { GlobalState } from '../../reducer/types';
+import { getSongUrl } from '../../utils/url';
 import { ClientList } from '../client-list';
 import { Player } from '../player';
 
 export type Props = {
   socket: WebSocket;
   state: GlobalState;
-  dispatch: Dispatch<AnyAction>;
+  dispatch: Dispatch<LocalAction>;
 };
 
-function useMaster(dispatch: Dispatch<AnyAction>, isMaster: boolean): void {
+function useMaster(dispatch: Dispatch<LocalAction>, isMaster: boolean): void {
   const masterUpdateTimer = useRef<number>(0);
   useEffect(() => {
     if (isMaster) {
@@ -31,7 +31,6 @@ function useMaster(dispatch: Dispatch<AnyAction>, isMaster: boolean): void {
 
 export const Gmus: React.FC<Props> = ({ socket, state, dispatch }) => {
   useKeepalive(socket);
-  useDispatchEffects(socket, state);
 
   const { clientList, player, myClientName } = state;
 
@@ -50,29 +49,37 @@ export const Gmus: React.FC<Props> = ({ socket, state, dispatch }) => {
         songId: tempSongId,
         currentTime: 0,
         playing: true,
-        master: myClientName,
       }),
     );
-  }, [dispatch, tempSongId, myClientName]);
+  }, [dispatch, tempSongId]);
 
   const playPause = useCallback(() => {
     dispatch(stateSet({ playing: !player.playing }));
   }, [dispatch, player.playing]);
 
+  const takeControl = useCallback(() => {
+    dispatch(stateSet({ master: myClientName }));
+  }, [dispatch, myClientName]);
+
   const onTimeUpdate = useCallback(
     (currentTime: number): void => {
-      if (isMaster) {
-        dispatch(stateSet({ currentTime }));
-      }
+      dispatch(stateSet({ currentTime }));
     },
-    [dispatch, isMaster],
+    [dispatch],
   );
-  const onTimeUpdateThrottled = useThrottleCallback(onTimeUpdate, 1000);
+
+  const seekTo = useCallback(
+    (time: number) => {
+      dispatch(seeked(time));
+    },
+    [dispatch],
+  );
 
   return (
     <div>
       <div>
         <button onClick={playPause}>{player.playing ? 'Pause' : 'Play'}</button>
+        {!isMaster && <button onClick={takeControl}>Take control</button>}
       </div>
       <div>
         <input
@@ -83,6 +90,14 @@ export const Gmus: React.FC<Props> = ({ socket, state, dispatch }) => {
         />
         <button onClick={playSong}>Change track</button>
       </div>
+      <div>
+        <input
+          type="number"
+          onBlur={({ target: { value } }): void => seekTo(Number(value))}
+          min={0}
+          step={0.01}
+        />
+      </div>
       <ClientList myClientName={myClientName} clients={clientList} />
       <div>
         <h6>Player State</h6>
@@ -90,9 +105,11 @@ export const Gmus: React.FC<Props> = ({ socket, state, dispatch }) => {
       </div>
       {isMaster && !!player.songId && (
         <Player
+          src={getSongUrl(player.songId)}
           playing={player.playing}
-          onTimeUpdate={onTimeUpdateThrottled}
-          songId={player.songId}
+          seekTime={player.seekTime}
+          onTimeUpdate={onTimeUpdate}
+          timeUpdateFPS={1}
         />
       )}
     </div>
