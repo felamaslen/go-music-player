@@ -15,6 +15,17 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
         payload: { ...prevState.player, seekTime: action.payload },
       };
 
+    case ActionTypeLocal.MasterRetaken:
+      return {
+        type: ActionTypeRemote.StateSet,
+        payload: {
+          ...prevState.player,
+          playing: false,
+          seekTime: -1,
+          master: prevState.myClientName,
+        },
+      };
+
     default:
       return null;
   }

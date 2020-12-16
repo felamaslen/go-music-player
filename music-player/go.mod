@@ -18,6 +18,7 @@ require (
 	github.com/nxadm/tail v1.4.5 // indirect
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.1
+	github.com/rs/cors v1.7.0
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc // indirect
 	golang.org/x/sys v0.0.0-20201214095126-aec9a390925b // indirect
 )

@@ -1,10 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Reset } from 'styled-reset';
+
 import { Root } from './components/root';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
+    <Reset />
     <Root />
   </React.StrictMode>,
   document.getElementById('root'),

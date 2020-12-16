@@ -2,6 +2,7 @@ import {
   ActionStateSetRemote,
   ActionTypeLocal,
   ActionTypeRemote,
+  masterRetaken,
   seeked,
   stateSet,
 } from '../actions';
@@ -69,6 +70,37 @@ describe(globalEffects.name, () => {
           type: ActionTypeRemote.StateSet,
           payload: { ...state.player, seekTime: 776 },
         });
+      });
+    });
+  });
+
+  describe(ActionTypeLocal.MasterRetaken, () => {
+    const stateMasterWentAway: GlobalState = {
+      ...initialState,
+      clientList: [{ name: 'my-client-name', lastPing: 0 }],
+      player: {
+        songId: 123,
+        playing: true,
+        currentTime: 83,
+        seekTime: 5,
+        master: 'some-master-went-away',
+      },
+      myClientName: 'my-client-name',
+    };
+
+    it('should return a StateSet action informing other clients that we are the new master', () => {
+      expect.assertions(1);
+      const result = globalEffects(stateMasterWentAway, masterRetaken());
+
+      expect(result).toStrictEqual<ActionStateSetRemote>({
+        type: ActionTypeRemote.StateSet,
+        payload: {
+          songId: 123,
+          playing: false,
+          currentTime: 83,
+          seekTime: -1,
+          master: 'my-client-name',
+        },
       });
     });
   });

@@ -10,9 +10,10 @@ export enum ActionTypeLocal {
   NameSet = '@@local/NAME_SET',
   StateSet = '@@local/STATE_SET',
   Seeked = '@@local/SEEKED',
+  MasterRetaken = '@@local/MASTER_RETAKEN',
 }
 
-interface Action<T extends string = string, P = unknown> {
+export interface Action<T extends string = string, P = unknown> {
   type: T;
   payload: P;
 }

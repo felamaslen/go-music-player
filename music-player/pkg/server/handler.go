@@ -21,8 +21,7 @@ func routeHandler(
     if err != nil {
       l.Error("Unhandled error during request: %v\n", err)
 
-      w.WriteHeader(500)
-      w.Write([]byte("Unhandled error"))
+      http.Error(w, "Unhandled error", http.StatusInternalServerError)
     }
   }
 }

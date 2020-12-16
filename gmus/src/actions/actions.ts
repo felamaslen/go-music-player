@@ -34,6 +34,18 @@ export const seeked = (time: number): ActionSeeked => ({
   payload: time,
 });
 
-export type LocalAction = ActionErrorOccurred | ActionNameSet | ActionStateSetLocal | ActionSeeked;
+export type ActionMasterRetaken = ActionLocal<ActionTypeLocal.MasterRetaken, null>;
+
+export const masterRetaken = (): ActionMasterRetaken => ({
+  type: ActionTypeLocal.MasterRetaken,
+  payload: null,
+});
+
+export type LocalAction =
+  | ActionErrorOccurred
+  | ActionNameSet
+  | ActionStateSetLocal
+  | ActionSeeked
+  | ActionMasterRetaken;
 
 export type AnyAction = LocalAction | RemoteAction;

@@ -4,6 +4,7 @@ import {
   ActionStateSetRemote,
   ActionTypeLocal,
   ActionTypeRemote,
+  masterRetaken,
   nameSet,
   seeked,
   stateSet,
@@ -14,6 +15,23 @@ import { GlobalState } from './types';
 
 describe(globalReducer.name, () => {
   describe(ActionTypeRemote.StateSet, () => {
+    it('should initialise the state', () => {
+      expect.assertions(1);
+      const state: GlobalState = { ...initialState, initialised: false };
+      const result = globalReducer(state, {
+        type: ActionTypeRemote.StateSet,
+        payload: {
+          songId: null,
+          playing: false,
+          currentTime: 0,
+          seekTime: -1,
+          master: 'some-master-client',
+        },
+      });
+
+      expect(result.initialised).toBe(true);
+    });
+
     describe('when the client is master', () => {
       const stateMaster: GlobalState = {
         ...initialState,
@@ -345,6 +363,40 @@ describe(globalReducer.name, () => {
 
         expect(result.player).toBe(stateSlave.player);
       });
+    });
+  });
+
+  describe(ActionTypeLocal.MasterRetaken, () => {
+    const action = masterRetaken();
+
+    const stateBefore: GlobalState = {
+      ...initialState,
+      myClientName: 'my-client',
+      player: {
+        songId: 174,
+        playing: true,
+        master: 'some-master-client',
+        currentTime: 13,
+        seekTime: -1,
+      },
+    };
+
+    it('should set the master player to the current client', () => {
+      expect.assertions(1);
+      const result = globalReducer(stateBefore, action);
+      expect(result.player.master).toBe('my-client');
+    });
+
+    it('should seek to the current time', () => {
+      expect.assertions(1);
+      const result = globalReducer(stateBefore, action);
+      expect(result.player.seekTime).toBe(13);
+    });
+
+    it('should pause the client', () => {
+      expect.assertions(1);
+      const result = globalReducer(stateBefore, action);
+      expect(result.player.playing).toBe(false);
     });
   });
 });

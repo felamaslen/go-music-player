@@ -2,8 +2,9 @@ import React, { Reducer, useCallback, useReducer } from 'react';
 import { AnyAction, nameSet } from '../../actions';
 
 import { useDispatchWithEffects, useOnMessage, useSocket } from '../../hooks/socket';
-import { globalReducer, GlobalState, init, initialState } from '../../reducer';
-import { Gmus } from '../gmus';
+import { globalReducer, GlobalState, initialState } from '../../reducer';
+import { init } from '../../utils/state';
+import { App } from '../app';
 import { Identify } from '../identify';
 
 export const Root: React.FC = () => {
@@ -30,5 +31,5 @@ export const Root: React.FC = () => {
     return <Identify connecting={connecting} onIdentify={onIdentify} />;
   }
 
-  return <Gmus socket={socket} state={state} dispatch={dispatchWithEffects} />;
+  return <App socket={socket} state={state} dispatch={dispatchWithEffects} />;
 };

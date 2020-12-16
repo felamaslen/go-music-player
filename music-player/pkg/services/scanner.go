@@ -2,10 +2,62 @@ package services
 
 import (
 	"github.com/felamaslen/go-music-player/pkg/config"
+	"github.com/felamaslen/go-music-player/pkg/database"
 	"github.com/felamaslen/go-music-player/pkg/logger"
 	"github.com/felamaslen/go-music-player/pkg/read"
 	"github.com/felamaslen/go-music-player/pkg/repository"
 )
+
+const LOG_EVERY = 100;
+
+const BATCH_SIZE = 100
+
+func UpsertSongsFromChannel(songs chan *read.Song) {
+  var l = logger.CreateLogger(config.GetConfig().LogLevel)
+
+  db := database.GetConnection()
+
+  var batch [BATCH_SIZE]*read.Song
+  var batchSize = 0
+  var numAdded = 0
+
+  var processBatch = func() {
+    if batchSize == 0 {
+      return
+    }
+
+    l.Debug("[INSERT] Processing batch\n")
+    if err := repository.BatchUpsertSongs(db, &batch, batchSize); err != nil {
+      panic(err)
+    }
+    l.Debug("[INSERT] Processed batch\n")
+
+    batchSize = 0
+  }
+
+  for {
+    select {
+    case song, more := <- songs:
+      if !more {
+        processBatch()
+        l.Verbose("[INSERT] Finished inserting %d songs\n", numAdded)
+        return
+      }
+
+      batch[batchSize] = song
+      batchSize++
+
+      numAdded++
+      if numAdded % LOG_EVERY == 0 {
+        l.Verbose("[INSERT] Inserted %d\n", numAdded)
+      }
+
+      if batchSize >= BATCH_SIZE {
+        processBatch()
+      }
+    }
+  }
+}
 
 func ScanAndInsert(musicDirectory string) {
   var l = logger.CreateLogger(config.GetConfig().LogLevel)
@@ -17,8 +69,7 @@ func ScanAndInsert(musicDirectory string) {
   songs := read.ReadMultipleFiles(musicDirectory, files)
 
   l.Info("Inserting data...\n")
-  repository.InsertMusicIntoDatabase(songs)
+  UpsertSongsFromChannel(songs)
 
   l.Info("Finished scan and insert\n")
 }
-

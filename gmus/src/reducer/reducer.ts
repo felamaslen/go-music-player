@@ -18,6 +18,7 @@ export const nullPlayer: MusicPlayer = {
 };
 
 export const initialState: GlobalState = {
+  initialised: false,
   player: nullPlayer,
   clientList: [],
   myClientName: '',
@@ -33,7 +34,7 @@ function onRemoteStateSet(state: GlobalState, action: ActionStateSetRemote): Glo
 
   const nextPlayerWithSeekTime: MusicPlayer = { ...nextPlayer, seekTime };
 
-  return { ...state, player: nextPlayerWithSeekTime };
+  return { ...state, initialised: true, player: nextPlayerWithSeekTime };
 }
 
 function onLocalStateSet(state: GlobalState, action: ActionStateSetLocal): GlobalState {
@@ -75,6 +76,17 @@ export function globalReducer(state: GlobalState, action: AnyAction): GlobalStat
         return state;
       }
       return { ...state, player: { ...state.player, seekTime: action.payload } };
+
+    case ActionTypeLocal.MasterRetaken:
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          master: state.myClientName,
+          seekTime: state.player.currentTime,
+          playing: false,
+        },
+      };
 
     default:
       return state;
