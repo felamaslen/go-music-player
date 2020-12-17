@@ -6,6 +6,7 @@ import {
   ActionTypeRemote,
   masterRetaken,
   nameSet,
+  playPaused,
   seeked,
   stateSet,
 } from '../actions';
@@ -397,6 +398,85 @@ describe(globalReducer.name, () => {
       expect.assertions(1);
       const result = globalReducer(stateBefore, action);
       expect(result.player.playing).toBe(false);
+    });
+  });
+
+  describe(ActionTypeLocal.PlayPaused, () => {
+    const action = playPaused();
+
+    describe('when the current client is master', () => {
+      const stateMaster: GlobalState = {
+        ...initialState,
+        myClientName: 'my-client',
+        player: {
+          ...nullPlayer,
+          master: 'my-client',
+        },
+      };
+
+      describe('when playing', () => {
+        const statePlaying: GlobalState = {
+          ...stateMaster,
+          player: {
+            ...stateMaster.player,
+            songId: 123,
+            playing: true,
+          },
+        };
+
+        it('should set playing=false', () => {
+          expect.assertions(1);
+          const result = globalReducer(statePlaying, action);
+
+          expect(result.player).toStrictEqual<MusicPlayer>({
+            ...stateMaster.player,
+            songId: 123,
+            playing: false,
+          });
+        });
+      });
+
+      describe('when not playing', () => {
+        const statePaused: GlobalState = {
+          ...stateMaster,
+          player: {
+            ...stateMaster.player,
+            songId: 123,
+            playing: false,
+          },
+        };
+
+        it('should set playing=true', () => {
+          expect.assertions(1);
+          const result = globalReducer(statePaused, action);
+
+          expect(result.player).toStrictEqual<MusicPlayer>({
+            ...stateMaster.player,
+            songId: 123,
+            playing: true,
+          });
+        });
+      });
+    });
+
+    describe('when the current client is a slave', () => {
+      const stateSlave: GlobalState = {
+        ...initialState,
+        myClientName: 'my-client',
+        player: {
+          ...initialState.player,
+          songId: 123,
+          playing: true,
+          master: 'some-master-client',
+        },
+      };
+
+      it('should not update the state optimistically', () => {
+        expect.assertions(1);
+        const result = globalReducer(stateSlave, action);
+
+        expect(result.player).toBe(stateSlave.player);
+      });
     });
   });
 });

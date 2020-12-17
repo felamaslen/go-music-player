@@ -88,6 +88,12 @@ export function globalReducer(state: GlobalState, action: AnyAction): GlobalStat
         },
       };
 
+    case ActionTypeLocal.PlayPaused:
+      if (!isMaster(state)) {
+        return state;
+      }
+      return { ...state, player: { ...state.player, playing: !state.player.playing } };
+
     default:
       return state;
   }

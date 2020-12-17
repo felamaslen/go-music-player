@@ -3,6 +3,7 @@ import {
   ActionTypeLocal,
   ActionTypeRemote,
   masterRetaken,
+  playPaused,
   seeked,
   stateSet,
 } from '../actions';
@@ -101,6 +102,50 @@ describe(globalEffects.name, () => {
           seekTime: -1,
           master: 'my-client-name',
         },
+      });
+    });
+  });
+
+  describe(ActionTypeLocal.PlayPaused, () => {
+    const statePriorMaster: GlobalState = {
+      ...initialState,
+      player: {
+        songId: 123,
+        playing: true,
+        currentTime: 83,
+        seekTime: 5,
+        master: 'some-master-client',
+      },
+      myClientName: 'some-master-client',
+    };
+
+    describe('when the client is master', () => {
+      it('should return null', () => {
+        expect.assertions(1);
+        expect(globalEffects(statePriorMaster, playPaused())).toBeNull();
+      });
+    });
+
+    describe('when the client is a slave', () => {
+      const stateSlave: GlobalState = {
+        ...statePriorMaster,
+        myClientName: 'some-slave-client',
+      };
+
+      it('should return a StateSet action informing other clients of the updated playing state', () => {
+        expect.assertions(1);
+        const result = globalEffects(stateSlave, playPaused());
+
+        expect(result).toStrictEqual<ActionStateSetRemote>({
+          type: ActionTypeRemote.StateSet,
+          payload: {
+            songId: 123,
+            playing: false,
+            currentTime: 83,
+            seekTime: 5,
+            master: 'some-master-client',
+          },
+        });
       });
     });
   });

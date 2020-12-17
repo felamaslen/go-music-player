@@ -1,4 +1,4 @@
-import { loggedOut, stateSet } from '../../../actions';
+import { loggedOut, playPaused, stateSet } from '../../../actions';
 import { ActionKeyPressed, ActionTypeKeyPressed, Keys } from '../../../hooks/vim';
 import { Song } from '../../../types';
 import {
@@ -153,6 +153,17 @@ describe(cmusUIReducer.name, () => {
             expect(result.library.modeWindow).toBe(toModeWindow);
           });
         });
+      });
+    });
+
+    describe(Keys.C, () => {
+      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.C };
+
+      it('should set the globalAction to play/pause', () => {
+        expect.assertions(2);
+        const result = cmusUIReducer(stateLibrary, action);
+        expect(result.globalAction).toStrictEqual(playPaused());
+        expect(result.globalActionSerialNumber).toBe(stateLibrary.globalActionSerialNumber + 1);
       });
     });
 

@@ -7,6 +7,7 @@ export const Keys = {
   space: ' ',
   colon: ':',
   '1': '1',
+  C: 'c',
   J: 'j',
   K: 'k',
 };

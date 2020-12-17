@@ -1,6 +1,6 @@
 import { createContext, Dispatch } from 'react';
 
-import { LocalAction, loggedOut, stateSet } from '../../../actions';
+import { LocalAction, loggedOut, playPaused, stateSet } from '../../../actions';
 import { nullDispatch } from '../../../context/state';
 import { ActionTypeKeyPressed, Keys } from '../../../hooks/vim';
 import { scrollThroughItems } from '../../../utils/delta';
@@ -173,6 +173,9 @@ function handleKeyPress(state: CmusUIState, key: string): CmusUIState {
       }
 
       return state;
+
+    case Keys.C:
+      return withGlobalAction(state, playPaused());
 
     case Keys.J:
       return handleScrollDown(state);

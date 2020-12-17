@@ -37,11 +37,18 @@ export const seeked = (time: number): ActionSeeked => ({
   payload: time,
 });
 
-export type ActionMasterRetaken = ActionLocal<ActionTypeLocal.MasterRetaken, null>;
+export type ActionMasterRetaken = ActionLocal<ActionTypeLocal.MasterRetaken, void>;
 
 export const masterRetaken = (): ActionMasterRetaken => ({
   type: ActionTypeLocal.MasterRetaken,
-  payload: null,
+  payload: undefined,
+});
+
+export type ActionPlayPaused = ActionLocal<ActionTypeLocal.PlayPaused, void>;
+
+export const playPaused = (): ActionPlayPaused => ({
+  type: ActionTypeLocal.PlayPaused,
+  payload: undefined,
 });
 
 export type LocalAction =
@@ -50,6 +57,7 @@ export type LocalAction =
   | ActionNameSet
   | ActionStateSetLocal
   | ActionSeeked
+  | ActionPlayPaused
   | ActionMasterRetaken;
 
 export type AnyAction = LocalAction | RemoteAction;

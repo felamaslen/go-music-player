@@ -12,6 +12,7 @@ export enum ActionTypeLocal {
   StateSet = '@@local/STATE_SET',
   Seeked = '@@local/SEEKED',
   MasterRetaken = '@@local/MASTER_RETAKEN',
+  PlayPaused = '@@local/PLAY_PAUSED',
 }
 
 export interface Action<T extends string = string, P = unknown> {
