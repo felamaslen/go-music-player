@@ -8,68 +8,68 @@ import (
 	"github.com/felamaslen/go-music-player/pkg/repository"
 )
 
-const LOG_EVERY = 100;
+const LOG_EVERY = 100
 
 const BATCH_SIZE = 100
 
 func UpsertSongsFromChannel(songs chan *read.Song) {
-  var l = logger.CreateLogger(config.GetConfig().LogLevel)
+	var l = logger.CreateLogger(config.GetConfig().LogLevel)
 
-  db := database.GetConnection()
+	db := database.GetConnection()
 
-  var batch [BATCH_SIZE]*read.Song
-  var batchSize = 0
-  var numAdded = 0
+	var batch [BATCH_SIZE]*read.Song
+	var batchSize = 0
+	var numAdded = 0
 
-  var processBatch = func() {
-    if batchSize == 0 {
-      return
-    }
+	var processBatch = func() {
+		if batchSize == 0 {
+			return
+		}
 
-    l.Debug("[INSERT] Processing batch\n")
-    if err := repository.BatchUpsertSongs(db, &batch, batchSize); err != nil {
-      panic(err)
-    }
-    l.Debug("[INSERT] Processed batch\n")
+		l.Debug("[INSERT] Processing batch\n")
+		if err := repository.BatchUpsertSongs(db, &batch, batchSize); err != nil {
+			panic(err)
+		}
+		l.Debug("[INSERT] Processed batch\n")
 
-    batchSize = 0
-  }
+		batchSize = 0
+	}
 
-  for {
-    select {
-    case song, more := <- songs:
-      if !more {
-        processBatch()
-        l.Verbose("[INSERT] Finished inserting %d songs\n", numAdded)
-        return
-      }
+	for {
+		select {
+		case song, more := <-songs:
+			if !more {
+				processBatch()
+				l.Verbose("[INSERT] Finished inserting %d songs\n", numAdded)
+				return
+			}
 
-      batch[batchSize] = song
-      batchSize++
+			batch[batchSize] = song
+			batchSize++
 
-      numAdded++
-      if numAdded % LOG_EVERY == 0 {
-        l.Verbose("[INSERT] Inserted %d\n", numAdded)
-      }
+			numAdded++
+			if numAdded%LOG_EVERY == 0 {
+				l.Verbose("[INSERT] Inserted %d\n", numAdded)
+			}
 
-      if batchSize >= BATCH_SIZE {
-        processBatch()
-      }
-    }
-  }
+			if batchSize >= BATCH_SIZE {
+				processBatch()
+			}
+		}
+	}
 }
 
 func ScanAndInsert(musicDirectory string) {
-  var l = logger.CreateLogger(config.GetConfig().LogLevel)
+	var l = logger.CreateLogger(config.GetConfig().LogLevel)
 
-  l.Info("Scanning directory for files...\n")
-  files := read.ScanDirectory(musicDirectory)
+	l.Info("Scanning directory for files...\n")
+	files := read.ScanDirectory(musicDirectory)
 
-  l.Info("Reading files...\n")
-  songs := read.ReadMultipleFiles(musicDirectory, files)
+	l.Info("Reading files...\n")
+	songs := read.ReadMultipleFiles(musicDirectory, files)
 
-  l.Info("Inserting data...\n")
-  UpsertSongsFromChannel(songs)
+	l.Info("Inserting data...\n")
+	UpsertSongsFromChannel(songs)
 
-  l.Info("Finished scan and insert\n")
+	l.Info("Finished scan and insert\n")
 }

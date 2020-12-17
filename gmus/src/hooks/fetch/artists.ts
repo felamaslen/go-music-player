@@ -7,19 +7,10 @@ import { useCancellableRequest } from '../request';
 
 type ArtistsResponse = {
   artists: string[];
-  more: boolean;
 };
 
-type ArtistsQuery = {
-  limit: number;
-  page: number;
-};
-
-const sendArtistsRequest = (
-  axios: AxiosInstance,
-  query: ArtistsQuery,
-): Promise<AxiosResponse<ArtistsResponse>> =>
-  axios.get(`${getApiUrl()}/artists?limit=${query.limit}&page=${query.page}`);
+const sendArtistsRequest = (axios: AxiosInstance): Promise<AxiosResponse<ArtistsResponse>> =>
+  axios.get(`${getApiUrl()}/artists`);
 
 type AlbumsResponse = {
   artist: string;
@@ -51,40 +42,24 @@ const sendSongsRequest = (
 
 export function useArtists(): ArtistsResponse & {
   fetching: boolean;
-  fetchMore: () => void;
 } {
-  const [limit] = useState<number>(100);
-  const [page, setPage] = useState<number>(0);
-
   const [artists, setArtists] = useState<string[]>([]);
-  const [more, setMore] = useState<boolean>(true);
 
   const [pause, setPause] = useState<boolean>(false);
 
-  const query = useMemo<ArtistsQuery>(() => ({ limit, page }), [limit, page]);
-
   const handleResponse = useCallback((response: ArtistsResponse) => {
-    setMore(response.more);
     setArtists((last) => Array.from(new Set([...last, ...response.artists])));
     setPause(true);
   }, []);
 
-  const fetching = useCancellableRequest<ArtistsQuery, ArtistsResponse>({
-    query,
+  const fetching = useCancellableRequest<void, ArtistsResponse>({
+    query: undefined,
     pause,
     sendRequest: sendArtistsRequest,
     handleResponse,
   });
 
-  const fetchMore = useCallback(() => {
-    if (!more) {
-      return;
-    }
-    setPage((last) => last + 1);
-    setPause(false);
-  }, [more]);
-
-  return { artists, more, fetching, fetchMore };
+  return { artists, fetching };
 }
 
 export function useArtistsAlbumsAndSongs(

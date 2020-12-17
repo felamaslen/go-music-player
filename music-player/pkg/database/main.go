@@ -19,34 +19,34 @@ import (
 var db *sqlx.DB
 
 func GetConnection() *sqlx.DB {
-  if (db != nil) {
-    return db
-  }
+	if db != nil {
+		return db
+	}
 
-  db = sqlx.MustConnect("pgx", config.GetConfig().DatabaseUrl)
+	db = sqlx.MustConnect("pgx", config.GetConfig().DatabaseUrl)
 
-  return db
+	return db
 }
 
 func EndPool() {
-  if (db == nil) {
-    return
-  }
+	if db == nil {
+		return
+	}
 
-  db.Close()
+	db.Close()
 }
 
 func MigrateDatabase() {
-  cwd, err := os.Getwd()
-  if err != nil {
-    log.Fatal("Error getting directory:", err)
-    return
-  }
-  directoryUrl := fmt.Sprintf("file://%s", filepath.Join(cwd, "migrations"))
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Error getting directory:", err)
+		return
+	}
+	directoryUrl := fmt.Sprintf("file://%s", filepath.Join(cwd, "migrations"))
 
-  m, err := migrate.New(directoryUrl, config.GetConfig().DatabaseUrl)
-  if err != nil {
-    log.Fatal("Error setting up: ", err)
-  }
-  m.Up()
+	m, err := migrate.New(directoryUrl, config.GetConfig().DatabaseUrl)
+	if err != nil {
+		log.Fatal("Error setting up: ", err)
+	}
+	m.Up()
 }

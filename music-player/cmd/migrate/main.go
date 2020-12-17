@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-  database.MigrateDatabase()
+	database.MigrateDatabase()
 }

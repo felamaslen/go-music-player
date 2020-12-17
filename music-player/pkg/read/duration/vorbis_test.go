@@ -11,11 +11,11 @@ import (
 )
 
 var _ = Describe("Reading ogg vorbis duration", func() {
-  It("should get the correct duration in seconds", func() {
-    file, _ := os.Open("pkg/read/testdata/file_example_OOG_1MG.ogg")
+	It("should get the correct duration in seconds", func() {
+		file, _ := os.Open("pkg/read/testdata/file_example_OOG_1MG.ogg")
 
-    result := duration.GetSongDurationSecondsVorbis(file)
+		result := duration.GetSongDurationSecondsVorbis(file)
 
-    Expect(result).To(Equal(74))
-  })
+		Expect(result).To(Equal(74))
+	})
 })

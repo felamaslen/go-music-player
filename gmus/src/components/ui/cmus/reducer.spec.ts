@@ -175,6 +175,15 @@ describe(cmusUIReducer.name, () => {
           const stateArtistMode: CmusUIState = {
             ...stateLibrary,
             artists: ['Artist A', 'Artist B'],
+            artistAlbums: {
+              'Artist A': ['Album 1', 'Album 2'],
+            },
+            artistSongs: {
+              'Artist A': [
+                { id: 456, album: 'Album 2' } as Song,
+                { id: 123, album: 'Album 1' } as Song,
+              ],
+            },
             library: {
               ...stateLibrary.library,
               activeArtist: 'Artist A',
@@ -214,6 +223,31 @@ describe(cmusUIReducer.name, () => {
               expect(result.library.activeSongId).toBeNull();
             });
           });
+
+          describe('when the current artist is expanded', () => {
+            const stateArtistModeWithAlbums: CmusUIState = {
+              ...stateArtistMode,
+              library: {
+                ...stateArtistMode.library,
+                expandedArtists: ['Artist A'],
+              },
+            };
+
+            it('should select the next album', () => {
+              expect.assertions(2);
+              const result = cmusUIReducer(stateArtistModeWithAlbums, action);
+
+              expect(result.library.activeArtist).toBe('Artist A');
+              expect(result.library.activeAlbum).toBe('Album 1');
+            });
+
+            it('should set the active song ID to the first matching the album', () => {
+              expect.assertions(1);
+              const result = cmusUIReducer(stateArtistModeWithAlbums, action);
+
+              expect(result.library.activeSongId).toBe(123);
+            });
+          });
         });
 
         describe('when in the song list mode', () => {
@@ -249,6 +283,15 @@ describe(cmusUIReducer.name, () => {
           const stateArtistMode: CmusUIState = {
             ...stateLibrary,
             artists: ['Artist A', 'Artist B'],
+            artistAlbums: {
+              'Artist B': ['Album 1', 'Album 2'],
+            },
+            artistSongs: {
+              'Artist B': [
+                { id: 456, album: 'Album 2' } as Song,
+                { id: 123, album: 'Album 1' } as Song,
+              ],
+            },
             library: {
               ...stateLibrary.library,
               activeArtist: 'Artist B',
@@ -286,6 +329,32 @@ describe(cmusUIReducer.name, () => {
               const result = cmusUIReducer(state, action);
 
               expect(result.library.activeSongId).toBeNull();
+            });
+          });
+
+          describe('when the current artist is expanded', () => {
+            const stateArtistModeWithAlbums: CmusUIState = {
+              ...stateArtistMode,
+              library: {
+                ...stateArtistMode.library,
+                expandedArtists: ['Artist B'],
+                activeAlbum: 'Album 2',
+              },
+            };
+
+            it('should select the previous album', () => {
+              expect.assertions(2);
+              const result = cmusUIReducer(stateArtistModeWithAlbums, action);
+
+              expect(result.library.activeArtist).toBe('Artist B');
+              expect(result.library.activeAlbum).toBe('Album 1');
+            });
+
+            it('should set the active song ID to the first matching the album', () => {
+              expect.assertions(1);
+              const result = cmusUIReducer(stateArtistModeWithAlbums, action);
+
+              expect(result.library.activeSongId).toBe(123);
             });
           });
         });

@@ -3,6 +3,7 @@ import { createContext, Dispatch } from 'react';
 import { LocalAction, loggedOut, playPaused, stateSet } from '../../../actions';
 import { nullDispatch } from '../../../context/state';
 import { ActionTypeKeyPressed, Keys } from '../../../hooks/vim';
+import { Song } from '../../../types';
 import { scrollThroughItems } from '../../../utils/delta';
 import {
   ArtistAlbumsLoaded,
@@ -12,6 +13,7 @@ import {
   CmusUIActionType,
 } from './actions';
 import { CmusUIState, LibraryModeWindow, Overlay, View } from './types';
+import { getNextActiveArtistAndAlbum } from './utils/scroll';
 
 export const initialCmusUIState: CmusUIState = {
   globalAction: null,
@@ -54,28 +56,41 @@ const switchLibraryMode = (state: CmusUIState): CmusUIState => ({
   },
 });
 
-const setActiveSongIdFromActiveArtist = (state: CmusUIState): CmusUIState => ({
-  ...state,
-  library: {
-    ...state.library,
-    activeSongId: state.library.activeArtist
-      ? state.artistSongs[state.library.activeArtist]?.[0]?.id ?? null
-      : null,
-  },
-});
+function getActiveSongIdFromActiveArtistAlbum(
+  activeArtist: string | null,
+  activeAlbum: string | null,
+  artistSongs: Record<string, Song[]>,
+): number | null {
+  if (!activeArtist) {
+    return null;
+  }
+  const songs = artistSongs[activeArtist] ?? [];
+  if (!activeAlbum) {
+    return songs[0]?.id ?? null;
+  }
+  return songs.find((compare) => compare.album === activeAlbum)?.id ?? null;
+}
 
-const scrollArtists = (state: CmusUIState, delta: number): CmusUIState =>
-  setActiveSongIdFromActiveArtist({
+const scrollArtists = (state: CmusUIState, delta: 1 | -1): CmusUIState => {
+  const { artist, album } = getNextActiveArtistAndAlbum(
+    state.artists,
+    state.artistAlbums,
+    state.library.activeArtist,
+    state.library.activeAlbum,
+    state.library.expandedArtists,
+    delta,
+  );
+
+  return {
     ...state,
     library: {
       ...state.library,
-      activeArtist: scrollThroughItems(
-        state.artists,
-        (compare) => compare === state.library.activeArtist,
-        delta,
-      ),
+      activeArtist: artist,
+      activeAlbum: album,
+      activeSongId: getActiveSongIdFromActiveArtistAlbum(artist, album, state.artistSongs),
     },
-  });
+  };
+};
 
 const scrollSongs = (state: CmusUIState, delta: number): CmusUIState =>
   state.library.activeArtist

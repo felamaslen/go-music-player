@@ -9,22 +9,22 @@ import (
 )
 
 func ChangeToRootDir() {
-  _, filename, _, _ := runtime.Caller(0)
-  dir := path.Join(path.Dir(filename), "../..")
-  err := os.Chdir(dir)
-  if err != nil {
-    panic(err)
-  }
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "../..")
+	err := os.Chdir(dir)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func init() {
-  ChangeToRootDir()
+	ChangeToRootDir()
 }
 
 func PrepareDatabaseForTesting() {
-  database.MigrateDatabase()
+	database.MigrateDatabase()
 
-  db := database.GetConnection()
+	db := database.GetConnection()
 
-  db.MustExec("truncate table songs")
+	db.MustExec("truncate table songs")
 }

@@ -7,12 +7,12 @@ import (
 )
 
 func main() {
-  var libraryDirectory = config.GetConfig().LibraryDirectory
-  if len(libraryDirectory) == 0 {
-    panic("Must set LIBRARY_DIRECTORY")
-  }
+	var libraryDirectory = config.GetConfig().LibraryDirectory
+	if len(libraryDirectory) == 0 {
+		panic("Must set LIBRARY_DIRECTORY")
+	}
 
-  services.ScanAndInsert(libraryDirectory)
+	services.ScanAndInsert(libraryDirectory)
 
-  database.EndPool()
+	database.EndPool()
 }

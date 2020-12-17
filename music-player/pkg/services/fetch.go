@@ -6,19 +6,19 @@ import (
 )
 
 func GetArtists(limit int, page int) (artists *[]string, more bool) {
-  db := database.GetConnection()
+	db := database.GetConnection()
 
-  artists, err := repository.SelectPagedArtists(db, limit, limit * page)
-  if err != nil {
-    panic(err)
-  }
+	artists, err := repository.SelectPagedArtists(db, limit, limit*page)
+	if err != nil {
+		panic(err)
+	}
 
-  total, err := repository.SelectArtistCount(db)
-  if err != nil {
-    panic(err)
-  }
+	total, err := repository.SelectArtistCount(db)
+	if err != nil {
+		panic(err)
+	}
 
-  more = limit * (1 + page) < total
+	more = limit*(1+page) < total
 
-  return
+	return
 }

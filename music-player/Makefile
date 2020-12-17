@@ -13,6 +13,9 @@ build:
 clean:
 	mkdir -p bin && rm -rf ./bin/*
 
+fmt:
+	go fmt github.com/felamaslen/go-music-player/...
+
 test:
 	GO_ENV=test ginkgo ./...
 

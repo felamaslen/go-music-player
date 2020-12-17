@@ -7,15 +7,15 @@ import (
 )
 
 type Client struct {
-  name string
-  conn *websocket.Conn
-  closeChan chan bool
-  mu sync.Mutex
+	name      string
+	conn      *websocket.Conn
+	closeChan chan bool
+	mu        sync.Mutex
 }
 
 type Member struct {
-  Name string 		`json:"name"`
-  LastPing int64 	`json:"lastPing"`
+	Name     string `json:"name"`
+	LastPing int64  `json:"lastPing"`
 }
 
 // Except for the client list, the application is stateless server-side.
@@ -31,10 +31,10 @@ type Member struct {
 // 2. Keeping the server updated regularly about the current state
 
 type MusicPlayer struct {
-  SongId int 		`json:"songId"`
-  Playing bool 		`json:"playing"`
-  CurrentTime float32 	`json:"currentTime"`
-  SeekTime int 		`json:"setTime"`
+	SongId      int     `json:"songId"`
+	Playing     bool    `json:"playing"`
+	CurrentTime float32 `json:"currentTime"`
+	SeekTime    int     `json:"setTime"`
 
-  Master string 	`json:"master"`
+	Master string `json:"master"`
 }
