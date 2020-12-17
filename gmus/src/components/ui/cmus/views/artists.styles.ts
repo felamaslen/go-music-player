@@ -1,10 +1,10 @@
 import { rem } from 'polished';
 import styled from 'styled-components';
 
-import { ActiveHighlightRow, FlexColumn } from '../styled/layout';
+import { ActiveHighlightRow, FlexColumn, FlexList } from '../styled/layout';
 
-export const Container = styled(FlexColumn)`
-  flex: 1;
+export const Container = styled(FlexList)`
+  flex: 1 0 0;
 `;
 
 export const ArtistRow = styled(FlexColumn)``;

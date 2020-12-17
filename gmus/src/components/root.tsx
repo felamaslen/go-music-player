@@ -1,11 +1,11 @@
 import React, { Reducer, useCallback, useReducer } from 'react';
-import { AnyAction, nameSet } from '../../actions';
 
-import { useDispatchWithEffects, useOnMessage, useSocket } from '../../hooks/socket';
-import { globalReducer, GlobalState, initialState } from '../../reducer';
-import { init } from '../../utils/state';
-import { App } from '../app';
-import { Identify } from '../identify';
+import { AnyAction, nameSet } from '../actions';
+import { useDispatchWithEffects, useOnMessage, useSocket } from '../hooks/socket';
+import { globalReducer, GlobalState, initialState } from '../reducer';
+import { init } from '../utils/state';
+import { App } from './app';
+import { Identify } from './identify';
 
 export const Root: React.FC = () => {
   const [state, dispatch] = useReducer<Reducer<GlobalState, AnyAction>, GlobalState>(

@@ -3,7 +3,7 @@ import React, { useContext, useMemo } from 'react';
 import { Song } from '../../../../types';
 import { CmusUIStateContext } from '../reducer';
 
-import * as Styled from './styles';
+import * as Styled from './songs.styles';
 
 type Props = {
   active: boolean;

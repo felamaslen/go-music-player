@@ -5,7 +5,7 @@ import React from 'react';
 import { StateContext } from '../../../../context/state';
 import { GlobalState, initialState, nullPlayer } from '../../../../reducer';
 
-import { PlayerStatus } from '.';
+import { PlayerStatus } from './status';
 
 describe(PlayerStatus.name, () => {
   const nockSongInfo = (id: number): nock.Scope =>

@@ -1,11 +1,11 @@
 import styled from 'styled-components';
 
-import { ActiveHighlightRow, FlexRow } from '../styled/layout';
+import { ActiveHighlightRow, FlexList } from '../styled/layout';
 import { colors } from '../styled/variables';
 
-export const Container = styled(FlexRow)`
+export const Container = styled(FlexList)`
   border-left: 1px solid ${colors.border};
-  flex: 2;
+  flex: 2 0 0;
   flex-flow: column;
   height: 100%;
 `;

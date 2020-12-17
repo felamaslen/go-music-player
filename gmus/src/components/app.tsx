@@ -1,15 +1,15 @@
 import React, { Dispatch, useCallback } from 'react';
 
-import { LocalAction, stateSet } from '../../actions';
-import { DispatchContext, StateContext } from '../../context/state';
-import { useMaster } from '../../hooks/master';
-import { useKeepalive } from '../../hooks/socket';
-import { GlobalState } from '../../reducer/types';
-import { isMaster } from '../../selectors';
-import { getSongUrl } from '../../utils/url';
-import { Player } from '../player';
-import { uiProviders } from '../ui';
-import { UIProvider } from '../ui/types';
+import { LocalAction, stateSet } from '../actions';
+import { DispatchContext, StateContext } from '../context/state';
+import { useMaster } from '../hooks/master';
+import { useKeepalive } from '../hooks/socket';
+import { GlobalState } from '../reducer';
+import { isMaster } from '../selectors';
+import { getSongUrl } from '../utils/url';
+import { Player } from './player';
+import { uiProviders } from './ui';
+import { UIProvider } from './ui/types';
 
 export type Props = {
   socket: WebSocket;

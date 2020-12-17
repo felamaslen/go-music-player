@@ -9,7 +9,7 @@ import {
   commandSet,
 } from './actions';
 import { cmusUIReducer, initialCmusUIState } from './reducer';
-import { CmusUIState, LibraryModeWindow, View } from './types';
+import { CmusUIState, LibraryModeWindow, Overlay, View } from './types';
 
 describe(cmusUIReducer.name, () => {
   const stateLibrary: CmusUIState = {
@@ -392,6 +392,26 @@ describe(cmusUIReducer.name, () => {
       });
     });
 
+    describe(Keys.esc, () => {
+      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.esc };
+
+      describe.each`
+        overlay
+        ${Overlay.Help}
+      `('when the overlay is set to $overlay', ({ overlay }) => {
+        const stateWithOverlay: CmusUIState = {
+          ...initialCmusUIState,
+          overlay,
+        };
+
+        it('should reset the overlay', () => {
+          expect.assertions(1);
+          const result = cmusUIReducer(stateWithOverlay, action);
+          expect(result.overlay).toBeNull();
+        });
+      });
+    });
+
     describe(Keys.colon, () => {
       const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.colon };
 
@@ -399,6 +419,16 @@ describe(cmusUIReducer.name, () => {
         expect.assertions(1);
         const result = cmusUIReducer(stateLibrary, action);
         expect(result.commandMode).toBe(true);
+      });
+    });
+
+    describe(Keys.question, () => {
+      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.question };
+
+      it('should set the overlay to help mode', () => {
+        expect.assertions(1);
+        const result = cmusUIReducer(initialCmusUIState, action);
+        expect(result.overlay).toBe(Overlay.Help);
       });
     });
   });

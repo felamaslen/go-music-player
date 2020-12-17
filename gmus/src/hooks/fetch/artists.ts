@@ -47,7 +47,7 @@ const sendSongsRequest = (
   axios: AxiosInstance,
   query: SongsQuery,
 ): Promise<AxiosResponse<SongsResponse>> =>
-  axios.get(`${getApiUrl()}/songs?artist=${query.artist}`);
+  axios.get(`${getApiUrl()}/songs?artist=${encodeURIComponent(query.artist)}`);
 
 export function useArtists(): ArtistsResponse & {
   fetching: boolean;

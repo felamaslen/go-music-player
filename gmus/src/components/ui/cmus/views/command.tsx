@@ -5,7 +5,7 @@ import { Keys } from '../../../../hooks/vim';
 import { commandSet } from '../actions';
 import { CmusUIDispatchContext, CmusUIStateContext } from '../reducer';
 
-import * as Styled from './styles';
+import * as Styled from './command.styles';
 
 enum EndState {
   Start,

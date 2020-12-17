@@ -11,6 +11,10 @@ export const FlexColumn = styled(FlexRow)`
   flex-flow: column;
 `;
 
+export const NoWrap = styled.div`
+  white-space: nowrap;
+`;
+
 export const ActiveHighlightRow = styled(FlexRow)<{
   active?: boolean;
   highlight?: boolean;
@@ -39,5 +43,16 @@ export const ActiveHighlightRow = styled(FlexRow)<{
   font-weight: ${({ active, highlight }): CSSProperties['fontWeight'] =>
     active || highlight ? 'bold' : 'normal'};
 
+  white-space: nowrap;
   width: 100%;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+`;
+
+export const FlexList = styled(FlexColumn)`
+  min-width: 0;
 `;

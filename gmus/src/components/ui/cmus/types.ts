@@ -2,7 +2,11 @@ import { LocalAction } from '../../../actions';
 import { Song } from '../../../types/songs';
 
 export enum View {
-  Library,
+  Library = 'Library',
+}
+
+export enum Overlay {
+  Help = 'Help',
 }
 
 export enum LibraryModeWindow {
@@ -15,6 +19,7 @@ export type CmusUIState = {
   globalActionSerialNumber: number;
   view: View;
   commandMode: boolean;
+  overlay: Overlay | null;
   artists: string[];
   artistAlbums: Record<string, string[]>;
   artistSongs: Record<string, Song[]>;

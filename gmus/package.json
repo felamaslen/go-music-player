@@ -1,13 +1,38 @@
 {
   "name": "gmus",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "lint": "eslint src",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felamaslen/go-music-player.git"
+  },
+  "author": "Fela Maslen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/felamaslen/go-music-player/issues"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix"
+    ],
+    "*.ts": [
+      "eslint --fix"
+    ],
+    "*.tsx": [
+      "eslint --fix"
+    ]
   },
   "eslintConfig": {
     "extends": [
@@ -44,7 +69,9 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^7.0.0",
     "eslint-plugin-prettier": "^3.3.0",
+    "husky": "^4.3.6",
     "jest-websocket-mock": "^2.2.0",
+    "lint-staged": "^10.5.3",
     "mock-socket": "^9.0.3",
     "nanoid": "^3.1.20",
     "nock": "^13.0.5",

@@ -20,4 +20,15 @@ export const Wrapper = styled(FlexColumn)`
 
 export const View = styled(FlexRow)`
   flex: 1;
+  overflow: hidden;
+  width: 100%;
+  z-index: 10;
+`;
+
+export const Overlay = styled.div`
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  z-index: 20;
 `;

@@ -8,7 +8,7 @@ import { MusicPlayer, Song } from '../../../../types';
 import { formatTime } from '../../../../utils/time';
 import { getApiUrl } from '../../../../utils/url';
 
-import * as Styled from './styles';
+import * as Styled from './status.styles';
 
 type SongInfoQuery = { id: number };
 

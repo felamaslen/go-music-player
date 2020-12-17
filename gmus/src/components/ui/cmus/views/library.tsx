@@ -3,10 +3,11 @@ import React, { useContext, useEffect } from 'react';
 import { useArtists } from '../../../../hooks/fetch/artists';
 import { artistsSet } from '../actions';
 
-import { Artists } from '../artists';
 import { CmusUIDispatchContext, CmusUIStateContext } from '../reducer';
-import { Songs } from '../songs';
 import { LibraryModeWindow } from '../types';
+
+import { Artists } from './artists';
+import { Songs } from './songs';
 
 export const ViewLibrary: React.FC = () => {
   const dispatchUI = useContext(CmusUIDispatchContext);

@@ -6,6 +6,7 @@ export const Keys = {
   esc: 'Escape',
   space: ' ',
   colon: ':',
+  question: '?',
   '1': '1',
   C: 'c',
   J: 'j',

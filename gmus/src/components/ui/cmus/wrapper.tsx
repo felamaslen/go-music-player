@@ -5,18 +5,21 @@ import { useVimBindings } from '../../../hooks/vim';
 
 import { UIProviderComponent } from '../types';
 import { CmusUIAction } from './actions';
-import { CommandView } from './command';
+
 import {
   CmusUIDispatchContext,
   cmusUIReducer,
   CmusUIStateContext,
   initialCmusUIState,
 } from './reducer';
-import { PlayerStatus } from './status';
+import { CmusUIState, Overlay, View } from './types';
 
-import * as Styled from './styles';
-import { CmusUIState, View } from './types';
+import { CommandView } from './views/command';
+import { HelpDialog } from './views/help';
 import { ViewLibrary } from './views/library';
+import { PlayerStatus } from './views/status';
+
+import * as Styled from './wrapper.styles';
 
 export const CmusUIProvider: UIProviderComponent = () => {
   const dispatch = useContext(DispatchContext);
@@ -38,6 +41,11 @@ export const CmusUIProvider: UIProviderComponent = () => {
       <CmusUIDispatchContext.Provider value={dispatchUI}>
         <Styled.Wrapper>
           <Styled.View>{stateUI.view === View.Library && <ViewLibrary />}</Styled.View>
+          {!!stateUI.overlay && (
+            <>
+              <Styled.Overlay>{stateUI.overlay === Overlay.Help && <HelpDialog />}</Styled.Overlay>
+            </>
+          )}
           <PlayerStatus />
           <CommandView />
         </Styled.Wrapper>

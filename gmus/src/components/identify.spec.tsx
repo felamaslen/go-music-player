@@ -1,6 +1,7 @@
 import { act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
-import { Identify, Props } from './index';
+
+import { Identify, Props } from './identify';
 
 describe(Identify.name, () => {
   const props: Props = {

@@ -11,13 +11,14 @@ import {
   CmusUIAction,
   CmusUIActionType,
 } from './actions';
-import { CmusUIState, LibraryModeWindow, View } from './types';
+import { CmusUIState, LibraryModeWindow, Overlay, View } from './types';
 
 export const initialCmusUIState: CmusUIState = {
   globalAction: null,
   globalActionSerialNumber: 0,
   view: View.Library,
   commandMode: false,
+  overlay: null,
   artists: [],
   artistAlbums: {},
   artistSongs: {},
@@ -173,6 +174,12 @@ function handleKeyPress(state: CmusUIState, key: string): CmusUIState {
       }
 
       return state;
+
+    case Keys.esc:
+      return { ...state, overlay: null };
+
+    case Keys.question:
+      return { ...state, overlay: Overlay.Help };
 
     case Keys.C:
       return withGlobalAction(state, playPaused());
