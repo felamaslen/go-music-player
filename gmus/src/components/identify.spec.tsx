@@ -50,49 +50,5 @@ describe(Identify.name, () => {
       const button = getByText('Connect') as HTMLButtonElement;
       expect(button.disabled).toBe(true);
     });
-
-    it('should display a loading spinner', () => {
-      expect.assertions(1);
-
-      const { container } = render(<Identify {...propsConnecting} />);
-      expect(container).toMatchInlineSnapshot(`
-        <div>
-          <div>
-            <div>
-              <span>
-                Set client name:
-              </span>
-              <input
-                type="text"
-              />
-              <button
-                disabled=""
-              >
-                Connect
-              </button>
-              <div
-                class="css-1d9ls5a"
-              >
-                <div
-                  class="css-18jumju"
-                />
-                <div
-                  class="css-1ix8i79"
-                />
-                <div
-                  class="css-mdd9ud"
-                />
-                <div
-                  class="css-qbu4to"
-                />
-                <div
-                  class="css-1wtwgn9"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      `);
-    });
   });
 });
