@@ -3,7 +3,9 @@ import { Dispatch, useEffect } from 'react';
 export const Keys = {
   tab: 'Tab',
   enter: 'Enter',
+  esc: 'Escape',
   space: ' ',
+  colon: ':',
   '1': '1',
   J: 'j',
   K: 'k',
@@ -18,8 +20,14 @@ export type ActionKeyPressed = {
   key: string;
 };
 
-export function useVimBindings(dispatch: Dispatch<ActionKeyPressed>): void {
+export function useVimBindings(dispatch: Dispatch<ActionKeyPressed>, skip = false): void {
   useEffect(() => {
+    if (skip) {
+      return (): void => {
+        // pass
+      };
+    }
+
     const listener = (event: KeyboardEvent): void => {
       if (!availableKeys.includes(event.key)) {
         return;
@@ -35,5 +43,5 @@ export function useVimBindings(dispatch: Dispatch<ActionKeyPressed>): void {
     return (): void => {
       window.removeEventListener('keydown', listener);
     };
-  }, [dispatch]);
+  }, [dispatch, skip]);
 }

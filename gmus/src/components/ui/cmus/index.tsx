@@ -5,6 +5,7 @@ import { useVimBindings } from '../../../hooks/vim';
 
 import { UIProviderComponent } from '../types';
 import { CmusUIAction } from './actions';
+import { CommandView } from './command';
 import {
   CmusUIDispatchContext,
   cmusUIReducer,
@@ -30,7 +31,7 @@ export const CmusUIProvider: UIProviderComponent = () => {
     }
   }, [dispatch, stateUI.globalAction, stateUI.globalActionSerialNumber]);
 
-  useVimBindings(dispatchUI);
+  useVimBindings(dispatchUI, stateUI.commandMode);
 
   return (
     <CmusUIStateContext.Provider value={stateUI}>
@@ -38,6 +39,7 @@ export const CmusUIProvider: UIProviderComponent = () => {
         <Styled.Wrapper>
           <Styled.View>{stateUI.view === View.Library && <ViewLibrary />}</Styled.View>
           <PlayerStatus />
+          <CommandView />
         </Styled.Wrapper>
       </CmusUIDispatchContext.Provider>
     </CmusUIStateContext.Provider>

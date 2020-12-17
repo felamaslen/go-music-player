@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 import { Dispatch, useCallback, useEffect, useRef, useState } from 'react';
 import { useStorageState } from 'react-storage-hooks';
 
-import { AnyAction, LocalAction, RemoteAction } from '../actions';
+import { ActionTypeLocal, AnyAction, LocalAction, RemoteAction } from '../actions';
 import { errorOccurred } from '../actions/error';
 import { socketKeepaliveTimeout } from '../constants/system';
 import { globalEffects } from '../effects';
@@ -36,10 +36,14 @@ export function useDispatchWithEffects(
 
   const dispatchWithEffects = useCallback(
     (action: LocalAction): void => {
-      setLastAction(action);
-      dispatch(action);
+      if (action.type === ActionTypeLocal.LoggedOut) {
+        socket?.close();
+      } else {
+        setLastAction(action);
+        dispatch(action);
+      }
     },
-    [dispatch],
+    [dispatch, socket],
   );
 
   useEffect(() => {
@@ -68,16 +72,12 @@ export function useSocket(
 } {
   const [storedName, saveName] = useStorageState<string>(localStorage, 'client-name', '');
   const [uniqueName, setUniqueName] = useState<string>(getUniqueName(storedName));
-  const [tempName, setTempName] = useState<string>(storedName);
+  const [tempName, onIdentify] = useState<string>(storedName);
 
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [error, setError] = useState<boolean>(false);
 
   const [connecting, setConnecting] = useState<boolean>(false);
-
-  const onIdentify = useCallback((newName: string) => {
-    setTempName(newName);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +93,7 @@ export function useSocket(
           setError(false);
           setConnecting(false);
 
+          onIdentify('');
           saveName(tempName);
           setUniqueName(uniqueTempName);
 
@@ -104,12 +105,9 @@ export function useSocket(
       ws.onmessage = onMessage;
 
       ws.onclose = (): void => {
-        if (cancelled) {
-          return;
-        }
-
         setError(false);
         setSocket(null);
+        saveName('');
       };
     } else {
       setConnecting(false);
@@ -118,7 +116,6 @@ export function useSocket(
 
     return (): void => {
       cancelled = true;
-      ws?.close();
     };
   }, [onMessage, onLogin, tempName, saveName]);
 

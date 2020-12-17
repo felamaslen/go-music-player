@@ -4,8 +4,11 @@ import React, { Dispatch } from 'react';
 import { ActionKeyPressed, ActionTypeKeyPressed, useVimBindings } from './vim';
 
 describe(useVimBindings.name, () => {
-  const TestComponent: React.FC<{ dispatch: Dispatch<ActionKeyPressed> }> = ({ dispatch }) => {
-    useVimBindings(dispatch);
+  const TestComponent: React.FC<{ dispatch: Dispatch<ActionKeyPressed>; skip?: boolean }> = ({
+    dispatch,
+    skip,
+  }) => {
+    useVimBindings(dispatch, skip);
     return null;
   };
 
@@ -38,6 +41,21 @@ describe(useVimBindings.name, () => {
       act(() => {
         fireEvent.keyDown(window, {
           key: '@',
+        });
+      });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('when skipping', () => {
+    it('should not listen to any keys', () => {
+      expect.assertions(1);
+      render(<TestComponent dispatch={dispatch} skip={true} />);
+
+      act(() => {
+        fireEvent.keyDown(window, {
+          key: 'Tab',
         });
       });
 

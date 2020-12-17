@@ -23,7 +23,7 @@ func broadcastAction(thisPodClients *map[string]*Client, action *Action) []error
   var errors []error
 
   for _, client := range(*thisPodClients) {
-    if err := client.conn.WriteJSON(action); err != nil {
+    if err := client.send(action); err != nil {
       errors = append(errors, err)
     }
   }

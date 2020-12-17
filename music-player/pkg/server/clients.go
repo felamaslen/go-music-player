@@ -47,6 +47,12 @@ func publishClientList(l *logger.Logger, rdb *redis.Client) error {
   return nil
 }
 
+func (c *Client) send(message interface{}) error {
+  c.mu.Lock()
+  defer c.mu.Unlock()
+  return c.conn.WriteJSON(message)
+}
+
 func (c *Client) exposeToNetwork(l *logger.Logger, rdb *redis.Client) error {
   // Expose the client to all pods running the server
   now := time.Now().Unix()
@@ -86,7 +92,7 @@ func (c *Client) subscribeToMe(l *logger.Logger, rdb *redis.Client) {
     }
 
     if actionFromClient.Type == "PING" {
-      c.conn.WriteJSON(Action{
+      c.send(Action{
 	Type: "PONG",
       })
       c.exposeToNetwork(l, rdb)

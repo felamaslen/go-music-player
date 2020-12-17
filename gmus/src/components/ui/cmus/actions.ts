@@ -1,13 +1,12 @@
 import { Action } from '../../../actions';
 import { ActionKeyPressed } from '../../../hooks/vim';
 import { Song } from '../../../types';
-import { LibraryModeWindow } from './types';
 
 export enum CmusUIActionType {
   ArtistsSet = '@@ui/cmus/ARTISTS_SET',
   ArtistAlbumsLoaded = '@@ui/cmus/ARTIST_ALBUMS_LOADED',
   ArtistSongsLoaded = '@@ui/cmus/ARTIST_SONGS_LOADED',
-  LibraryModeSet = '@@ui/cmus/library/MODE_SET',
+  CommandSet = '@@ui/cmus/COMMAND_SET',
 }
 
 export type ArtistsSet = Action<CmusUIActionType.ArtistsSet, string[]>;
@@ -43,16 +42,16 @@ export const artistSongsLoaded = (artist: string, songs: Song[]): ArtistSongsLoa
   payload: { artist, songs },
 });
 
-export type LibraryModeSet = Action<CmusUIActionType.LibraryModeSet, LibraryModeWindow>;
+export type CommandSet = Action<CmusUIActionType.CommandSet, string | null>;
 
-export const libraryModeSet = (mode: LibraryModeWindow): LibraryModeSet => ({
-  type: CmusUIActionType.LibraryModeSet,
-  payload: mode,
+export const commandSet = (command: string | null): CommandSet => ({
+  type: CmusUIActionType.CommandSet,
+  payload: command,
 });
 
 export type CmusUIAction =
   | ArtistsSet
   | ArtistAlbumsLoaded
   | ArtistSongsLoaded
-  | LibraryModeSet
+  | CommandSet
   | ActionKeyPressed;

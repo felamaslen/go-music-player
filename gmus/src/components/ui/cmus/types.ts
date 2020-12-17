@@ -14,6 +14,7 @@ export type CmusUIState = {
   globalAction: LocalAction | null;
   globalActionSerialNumber: number;
   view: View;
+  commandMode: boolean;
   artists: string[];
   artistAlbums: Record<string, string[]>;
   artistSongs: Record<string, Song[]>;

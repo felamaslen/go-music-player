@@ -10,6 +10,9 @@ export type ActionClientListUpdated = ActionRemote<ActionTypeRemote.ClientListUp
 
 export type RemoteAction = ActionStateSetRemote | ActionClientListUpdated;
 
+export type LoggedOut = ActionLocal<ActionTypeLocal.LoggedOut, void>;
+export const loggedOut = (): LoggedOut => ({ type: ActionTypeLocal.LoggedOut, payload: undefined });
+
 export type ActionNameSet = ActionLocal<ActionTypeLocal.NameSet, string>;
 
 export const nameSet = (name: string): ActionNameSet => ({
@@ -42,6 +45,7 @@ export const masterRetaken = (): ActionMasterRetaken => ({
 });
 
 export type LocalAction =
+  | LoggedOut
   | ActionErrorOccurred
   | ActionNameSet
   | ActionStateSetLocal

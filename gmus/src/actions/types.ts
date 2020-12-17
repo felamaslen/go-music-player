@@ -6,6 +6,7 @@ export enum ActionTypeRemote {
 
 // Local actions - these are dispatched from this client
 export enum ActionTypeLocal {
+  LoggedOut = '@@local/LOGGED_OUT',
   ErrorOccurred = '@@local/ERROR_OCCURRED',
   NameSet = '@@local/NAME_SET',
   StateSet = '@@local/STATE_SET',

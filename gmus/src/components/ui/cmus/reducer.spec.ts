@@ -1,4 +1,4 @@
-import { stateSet } from '../../../actions';
+import { loggedOut, stateSet } from '../../../actions';
 import { ActionKeyPressed, ActionTypeKeyPressed, Keys } from '../../../hooks/vim';
 import { Song } from '../../../types';
 import {
@@ -6,7 +6,7 @@ import {
   artistSongsLoaded,
   artistsSet,
   CmusUIActionType,
-  libraryModeSet,
+  commandSet,
 } from './actions';
 import { cmusUIReducer, initialCmusUIState } from './reducer';
 import { CmusUIState, LibraryModeWindow, View } from './types';
@@ -15,6 +15,11 @@ describe(cmusUIReducer.name, () => {
   const stateLibrary: CmusUIState = {
     ...initialCmusUIState,
     view: View.Library,
+  };
+
+  const stateCommandMode: CmusUIState = {
+    ...stateLibrary,
+    commandMode: true,
   };
 
   describe(CmusUIActionType.ArtistsSet, () => {
@@ -97,22 +102,27 @@ describe(cmusUIReducer.name, () => {
     });
   });
 
-  describe(CmusUIActionType.LibraryModeSet, () => {
-    const action = libraryModeSet(LibraryModeWindow.SongList);
+  describe(CmusUIActionType.CommandSet, () => {
+    describe('q', () => {
+      const action = commandSet('q');
 
-    it('should set the library mode window', () => {
-      expect.assertions(1);
-      const result = cmusUIReducer(initialCmusUIState, action);
-      expect(result.library.modeWindow).toBe(LibraryModeWindow.SongList);
+      it('should set a log out global action', () => {
+        expect.assertions(2);
+        const result = cmusUIReducer(stateCommandMode, action);
+        expect(result.commandMode).toBe(false);
+        expect(result.globalAction).toStrictEqual(loggedOut());
+      });
     });
   });
 
   describe('Keypress actions', () => {
     describe(Keys['1'], () => {
+      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys['1'] };
+
       it('should set the view to Library', () => {
         expect.assertions(1);
         const state = ({ ...initialCmusUIState, view: undefined } as unknown) as CmusUIState;
-        const result = cmusUIReducer(state, { type: ActionTypeKeyPressed, key: Keys['1'] });
+        const result = cmusUIReducer(state, action);
 
         expect(result.view).toBe(View.Library);
       });
@@ -368,6 +378,16 @@ describe(cmusUIReducer.name, () => {
             expect(result.globalActionSerialNumber).toBe(1876);
           });
         });
+      });
+    });
+
+    describe(Keys.colon, () => {
+      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.colon };
+
+      it('should enter command mode', () => {
+        expect.assertions(1);
+        const result = cmusUIReducer(stateLibrary, action);
+        expect(result.commandMode).toBe(true);
       });
     });
   });

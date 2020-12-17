@@ -1,6 +1,8 @@
 package server
 
 import (
+	"sync"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -8,6 +10,7 @@ type Client struct {
   name string
   conn *websocket.Conn
   closeChan chan bool
+  mu sync.Mutex
 }
 
 type Member struct {
