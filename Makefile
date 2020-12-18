@@ -8,10 +8,11 @@ build:
 	make build.frontend
 
 test.backend:
-	cd music-player && make test
-test.frontend:
-	cd gmus && yarn test
+	cd gmus-backend && make test
+
+test.frontend.web:
+	cd gmus-web && yarn test
 
 test:
 	make test.backend
-	make test.frontend
+	make test.frontend.web
