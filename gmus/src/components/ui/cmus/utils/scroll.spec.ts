@@ -223,6 +223,44 @@ describe(getNextActiveArtistAndAlbum.name, () => {
       });
     });
   });
+
+  describe('paging', () => {
+    describe.each`
+      expandedArtists | from           | delta | to
+      ${[]}           | ${['A', null]} | ${2}  | ${['C', null]}
+      ${[]}           | ${['B', null]} | ${2}  | ${['C', null]}
+      ${[]}           | ${['C', null]} | ${2}  | ${['C', null]}
+      ${['A']}        | ${['A', null]} | ${2}  | ${['A', 'a2']}
+      ${['A']}        | ${['A', 'a1']} | ${4}  | ${['C', null]}
+      ${['A']}        | ${['A', 'a1']} | ${5}  | ${['C', null]}
+      ${['C']}        | ${['A', null]} | ${3}  | ${['C', 'c1']}
+      ${['A', 'C']}   | ${['A', 'a1']} | ${5}  | ${['C', 'c1']}
+      ${['A', 'C']}   | ${['A', 'a1']} | ${6}  | ${['C', 'c2']}
+      ${['A', 'C']}   | ${['A', 'a1']} | ${11} | ${['C', 'c2']}
+      ${['A']}        | ${['C', null]} | ${-2} | ${['A', 'a3']}
+      ${['A', 'C']}   | ${['C', 'c2']} | ${-2} | ${['C', null]}
+      ${['A', 'C']}   | ${['C', 'c2']} | ${-3} | ${['B', null]}
+      ${['A', 'C']}   | ${['C', 'c2']} | ${-4} | ${['A', 'a3']}
+      ${['A', 'C']}   | ${['C', 'c2']} | ${-5} | ${['A', 'a2']}
+    `(
+      'when expandedArtists=$expandedArtists, delta=$delta',
+      ({ expandedArtists, from, delta, to }) => {
+        it(`should page from ${from.join(',')} to ${to.join(',')}`, () => {
+          expect.assertions(1);
+          expect(
+            getNextActiveArtistAndAlbum(
+              artists,
+              artistAlbums,
+              from[0],
+              from[1],
+              expandedArtists,
+              delta,
+            ),
+          ).toStrictEqual({ artist: to[0], album: to[1] });
+        });
+      },
+    );
+  });
 });
 
 describe(getArtistAlbumScrollIndex.name, () => {

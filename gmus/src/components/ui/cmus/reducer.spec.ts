@@ -384,6 +384,146 @@ describe(cmusUIReducer.name, () => {
       });
     });
 
+    describe(Keys.pageDown, () => {
+      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.pageDown };
+
+      describe('when in library view', () => {
+        describe('when in the artist list mode', () => {
+          const stateArtistMode: CmusUIState = {
+            ...stateLibrary,
+            artists: Array(26)
+              .fill(0)
+              .map((_, index) => `Artist ${index + 1}`),
+            artistAlbums: {
+              'Artist 3': ['Album 1', 'Album 2'],
+              'Artist 4': ['Album Z'],
+              'Artist 18': ['Album 3'],
+            },
+            artistSongs: {
+              'Artist 18': [{ id: 123, album: 'Album 3' } as Song],
+            },
+            library: {
+              ...stateLibrary.library,
+              activeArtist: 'Artist 1',
+              activeAlbum: null,
+              expandedArtists: ['Artist 3', 'Artist 18'],
+              modeWindow: LibraryModeWindow.ArtistList,
+            },
+          };
+
+          it('should page the active artist and album by 20 rows down', () => {
+            expect.assertions(2);
+            const result = cmusUIReducer(stateArtistMode, action);
+
+            expect(result.library.activeArtist).toBe('Artist 18');
+            expect(result.library.activeAlbum).toBe('Album 3');
+          });
+
+          it('should set the active song ID to the first by the artist', () => {
+            expect.assertions(1);
+            const result = cmusUIReducer(stateArtistMode, action);
+
+            expect(result.library.activeSongId).toBe(123);
+          });
+        });
+
+        describe('when in the song list mode', () => {
+          const stateSongsMode: CmusUIState = {
+            ...stateLibrary,
+            artists: ['Artist A'],
+            artistSongs: {
+              'Artist A': Array(30)
+                .fill(0)
+                .map((_, index) => ({ id: index + 100 } as Song)),
+            },
+            library: {
+              ...stateLibrary.library,
+              activeArtist: 'Artist A',
+              activeSongId: 101,
+              modeWindow: LibraryModeWindow.SongList,
+            },
+          };
+
+          it('should set the active song ID to the one 20th after current', () => {
+            expect.assertions(1);
+            const result = cmusUIReducer(stateSongsMode, action);
+
+            expect(result.library.activeSongId).toBe(121);
+          });
+        });
+      });
+    });
+
+    describe(Keys.pageUp, () => {
+      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.pageUp };
+
+      describe('when in library view', () => {
+        describe('when in the artist list mode', () => {
+          const stateArtistMode: CmusUIState = {
+            ...stateLibrary,
+            artists: Array(26)
+              .fill(0)
+              .map((_, index) => `Artist ${index + 1}`),
+            artistAlbums: {
+              'Artist 3': ['Album 1', 'Album 2'],
+              'Artist 4': ['Album X', 'Album Y', 'Album Z'],
+              'Artist 18': ['Album 3'],
+            },
+            artistSongs: {
+              'Artist 3': [{ id: 123, album: 'Album 1' } as Song],
+            },
+            library: {
+              ...stateLibrary.library,
+              activeArtist: 'Artist 18',
+              activeAlbum: 'Album 3',
+              expandedArtists: ['Artist 3', 'Artist 4', 'Artist 18'],
+              modeWindow: LibraryModeWindow.ArtistList,
+            },
+          };
+
+          it('should page the active artist and album by 20 rows down', () => {
+            expect.assertions(2);
+            const result = cmusUIReducer(stateArtistMode, action);
+
+            expect(result.library.activeArtist).toBe('Artist 3');
+            expect(result.library.activeAlbum).toBe('Album 1');
+          });
+
+          it('should set the active song ID to the first by the artist', () => {
+            expect.assertions(1);
+            const result = cmusUIReducer(stateArtistMode, action);
+
+            expect(result.library.activeSongId).toBe(123);
+          });
+        });
+
+        describe('when in the song list mode', () => {
+          const stateSongsMode: CmusUIState = {
+            ...stateLibrary,
+            artists: ['Artist A'],
+            artistSongs: {
+              'Artist A': Array(30)
+                .fill(0)
+                .map((_, index) => ({ id: index + 100 } as Song)),
+            },
+            library: {
+              ...stateLibrary.library,
+              activeArtist: 'Artist A',
+              activeSongId: 128,
+              modeWindow: LibraryModeWindow.SongList,
+            },
+          };
+
+          it('should set the active song ID to the one 20th prior to current', () => {
+            expect.assertions(1);
+            const result = cmusUIReducer(stateSongsMode, action);
+
+            expect(result.library.activeSongId).toBe(108);
+          });
+        });
+      });
+    });
+
     describe(Keys.space, () => {
       const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.space };
 

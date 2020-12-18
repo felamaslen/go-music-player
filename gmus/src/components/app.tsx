@@ -47,7 +47,7 @@ export const App: React.FC<Props> = ({ socket, state, dispatch }) => {
       )}
       <StateContext.Provider value={state}>
         <DispatchContext.Provider value={dispatch}>
-          <Suspense fallback={LoadingWrapper}>
+          <Suspense fallback={<LoadingWrapper />}>
             <UI isMaster={isMaster(state)} currentSong={currentSong} />
           </Suspense>
         </DispatchContext.Provider>

@@ -6,6 +6,7 @@ import { StateContext } from '../../../../context/state';
 import { Song } from '../../../../types';
 import { namedMemo } from '../../../../utils/component';
 import { CmusUIStateContext } from '../reducer';
+import { NoWrapFill } from '../styled/layout';
 import { AsciiSpinner } from '../styled/spinner';
 import { getSongScrollIndex, lineHeight, useAutoJumpyScroll } from '../utils/scroll';
 
@@ -32,7 +33,9 @@ const Row = namedMemo<{ index: number; data: SongData[]; style: CSSProperties }>
     const { song, active, parentActive, highlight } = data[index];
     return (
       <Styled.Song active={active} parentActive={parentActive} style={style} highlight={highlight}>
-        {song.track} - {song.title || 'Untitled Track'}
+        <NoWrapFill>
+          {song.track} - {song.title || 'Untitled Track'}
+        </NoWrapFill>
       </Styled.Song>
     );
   },
@@ -52,9 +55,9 @@ export const Songs: React.FC<Props> = ({ active: parentActive }) => {
 
   const filteredSongs = useMemo<Song[]>(
     () =>
-      activeAlbum
-        ? activeArtistSongs.filter(({ album }) => album === activeAlbum)
-        : activeArtistSongs,
+      activeAlbum === null
+        ? activeArtistSongs
+        : activeArtistSongs.filter(({ album }) => album === activeAlbum),
     [activeAlbum, activeArtistSongs],
   );
 

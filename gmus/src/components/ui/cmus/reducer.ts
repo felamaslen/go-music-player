@@ -71,7 +71,7 @@ function getActiveSongIdFromActiveArtistAlbum(
   return songs.find((compare) => compare.album === activeAlbum)?.id ?? null;
 }
 
-const scrollArtists = (state: CmusUIState, delta: 1 | -1): CmusUIState => {
+const scrollArtists = (state: CmusUIState, delta: number): CmusUIState => {
   const { artist, album } = getNextActiveArtistAndAlbum(
     state.artists,
     state.artistAlbums,
@@ -123,26 +123,13 @@ function toggleExpandArtist(library: CmusUIState['library']): CmusUIState['libra
   return { ...library, expandedArtists: [...library.expandedArtists, library.activeArtist] };
 }
 
-function handleScrollDown(state: CmusUIState): CmusUIState {
+function handleScroll(state: CmusUIState, delta: number): CmusUIState {
   if (state.view === View.Library) {
     if (state.library.modeWindow === LibraryModeWindow.ArtistList) {
-      return scrollArtists(state, 1);
+      return scrollArtists(state, delta);
     }
     if (state.library.modeWindow === LibraryModeWindow.SongList) {
-      return scrollSongs(state, 1);
-    }
-  }
-
-  return state;
-}
-
-function handleScrollUp(state: CmusUIState): CmusUIState {
-  if (state.view === View.Library) {
-    if (state.library.modeWindow === LibraryModeWindow.ArtistList) {
-      return scrollArtists(state, -1);
-    }
-    if (state.library.modeWindow === LibraryModeWindow.SongList) {
-      return scrollSongs(state, -1);
+      return scrollSongs(state, delta);
     }
   }
 
@@ -201,9 +188,14 @@ function handleKeyPress(state: CmusUIState, key: string): CmusUIState {
       return withGlobalAction(state, playPaused());
 
     case Keys.J:
-      return handleScrollDown(state);
+      return handleScroll(state, 1);
     case Keys.K:
-      return handleScrollUp(state);
+      return handleScroll(state, -1);
+
+    case Keys.pageDown:
+      return handleScroll(state, 20);
+    case Keys.pageUp:
+      return handleScroll(state, -20);
 
     default:
       return state;

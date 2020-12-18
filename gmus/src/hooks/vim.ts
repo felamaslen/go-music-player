@@ -8,6 +8,8 @@ export const Keys = {
   space: ' ',
   colon: ':',
   question: '?',
+  pageDown: 'PageDown',
+  pageUp: 'PageUp',
   '1': '1',
   C: 'c',
   J: 'j',

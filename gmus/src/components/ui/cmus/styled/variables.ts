@@ -10,5 +10,6 @@ export const colors = {
   },
   active: {
     color: rgb(255, 255, 130),
+    parentInactive: rgb(102, 0, 165),
   },
 };

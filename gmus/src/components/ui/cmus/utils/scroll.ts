@@ -1,6 +1,5 @@
 import { RefObject, useEffect } from 'react';
 import { Song } from '../../../../types';
-import { scrollThroughItems } from '../../../../utils/delta';
 
 const getArtistAlbums = (
   artist: string | null,
@@ -14,9 +13,11 @@ export function getNextActiveArtistAndAlbum(
   activeArtist: string | null,
   activeAlbum: string | null,
   expandedArtists: string[],
-  delta: -1 | 1,
+  delta: number,
 ): { artist: string | null; album: string | null } {
-  if (activeArtist === null) {
+  const activeArtistIndex = activeArtist === null ? -1 : artists.indexOf(activeArtist);
+
+  if (activeArtistIndex === -1) {
     if (delta === 1) {
       return { artist: artists[0] ?? null, album: null };
     }
@@ -32,39 +33,78 @@ export function getNextActiveArtistAndAlbum(
     return { artist: lastArtist, album: lastAlbum };
   }
 
-  const nextArtist = scrollThroughItems(artists, (compare) => compare === activeArtist, delta);
-  const atEnd = nextArtist === activeArtist;
-
   const activeArtistAlbums = getArtistAlbums(activeArtist, artistAlbums, expandedArtists);
-  const nextArtistAlbums = getArtistAlbums(nextArtist, artistAlbums, expandedArtists);
+  const activeAlbumIndex = activeAlbum === null ? -1 : activeArtistAlbums.indexOf(activeAlbum);
 
-  if (activeAlbum === null) {
-    if (
-      (delta === 1 && !activeArtistAlbums.length) ||
-      (delta === -1 && (atEnd || !nextArtistAlbums.length))
-    ) {
-      return { artist: nextArtist, album: null };
-    }
-    if (delta === 1) {
-      return { artist: activeArtist, album: activeArtistAlbums[0] };
-    }
-    return { artist: nextArtist, album: nextArtistAlbums[nextArtistAlbums.length - 1] };
+  const reverse = delta < 0;
+  const requiredDelta = Math.abs(delta);
+
+  const activeArtistAlbumsSlice =
+    delta > 0
+      ? activeArtistAlbums.slice(activeAlbumIndex + 1)
+      : activeArtistAlbums.slice(0, Math.max(0, activeAlbumIndex)).reverse();
+
+  if (activeArtistAlbumsSlice.length >= requiredDelta) {
+    const album = activeArtistAlbumsSlice[requiredDelta - 1];
+    return { artist: activeArtist, album };
   }
-
-  const nextAlbum = scrollThroughItems(
-    activeArtistAlbums,
-    (compare) => compare === activeAlbum,
-    delta,
-  );
-
-  if (delta === -1 && nextAlbum === activeAlbum) {
+  if (reverse && activeAlbum !== null && activeArtistAlbumsSlice.length === requiredDelta - 1) {
     return { artist: activeArtist, album: null };
   }
-  if (delta === 1 && nextArtist !== activeArtist && nextAlbum === activeAlbum) {
-    return { artist: nextArtist, album: null };
-  }
 
-  return { artist: activeArtist, album: nextAlbum };
+  const nextArtistsSlice = reverse
+    ? artists.slice(0, activeArtistIndex).reverse()
+    : artists.slice(activeArtistIndex + 1);
+
+  const initialDelta =
+    reverse && activeAlbum !== null
+      ? activeArtistAlbumsSlice.length + 1
+      : activeArtistAlbumsSlice.length;
+
+  const reduction = nextArtistsSlice.reduce<{
+    delta: number;
+    artist: string | null;
+    album: string | null;
+  }>(
+    (last, artist, index) => {
+      const remainingDelta = requiredDelta - last.delta;
+      if (remainingDelta < 1) {
+        return last;
+      }
+      const thisArtistAlbums = getArtistAlbums(artist, artistAlbums, expandedArtists);
+      if (reverse) {
+        if (thisArtistAlbums.length >= remainingDelta) {
+          return {
+            artist,
+            album: thisArtistAlbums[thisArtistAlbums.length - remainingDelta],
+            delta: requiredDelta,
+          };
+        }
+        if (
+          thisArtistAlbums.length === remainingDelta - 1 ||
+          index === nextArtistsSlice.length - 1
+        ) {
+          return { artist, album: null, delta: requiredDelta };
+        }
+        return { ...last, delta: last.delta + thisArtistAlbums.length + 1 };
+      }
+      if (remainingDelta === 1) {
+        return { artist, album: null, delta: requiredDelta };
+      }
+      if (thisArtistAlbums.length >= remainingDelta - 1 || index === nextArtistsSlice.length - 1) {
+        return {
+          artist,
+          album:
+            thisArtistAlbums[Math.min(thisArtistAlbums.length - 1, remainingDelta - 2)] ?? null,
+          delta: requiredDelta,
+        };
+      }
+      return { ...last, delta: last.delta + thisArtistAlbums.length + 1 };
+    },
+    { delta: initialDelta, artist: activeArtist, album: activeAlbum },
+  );
+
+  return { artist: reduction.artist, album: reduction.album };
 }
 
 export function getArtistAlbumScrollIndex(

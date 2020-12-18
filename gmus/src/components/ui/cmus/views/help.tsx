@@ -9,12 +9,15 @@ const commandsGeneral: Command[] = [
   { command: 'c', description: 'play / pause' },
   { command: 'j', description: 'select next list item' },
   { command: 'k', description: 'select previous list item' },
+  { command: '<PageDown>', description: 'select next page of list items' },
+  { command: '<PageUp>', description: 'select pervious page of list items' },
   { command: ':q', description: 'log out' },
   { command: '<Esc>', description: 'close this dialog' },
 ];
 
 const commandsLibrary: Command[] = [
   { command: '<Tab>', description: 'switch between artists and albums' },
+  { command: '<Space>', description: 'toggle albums for selected artist' },
 ];
 
 type CommandGroup = {

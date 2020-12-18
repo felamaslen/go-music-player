@@ -38,6 +38,9 @@ export const ActiveHighlightRow = styled(FlexRow)<{
 
   color: ${({ active, highlight, parentActive }): string => {
     if (highlight) {
+      if (active && !parentActive) {
+        return colors.active.parentInactive;
+      }
       return colors.active.color;
     }
     if (active && !parentActive) {
