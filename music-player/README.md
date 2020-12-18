@@ -1,4 +1,4 @@
-# music-scanner
+# go-music-player backend
 
 This is the backend part of the music player, written in Golang.
 
@@ -39,3 +39,35 @@ This is intended to be run as a scheduled job. It will scan a directory and add 
 **Usage**
 
 `bin/scan`
+
+### REST/WebSocket API
+
+**Usage**
+
+`bin/server`
+
+This is an HTTP server running the following endpoints:
+
+## GET /stream?songid=<id>
+
+Streams an audio file based on the `songid` value in the query string.
+
+##  GET /pubsub
+
+Handles long-running client connections, initiating a websocket.
+
+## GET /artists
+
+Fetches all artists, and outputs them in JSON format.
+
+## GET /albums?artist=<artist>
+
+Fetches albums for a particular artist, and outputs them in JSON format.
+
+## GET /songs?artist=<artist>
+
+Fetches songs for a particular artist, and outputs them in JSON format.
+
+## GET /song-info?id=<id>
+
+Fetches info for a particular song, based on its ID, and outputs it in JSON format.
