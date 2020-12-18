@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { StateContext } from '../../../../context/state';
+import { isMaster } from '../../../../selectors';
 
 import { MusicPlayer, Song } from '../../../../types';
 import { formatTime } from '../../../../utils/time';
@@ -33,10 +34,15 @@ export const PlayerStatus: React.FC<Props> = ({ song }) => {
     <Styled.StatusContainer>
       <Styled.TrackMetadata>{getTrackMetadata(song)}</Styled.TrackMetadata>
       <Styled.PlayStatus>
-        <span>{getPlayPauseIcon(state.player)}</span>
-        <span>
-          {formatTime(state.player.currentTime)} / {formatTime(song?.time ?? null)}
-        </span>
+        <Styled.Time>
+          <span>{getPlayPauseIcon(state.player)}</span>
+          <span>
+            {formatTime(state.player.currentTime)} / {formatTime(song?.time ?? null)}
+          </span>
+        </Styled.Time>
+        <Styled.ClientName>
+          {state.myClientName} [{isMaster(state) ? 'Master' : 'Slave'}]
+        </Styled.ClientName>
       </Styled.PlayStatus>
     </Styled.StatusContainer>
   );

@@ -51,7 +51,8 @@ export const Songs: React.FC<Props> = ({ active: parentActive }) => {
     player: { songId: playingSongId },
   } = useContext(StateContext);
 
-  const activeArtistSongs = activeArtist ? artistSongs[activeArtist] ?? emptyArray : emptyArray;
+  const activeArtistSongs =
+    activeArtist === null ? emptyArray : artistSongs[activeArtist] ?? emptyArray;
 
   const filteredSongs = useMemo<Song[]>(
     () =>

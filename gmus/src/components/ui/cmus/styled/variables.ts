@@ -4,6 +4,9 @@ export const colors = {
   background: rgb(0, 0, 0),
   border: rgb(0, 0, 180),
   foreground: rgb(255, 255, 255),
+  title: {
+    background: rgb(255, 210, 0),
+  },
   selected: {
     background: rgb(0, 0, 180),
     inactive: rgb(210, 210, 210),

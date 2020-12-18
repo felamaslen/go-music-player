@@ -11,6 +11,7 @@ export const Keys = {
   pageDown: 'PageDown',
   pageUp: 'PageUp',
   '1': '1',
+  '2': '2',
   C: 'c',
   J: 'j',
   K: 'k',

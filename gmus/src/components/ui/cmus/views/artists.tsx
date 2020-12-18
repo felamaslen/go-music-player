@@ -1,12 +1,9 @@
-import { useDebounce } from '@react-hook/debounce';
-import React, { CSSProperties, useContext, useEffect, useMemo, useRef } from 'react';
+import React, { CSSProperties, useContext, useMemo, useRef } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List } from 'react-window';
 
-import { useArtistsAlbumsAndSongs } from '../../../../hooks/fetch/artists';
 import { namedMemo } from '../../../../utils/component';
-import { artistAlbumsLoaded, artistSongsLoaded } from '../actions';
-import { CmusUIDispatchContext, CmusUIStateContext } from '../reducer';
+import { CmusUIStateContext } from '../reducer';
 import { NoWrapFill } from '../styled/layout';
 import { AsciiSpinner } from '../styled/spinner';
 import { getArtistAlbumScrollIndex, lineHeight, useAutoJumpyScroll } from '../utils/scroll';
@@ -76,34 +73,11 @@ const Row = namedMemo<{ index: number; data: RowData[]; style: CSSProperties }>(
 );
 
 export const Artists: React.FC<Props> = ({ active: parentActive, currentArtist }) => {
-  const dispatchUI = useContext(CmusUIDispatchContext);
-  const state = useContext(CmusUIStateContext);
   const {
     artists,
     artistAlbums,
     library: { activeArtist, activeAlbum, expandedArtists },
-  } = state;
-
-  const [debouncedActiveArtist, setDebouncedActiveArtist] = useDebounce(activeArtist, 200);
-  useEffect(() => {
-    setDebouncedActiveArtist(activeArtist);
-  }, [activeArtist, setDebouncedActiveArtist]);
-
-  const { albums, songs } = useArtistsAlbumsAndSongs(
-    debouncedActiveArtist ?? '',
-    !(debouncedActiveArtist && expandedArtists.includes(debouncedActiveArtist)),
-    !debouncedActiveArtist,
-  );
-  useEffect(() => {
-    if (albums) {
-      dispatchUI(artistAlbumsLoaded(albums.artist, albums.albums));
-    }
-  }, [dispatchUI, albums]);
-  useEffect(() => {
-    if (songs) {
-      dispatchUI(artistSongsLoaded(songs.artist, songs.songs));
-    }
-  }, [dispatchUI, songs]);
+  } = useContext(CmusUIStateContext);
 
   const itemData = useMemo<RowData[]>(
     () =>
@@ -146,11 +120,11 @@ export const Artists: React.FC<Props> = ({ active: parentActive, currentArtist }
 
   const windowRef = useRef<HTMLDivElement>(null);
   const scrollIndex = getArtistAlbumScrollIndex(
-    state.artists,
-    state.artistAlbums,
-    state.library.activeArtist,
-    state.library.activeAlbum,
-    state.library.expandedArtists,
+    artists,
+    artistAlbums,
+    activeArtist,
+    activeAlbum,
+    expandedArtists,
   );
 
   useAutoJumpyScroll(windowRef, scrollIndex);

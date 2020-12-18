@@ -1,4 +1,5 @@
 import React, { Dispatch, Suspense, useCallback } from 'react';
+import { StateInspector } from 'reinspect';
 
 import { LocalAction, stateSet } from '../actions';
 import { DispatchContext, StateContext } from '../context/state';
@@ -47,9 +48,11 @@ export const App: React.FC<Props> = ({ socket, state, dispatch }) => {
       )}
       <StateContext.Provider value={state}>
         <DispatchContext.Provider value={dispatch}>
-          <Suspense fallback={<LoadingWrapper />}>
-            <UI isMaster={isMaster(state)} currentSong={currentSong} />
-          </Suspense>
+          <StateInspector name="ui">
+            <Suspense fallback={<LoadingWrapper />}>
+              <UI isMaster={isMaster(state)} currentSong={currentSong} />
+            </Suspense>
+          </StateInspector>
         </DispatchContext.Provider>
       </StateContext.Provider>
     </>

@@ -1,6 +1,6 @@
 import { createContext, Dispatch } from 'react';
 
-import { LocalAction, loggedOut, playPaused, stateSet } from '../../../actions';
+import { LocalAction, loggedOut, masterSet, playPaused, stateSet } from '../../../actions';
 import { nullDispatch } from '../../../context/state';
 import { ActionTypeKeyPressed, Keys } from '../../../hooks/vim';
 import { Song } from '../../../types';
@@ -18,6 +18,7 @@ import { getNextActiveArtistAndAlbum } from './utils/scroll';
 export const initialCmusUIState: CmusUIState = {
   globalAction: null,
   globalActionSerialNumber: 0,
+  scroll: { delta: 0, serialNumber: 0 },
   view: View.Library,
   commandMode: false,
   overlay: null,
@@ -31,6 +32,9 @@ export const initialCmusUIState: CmusUIState = {
     activeAlbum: null,
     activeSongId: null,
     visibleSongs: [],
+  },
+  clientList: {
+    active: null,
   },
 };
 
@@ -61,7 +65,7 @@ function getActiveSongIdFromActiveArtistAlbum(
   activeAlbum: string | null,
   artistSongs: Record<string, Song[]>,
 ): number | null {
-  if (!activeArtist) {
+  if (activeArtist === null) {
     return null;
   }
   const songs = artistSongs[activeArtist] ?? [];
@@ -93,8 +97,9 @@ const scrollArtists = (state: CmusUIState, delta: number): CmusUIState => {
 };
 
 const scrollSongs = (state: CmusUIState, delta: number): CmusUIState =>
-  state.library.activeArtist
-    ? {
+  state.library.activeArtist === null
+    ? state
+    : {
         ...state,
         library: {
           ...state.library,
@@ -104,11 +109,10 @@ const scrollSongs = (state: CmusUIState, delta: number): CmusUIState =>
             delta,
           ).id,
         },
-      }
-    : state;
+      };
 
 function toggleExpandArtist(library: CmusUIState['library']): CmusUIState['library'] {
-  if (!library.activeArtist) {
+  if (library.activeArtist === null) {
     return library;
   }
   if (library.expandedArtists.includes(library.activeArtist)) {
@@ -123,17 +127,58 @@ function toggleExpandArtist(library: CmusUIState['library']): CmusUIState['libra
   return { ...library, expandedArtists: [...library.expandedArtists, library.activeArtist] };
 }
 
-function handleScroll(state: CmusUIState, delta: number): CmusUIState {
-  if (state.view === View.Library) {
-    if (state.library.modeWindow === LibraryModeWindow.ArtistList) {
+function handleScrollLibrary(state: CmusUIState, delta: number): CmusUIState {
+  switch (state.library.modeWindow) {
+    case LibraryModeWindow.ArtistList:
       return scrollArtists(state, delta);
-    }
-    if (state.library.modeWindow === LibraryModeWindow.SongList) {
+    case LibraryModeWindow.SongList:
       return scrollSongs(state, delta);
-    }
+    default:
+      return state;
   }
+}
 
-  return state;
+function handleScroll(state: CmusUIState, delta: number): CmusUIState {
+  switch (state.view) {
+    case View.Library:
+      return handleScrollLibrary(state, delta);
+    default:
+      return {
+        ...state,
+        scroll: { delta, serialNumber: state.scroll.serialNumber + 1 },
+      };
+  }
+}
+
+function handleActivate(state: CmusUIState): CmusUIState {
+  switch (state.view) {
+    case View.Library:
+      if (state.library.modeWindow === LibraryModeWindow.SongList) {
+        if (!state.library.activeSongId) {
+          return state;
+        }
+
+        return withGlobalAction(
+          state,
+          stateSet({
+            playing: true,
+            songId: state.library.activeSongId,
+            currentTime: 0,
+            seekTime: 0,
+          }),
+        );
+      }
+      return state;
+
+    case View.ClientList:
+      if (!state.clientList.active) {
+        return state;
+      }
+      return withGlobalAction(state, masterSet(state.clientList.active));
+
+    default:
+      return state;
+  }
 }
 
 function handleKeyPress(state: CmusUIState, key: string): CmusUIState {
@@ -143,6 +188,9 @@ function handleKeyPress(state: CmusUIState, key: string): CmusUIState {
 
     case Keys['1']:
       return { ...state, view: View.Library };
+    case Keys['2']:
+      return { ...state, view: View.ClientList };
+
     case Keys.tab:
       if (state.view === View.Library) {
         return switchLibraryMode(state);
@@ -158,25 +206,7 @@ function handleKeyPress(state: CmusUIState, key: string): CmusUIState {
       return state;
 
     case Keys.enter:
-      if (state.view === View.Library) {
-        if (state.library.modeWindow === LibraryModeWindow.SongList) {
-          if (!state.library.activeSongId) {
-            return state;
-          }
-
-          return withGlobalAction(
-            state,
-            stateSet({
-              playing: true,
-              songId: state.library.activeSongId,
-              currentTime: 0,
-              seekTime: 0,
-            }),
-          );
-        }
-      }
-
-      return state;
+      return handleActivate(state);
 
     case Keys.esc:
       return { ...state, overlay: null };
@@ -205,7 +235,11 @@ function handleKeyPress(state: CmusUIState, key: string): CmusUIState {
 const setArtists = (state: CmusUIState, action: ArtistsSet): CmusUIState => ({
   ...state,
   artists: action.payload,
-  library: { ...state.library, activeArtist: action.payload[0] ?? null },
+  library: {
+    ...state.library,
+    activeArtist: action.payload[0] ?? null,
+    activeAlbum: null,
+  },
 });
 
 const setArtistAlbums = (state: CmusUIState, action: ArtistAlbumsLoaded): CmusUIState => ({
@@ -250,6 +284,9 @@ export function cmusUIReducer(state: CmusUIState, action: CmusUIAction): CmusUIS
 
     case CmusUIActionType.CommandSet:
       return onCommand(state, action.payload);
+
+    case CmusUIActionType.ClientActivated:
+      return { ...state, clientList: { active: action.payload } };
 
     default:
       return state;

@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlexColumn, FlexRow, NoWrap } from '../styled/layout';
+import { FlexRow, NoWrap } from '../styled/layout';
+import { H3 } from '../styled/typography';
 
 import * as Styled from './help.styles';
 
@@ -11,13 +12,20 @@ const commandsGeneral: Command[] = [
   { command: 'k', description: 'select previous list item' },
   { command: '<PageDown>', description: 'select next page of list items' },
   { command: '<PageUp>', description: 'select pervious page of list items' },
+  { command: '1', description: 'show library view' },
+  { command: '2', description: 'show client list' },
   { command: ':q', description: 'log out' },
   { command: '<Esc>', description: 'close this dialog' },
 ];
 
 const commandsLibrary: Command[] = [
-  { command: '<Tab>', description: 'switch between artists and albums' },
+  { command: '<Tab>', description: 'switch between artists/albums and songs' },
   { command: '<Space>', description: 'toggle albums for selected artist' },
+  { command: '<Enter>', description: 'play the selected song' },
+];
+
+const commandsClientList: Command[] = [
+  { command: '<Enter>', description: 'set the selected client to master' },
 ];
 
 type CommandGroup = {
@@ -26,15 +34,16 @@ type CommandGroup = {
 };
 
 const commandGroups: CommandGroup[] = [
-  { title: 'Library view', commands: commandsLibrary },
   { title: 'General', commands: commandsGeneral },
+  { title: 'Library view', commands: commandsLibrary },
+  { title: 'Client list', commands: commandsClientList },
 ];
 
 export const HelpDialog: React.FC = () => (
   <Styled.HelpDialogContainer>
-    <h3>Commands available</h3>
+    <H3>Available commands</H3>
     {commandGroups.map(({ title, commands }) => (
-      <FlexColumn key={title}>
+      <Styled.CommandGroup key={title}>
         <Styled.CommandGroupTitle>{title}</Styled.CommandGroupTitle>
         <FlexRow>
           <Styled.Commands>
@@ -48,7 +57,7 @@ export const HelpDialog: React.FC = () => (
             ))}
           </Styled.Commands>
         </FlexRow>
-      </FlexColumn>
+      </Styled.CommandGroup>
     ))}
   </Styled.HelpDialogContainer>
 );

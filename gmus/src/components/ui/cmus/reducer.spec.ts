@@ -1,10 +1,11 @@
-import { loggedOut, playPaused, stateSet } from '../../../actions';
+import { loggedOut, masterSet, playPaused, stateSet } from '../../../actions';
 import { ActionKeyPressed, ActionTypeKeyPressed, Keys } from '../../../hooks/vim';
 import { Song } from '../../../types';
 import {
   artistAlbumsLoaded,
   artistSongsLoaded,
   artistsSet,
+  clientActivated,
   CmusUIActionType,
   commandSet,
 } from './actions';
@@ -22,6 +23,12 @@ describe(cmusUIReducer.name, () => {
     commandMode: true,
   };
 
+  const stateDifferentView: CmusUIState = {
+    ...initialCmusUIState,
+    view: (undefined as unknown) as View,
+    scroll: { delta: 0, serialNumber: 8813 },
+  };
+
   describe(CmusUIActionType.ArtistsSet, () => {
     const action = artistsSet(['Artist A', 'Artist B']);
 
@@ -32,9 +39,20 @@ describe(cmusUIReducer.name, () => {
     });
 
     it('should set the active artist to the first artist in the list', () => {
-      expect.assertions(1);
-      const result = cmusUIReducer(initialCmusUIState, action);
+      expect.assertions(2);
+      const result = cmusUIReducer(
+        {
+          ...initialCmusUIState,
+          library: {
+            ...initialCmusUIState.library,
+            activeArtist: 'Artist Z',
+            activeAlbum: 'Some album',
+          },
+        },
+        action,
+      );
       expect(result.library.activeArtist).toBe('Artist A');
+      expect(result.library.activeAlbum).toBeNull();
     });
   });
 
@@ -115,16 +133,30 @@ describe(cmusUIReducer.name, () => {
     });
   });
 
-  describe('Keypress actions', () => {
-    describe(Keys['1'], () => {
-      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys['1'] };
+  describe(CmusUIActionType.ClientActivated, () => {
+    const action = clientActivated('some-client');
 
-      it('should set the view to Library', () => {
+    it('should set the active client', () => {
+      expect.assertions(1);
+      const result = cmusUIReducer(initialCmusUIState, action);
+      expect(result.clientList.active).toBe('some-client');
+    });
+  });
+
+  describe('Keypress actions', () => {
+    describe.each`
+      key          | toView
+      ${Keys['1']} | ${View.Library}
+      ${Keys['2']} | ${View.ClientList}
+    `('$key', ({ key, toView }) => {
+      const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key };
+
+      it(`should set the view to ${toView}`, () => {
         expect.assertions(1);
         const state = ({ ...initialCmusUIState, view: undefined } as unknown) as CmusUIState;
         const result = cmusUIReducer(state, action);
 
-        expect(result.view).toBe(View.Library);
+        expect(result.view).toBe(toView);
       });
     });
 
@@ -273,6 +305,14 @@ describe(cmusUIReducer.name, () => {
           });
         });
       });
+
+      describe('when in a different view', () => {
+        it('should set the scroll delta and increment the serial number', () => {
+          expect.assertions(1);
+          const result = cmusUIReducer(stateDifferentView, action);
+          expect(result.scroll).toStrictEqual({ delta: 1, serialNumber: 8814 });
+        });
+      });
     });
 
     describe(Keys.K, () => {
@@ -380,6 +420,14 @@ describe(cmusUIReducer.name, () => {
 
             expect(result.library.activeSongId).toBe(123);
           });
+        });
+      });
+
+      describe('when in a different view', () => {
+        it('should set the scroll delta and increment the serial number', () => {
+          expect.assertions(1);
+          const result = cmusUIReducer(stateDifferentView, action);
+          expect(result.scroll).toStrictEqual({ delta: -1, serialNumber: 8814 });
         });
       });
     });
@@ -619,6 +667,23 @@ describe(cmusUIReducer.name, () => {
             );
             expect(result.globalActionSerialNumber).toBe(1876);
           });
+        });
+      });
+
+      describe('when in client list view', () => {
+        const state: CmusUIState = {
+          ...initialCmusUIState,
+          globalActionSerialNumber: 123,
+          view: View.ClientList,
+          clientList: {
+            active: 'some-active-client',
+          },
+        };
+
+        it('should set the globalAction to set the given client to master', () => {
+          expect.assertions(1);
+          const result = cmusUIReducer(state, action);
+          expect(result.globalAction).toStrictEqual(masterSet('some-active-client'));
         });
       });
     });

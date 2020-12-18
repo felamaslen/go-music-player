@@ -2,7 +2,7 @@ import {
   ActionStateSetRemote,
   ActionTypeLocal,
   ActionTypeRemote,
-  masterRetaken,
+  masterSet,
   playPaused,
   seeked,
   stateSet,
@@ -75,7 +75,7 @@ describe(globalEffects.name, () => {
     });
   });
 
-  describe(ActionTypeLocal.MasterRetaken, () => {
+  describe(ActionTypeLocal.MasterSet, () => {
     const stateMasterWentAway: GlobalState = {
       ...initialState,
       clientList: [{ name: 'my-client-name', lastPing: 0 }],
@@ -91,7 +91,7 @@ describe(globalEffects.name, () => {
 
     it('should return a StateSet action informing other clients that we are the new master', () => {
       expect.assertions(1);
-      const result = globalEffects(stateMasterWentAway, masterRetaken());
+      const result = globalEffects(stateMasterWentAway, masterSet());
 
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
@@ -102,6 +102,24 @@ describe(globalEffects.name, () => {
           seekTime: -1,
           master: 'my-client-name',
         },
+      });
+    });
+
+    describe('when the action specified a particular client', () => {
+      it('should return a StateSet action informing the new client to resume playback', () => {
+        expect.assertions(1);
+        const result = globalEffects(stateMasterWentAway, masterSet('other-client'));
+
+        expect(result).toStrictEqual<ActionStateSetRemote>({
+          type: ActionTypeRemote.StateSet,
+          payload: {
+            songId: 123,
+            playing: true,
+            currentTime: 83,
+            seekTime: 83,
+            master: 'other-client',
+          },
+        });
       });
     });
   });

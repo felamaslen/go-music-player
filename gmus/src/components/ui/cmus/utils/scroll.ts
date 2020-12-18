@@ -5,7 +5,8 @@ const getArtistAlbums = (
   artist: string | null,
   artistAlbums: Record<string, string[]>,
   expandedArtists: string[],
-): string[] => (artist && expandedArtists.includes(artist) ? artistAlbums[artist] ?? [] : []);
+): string[] =>
+  artist !== null && expandedArtists.includes(artist) ? artistAlbums[artist] ?? [] : [];
 
 export function getNextActiveArtistAndAlbum(
   artists: string[],
@@ -22,7 +23,7 @@ export function getNextActiveArtistAndAlbum(
       return { artist: artists[0] ?? null, album: null };
     }
     const lastArtist = artists.length > 0 ? artists[artists.length - 1] : null;
-    if (!lastArtist) {
+    if (lastArtist === null) {
       return { artist: null, album: null };
     }
     const lastArtistAlbums = getArtistAlbums(lastArtist, artistAlbums, expandedArtists);

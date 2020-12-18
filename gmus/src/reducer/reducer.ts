@@ -77,7 +77,18 @@ export function globalReducer(state: GlobalState, action: AnyAction): GlobalStat
       }
       return { ...state, player: { ...state.player, seekTime: action.payload } };
 
-    case ActionTypeLocal.MasterRetaken:
+    case ActionTypeLocal.MasterSet:
+      if (action.payload) {
+        return {
+          ...state,
+          player: {
+            ...state.player,
+            master: action.payload,
+            seekTime: state.player.currentTime,
+          },
+        };
+      }
+
       return {
         ...state,
         player: {

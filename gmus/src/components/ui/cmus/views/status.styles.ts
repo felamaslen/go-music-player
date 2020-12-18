@@ -21,5 +21,12 @@ export const PlayStatus = styled(FlexRow)`
   background: ${colors.selected.inactive};
   color: ${colors.background};
   flex: 1;
+  justify-content: space-between;
   width: 100%;
 `;
+
+export const Time = styled.div`
+  flex: 1;
+`;
+
+export const ClientName = styled.span``;

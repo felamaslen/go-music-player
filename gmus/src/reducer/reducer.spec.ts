@@ -4,7 +4,7 @@ import {
   ActionStateSetRemote,
   ActionTypeLocal,
   ActionTypeRemote,
-  masterRetaken,
+  masterSet,
   nameSet,
   playPaused,
   seeked,
@@ -367,8 +367,8 @@ describe(globalReducer.name, () => {
     });
   });
 
-  describe(ActionTypeLocal.MasterRetaken, () => {
-    const action = masterRetaken();
+  describe(ActionTypeLocal.MasterSet, () => {
+    const action = masterSet();
 
     const stateBefore: GlobalState = {
       ...initialState,
@@ -398,6 +398,23 @@ describe(globalReducer.name, () => {
       expect.assertions(1);
       const result = globalReducer(stateBefore, action);
       expect(result.player.playing).toBe(false);
+    });
+
+    describe('when a particular client is given in the action', () => {
+      const actionToOtherClient = masterSet('other-client');
+
+      it('should set the master player to the given client', () => {
+        expect.assertions(2);
+        const result = globalReducer(stateBefore, actionToOtherClient);
+        expect(result.player.master).toBe('other-client');
+        expect(result.player.seekTime).toBe(stateBefore.player.currentTime);
+      });
+
+      it('should not pause the client', () => {
+        expect.assertions(1);
+        const result = globalReducer(stateBefore, actionToOtherClient);
+        expect(result.player.playing).toBe(true);
+      });
     });
   });
 

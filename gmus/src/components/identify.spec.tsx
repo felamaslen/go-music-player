@@ -43,12 +43,11 @@ describe(Identify.name, () => {
   describe('when connecting', () => {
     const propsConnecting: Props = { ...props, connecting: true };
 
-    it('should disable the connect button', () => {
+    it('should not render the connect button', () => {
       expect.assertions(1);
 
-      const { getByText } = render(<Identify {...propsConnecting} />);
-      const button = getByText('Connect') as HTMLButtonElement;
-      expect(button.disabled).toBe(true);
+      const { queryByText } = render(<Identify {...propsConnecting} />);
+      expect(queryByText('Connect')).not.toBeInTheDocument();
     });
   });
 });

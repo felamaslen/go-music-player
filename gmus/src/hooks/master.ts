@@ -1,6 +1,6 @@
 import { Dispatch, useEffect, useRef } from 'react';
 
-import { LocalAction, masterRetaken, stateSet } from '../actions';
+import { LocalAction, masterSet, stateSet } from '../actions';
 import { masterStateUpdateTimeout } from '../constants/system';
 import { GlobalState } from '../reducer';
 import { isMaster } from '../selectors';
@@ -35,7 +35,7 @@ export function useMaster(state: GlobalState, dispatch: Dispatch<LocalAction>): 
   useEffect(() => {
     if (masterWentAway) {
       retakeControlTimer.current = window.setTimeout(() => {
-        dispatch(masterRetaken());
+        dispatch(masterSet());
       }, Math.floor(Math.random() * 1000));
     }
 

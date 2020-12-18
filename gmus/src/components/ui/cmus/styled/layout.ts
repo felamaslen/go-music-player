@@ -21,11 +21,13 @@ export const NoWrap = styled.div`
   white-space: nowrap;
 `;
 
-export const ActiveHighlightRow = styled(FlexRow)<{
+export type ActiveHighlightRowProps = {
   active?: boolean;
   highlight?: boolean;
   parentActive?: boolean;
-}>`
+};
+
+export const ActiveHighlightRow = styled(FlexRow)<ActiveHighlightRowProps>`
   background: ${({ active, parentActive }): string => {
     if (active) {
       if (parentActive) {
@@ -58,4 +60,12 @@ export const ActiveHighlightRow = styled(FlexRow)<{
 
 export const FlexList = styled(FlexColumn)`
   min-width: 0;
+
+  * {
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
 `;

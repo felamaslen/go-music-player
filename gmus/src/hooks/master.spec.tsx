@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react';
 import React from 'react';
 
-import { masterRetaken, stateSet } from '../actions';
+import { masterSet, stateSet } from '../actions';
 import { masterStateUpdateTimeout } from '../constants/system';
 import { GlobalState, initialState, nullPlayer } from '../reducer';
 
@@ -96,7 +96,7 @@ describe(useMaster.name, () => {
         jest.runAllTimers();
       });
 
-      expect(dispatch).toHaveBeenCalledWith(masterRetaken());
+      expect(dispatch).toHaveBeenCalledWith(masterSet());
 
       unmount();
       jest.useRealTimers();

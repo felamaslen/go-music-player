@@ -1,4 +1,5 @@
 import { rem } from 'polished';
+import { CSSProperties } from 'react';
 import styled from 'styled-components';
 
 import { FlexColumn, FlexRow } from './styled/layout';
@@ -16,6 +17,17 @@ export const Wrapper = styled(FlexColumn)`
   right: 0;
   top: 0;
   user-select: none;
+`;
+
+export const ViewTitle = styled(FlexRow)`
+  background: ${colors.title.background};
+  color: ${colors.background};
+  font-weight: bold;
+`;
+
+export const ViewTitleItem = styled.span<{ active: boolean }>`
+  font-weight: ${({ active }): CSSProperties['fontWeight'] => (active ? 'bold' : 'normal')};
+  margin: 0 ${rem(16)} 0 ${rem(8)};
 `;
 
 export const View = styled(FlexRow)`

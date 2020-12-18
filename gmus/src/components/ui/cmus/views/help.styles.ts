@@ -2,16 +2,13 @@ import { rem } from 'polished';
 import styled from 'styled-components';
 
 import { FlexColumn } from '../styled/layout';
+import { H5 } from '../styled/typography';
 import { colors } from '../styled/variables';
 
 export const HelpDialogContainer = styled(FlexColumn)`
   background: ${colors.background};
   border: 1px solid ${colors.active.color};
   padding: ${rem(8)} ${rem(16)};
-
-  h3 {
-    font-weight: bold;
-  }
 `;
 
 export const Commands = styled(FlexColumn)`
@@ -25,8 +22,11 @@ export const Descriptions = styled(FlexColumn)`
   white-space: nowrap;
 `;
 
-export const CommandGroupTitle = styled.h5`
+export const CommandGroup = styled(FlexColumn)`
+  margin-bottom: ${rem(8)};
+`;
+
+export const CommandGroupTitle = styled(H5)`
   color: ${colors.selected.inactive};
   font-style: italic;
-  margin: ${rem(8)} 0;
 `;

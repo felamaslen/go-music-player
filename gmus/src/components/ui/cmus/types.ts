@@ -3,6 +3,7 @@ import { Song } from '../../../types/songs';
 
 export enum View {
   Library = 'Library',
+  ClientList = 'Client list',
 }
 
 export enum Overlay {
@@ -17,6 +18,10 @@ export enum LibraryModeWindow {
 export type CmusUIState = {
   globalAction: LocalAction | null;
   globalActionSerialNumber: number;
+  scroll: {
+    delta: number;
+    serialNumber: number;
+  };
   view: View;
   commandMode: boolean;
   overlay: Overlay | null;
@@ -30,5 +35,8 @@ export type CmusUIState = {
     activeSongId: number | null;
     modeWindow: LibraryModeWindow;
     visibleSongs: Song[];
+  };
+  clientList: {
+    active: string | null;
   };
 };
