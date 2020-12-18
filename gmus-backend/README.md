@@ -48,26 +48,26 @@ This is intended to be run as a scheduled job. It will scan a directory and add 
 
 This is an HTTP server running the following endpoints:
 
-## `GET /stream?songid=<id>`
+#### `GET /stream?songid=<id>`
 
 Streams an audio file based on the `songid` value in the query string.
 
-##  `GET /pubsub`
+####  `GET /pubsub`
 
 Handles long-running client connections, initiating a websocket.
 
-## `GET /artists`
+#### `GET /artists`
 
 Fetches all artists, and outputs them in JSON format.
 
-## `GET /albums?artist=<artist>`
+#### `GET /albums?artist=<artist>`
 
 Fetches albums for a particular artist, and outputs them in JSON format.
 
-## `GET /songs?artist=<artist>`
+#### `GET /songs?artist=<artist>`
 
 Fetches songs for a particular artist, and outputs them in JSON format.
 
-## `GET /song-info?id=<id>`
+#### `GET /song-info?id=<id>`
 
 Fetches info for a particular song, based on its ID, and outputs it in JSON format.
