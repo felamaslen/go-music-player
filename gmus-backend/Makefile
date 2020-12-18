@@ -25,6 +25,6 @@ migrate.make:
 	migrate create -ext sql -dir migrations -seq $(NAME)
 
 run.scan:
-	go run ./cmd/scan
+	GO_ENV=development go run ./cmd/scan
 run.server:
-	go run ./cmd/server
+	GO_ENV=development go run ./cmd/server

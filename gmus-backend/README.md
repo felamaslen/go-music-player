@@ -36,15 +36,15 @@ After getting the [migrate CLI tool](https://github.com/golang-migrate/migrate/t
 
 This is intended to be run as a scheduled job. It will scan a directory and add relevant metadata to a PostgreSQL database.
 
-**Usage**
+**Development usage**
 
-`bin/scan`
+`make run.scan`
 
 ### REST/WebSocket API
 
-**Usage**
+**Development usage**
 
-`bin/server`
+`make run.server`
 
 This is an HTTP server running the following endpoints:
 
