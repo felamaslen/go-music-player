@@ -1,3 +1,5 @@
+import { RefObject, useEffect } from 'react';
+import { Song } from '../../../../types';
 import { scrollThroughItems } from '../../../../utils/delta';
 
 const getArtistAlbums = (
@@ -65,7 +67,7 @@ export function getNextActiveArtistAndAlbum(
   return { artist: activeArtist, album: nextAlbum };
 }
 
-export function getScrollIndex(
+export function getArtistAlbumScrollIndex(
   artists: string[],
   artistAlbums: Record<string, string[]>,
   activeArtist: string | null,
@@ -87,4 +89,44 @@ export function getScrollIndex(
     );
 
   return result;
+}
+
+export function getSongScrollIndex(
+  filteredSongs: Pick<Song, 'id'>[],
+  activeSongId: number | null,
+): number {
+  if (activeSongId === null) {
+    return -1;
+  }
+  return filteredSongs.findIndex(({ id }) => id === activeSongId);
+}
+
+export const lineHeight = 16;
+export const scrollThresholdLines = 4;
+
+export function useAutoJumpyScroll(ref: RefObject<HTMLDivElement>, scrollIndex: number): void {
+  /* eslint-disable react-hooks/exhaustive-deps, no-param-reassign */
+  useEffect(() => {
+    if (!ref.current || scrollIndex === -1) {
+      return;
+    }
+    const heightInLines = Math.floor(ref.current.offsetHeight / lineHeight);
+    if (heightInLines < scrollThresholdLines + 1) {
+      return;
+    }
+
+    const scrollPosLines = Math.floor(ref.current.scrollTop / lineHeight);
+
+    const linesBefore = scrollIndex - scrollPosLines;
+    const linesAfter = scrollPosLines + heightInLines - scrollIndex;
+
+    if (linesBefore < 0 || linesAfter < 0) {
+      ref.current.scrollTop = Math.max(0, (scrollIndex - 1) * lineHeight);
+    } else if (linesAfter < scrollThresholdLines) {
+      ref.current.scrollTop += lineHeight;
+    } else if (linesBefore < scrollThresholdLines) {
+      ref.current.scrollTop -= lineHeight;
+    }
+  }, [scrollIndex]);
+  /* eslint-enable react-hooks/exhaustive-deps, no-param-reassign */
 }

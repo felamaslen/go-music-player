@@ -1,40 +1,32 @@
 import { render, RenderResult, waitFor } from '@testing-library/react';
-import nock from 'nock';
 import React from 'react';
 
 import { StateContext } from '../../../../context/state';
 import { GlobalState, initialState, nullPlayer } from '../../../../reducer';
+import { Song } from '../../../../types';
 
 import { PlayerStatus } from './status';
 
 describe(PlayerStatus.name, () => {
-  const nockSongInfo = (id: number): nock.Scope =>
-    nock('http://my-api.url:1234').get(`/song-info?id=${id}`).reply(
-      200,
-      {
-        track: 12,
-        title: 'My song',
-        artist: 'My artist',
-        album: 'My album',
-        time: 374,
-      },
-      { 'Access-Control-Allow-Origin': '*' },
-    );
-
   const testSongId = 23;
 
-  const setup = (globalState: Partial<GlobalState> = {}): RenderResult =>
+  const testSong: Song = {
+    id: testSongId,
+    track: 12,
+    title: 'My song',
+    artist: 'My artist',
+    album: 'My album',
+    time: 374,
+  };
+
+  const setup = (globalState: Partial<GlobalState> = {}, song: Song | null): RenderResult =>
     render(
       <StateContext.Provider value={{ ...initialState, ...globalState }}>
-        <PlayerStatus />
+        <PlayerStatus song={song} />
       </StateContext.Provider>,
     );
 
   describe('when a song is active', () => {
-    beforeEach(() => {
-      nockSongInfo(testSongId);
-    });
-
     const stateWithSongActive: Partial<GlobalState> = {
       player: {
         ...nullPlayer,
@@ -48,7 +40,7 @@ describe(PlayerStatus.name, () => {
       ${'artist, album, title and track number'} | ${'My artist - My album - 12. My song'}
       ${'current and total play time'}           | ${'02:08 / 06:14'}
     `('should render the $property', async ({ expectedValue }) => {
-      const { getByText } = setup(stateWithSongActive);
+      const { getByText } = setup(stateWithSongActive, testSong);
 
       await waitFor(() => {
         expect(getByText(expectedValue)).toBeInTheDocument();
@@ -66,7 +58,7 @@ describe(PlayerStatus.name, () => {
 
       it('should display a playing indicator', () => {
         expect.assertions(1);
-        const { getByText } = setup(statePlaying);
+        const { getByText } = setup(statePlaying, testSong);
         expect(getByText('>')).toBeInTheDocument();
       });
     });
@@ -82,7 +74,7 @@ describe(PlayerStatus.name, () => {
 
       it('should display a paused indicator', () => {
         expect.assertions(1);
-        const { getByText } = setup(stateNotPlaying);
+        const { getByText } = setup(stateNotPlaying, testSong);
         expect(getByText('|')).toBeInTheDocument();
       });
     });
@@ -95,7 +87,7 @@ describe(PlayerStatus.name, () => {
 
     it('should display an inactive indicator', () => {
       expect.assertions(1);
-      const { getByText } = setup(stateWithSongInactive);
+      const { getByText } = setup(stateWithSongInactive, null);
       expect(getByText('.')).toBeInTheDocument();
     });
   });

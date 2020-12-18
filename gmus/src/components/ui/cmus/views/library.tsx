@@ -6,10 +6,12 @@ import { artistsSet } from '../actions';
 import { CmusUIDispatchContext, CmusUIStateContext } from '../reducer';
 import { LibraryModeWindow } from '../types';
 
-import { Artists } from './artists';
+import { Artists, Props as PropsArtists } from './artists';
 import { Songs } from './songs';
 
-export const ViewLibrary: React.FC = () => {
+export type Props = Pick<PropsArtists, 'currentArtist'>;
+
+export const ViewLibrary: React.FC<Props> = ({ currentArtist }) => {
   const dispatchUI = useContext(CmusUIDispatchContext);
   const { library } = useContext(CmusUIStateContext);
 
@@ -20,7 +22,10 @@ export const ViewLibrary: React.FC = () => {
 
   return (
     <>
-      <Artists active={library.modeWindow === LibraryModeWindow.ArtistList} />
+      <Artists
+        active={library.modeWindow === LibraryModeWindow.ArtistList}
+        currentArtist={currentArtist}
+      />
       <Songs active={library.modeWindow === LibraryModeWindow.SongList} />
     </>
   );

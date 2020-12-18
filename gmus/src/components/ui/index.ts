@@ -1,6 +1,6 @@
-import { CmusUIProvider } from './cmus';
+import { lazy } from 'react';
 import { UIProvider, UIProviders } from './types';
 
 export const uiProviders: UIProviders = {
-  [UIProvider.Cmus]: CmusUIProvider,
+  [UIProvider.Cmus]: lazy(() => import('./cmus')),
 };

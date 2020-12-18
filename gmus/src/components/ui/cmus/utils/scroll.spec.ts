@@ -1,4 +1,4 @@
-import { getNextActiveArtistAndAlbum, getScrollIndex } from './scroll';
+import { getNextActiveArtistAndAlbum, getArtistAlbumScrollIndex } from './scroll';
 
 describe(getNextActiveArtistAndAlbum.name, () => {
   const artists: string[] = ['A', 'B', 'C'];
@@ -225,14 +225,14 @@ describe(getNextActiveArtistAndAlbum.name, () => {
   });
 });
 
-describe(getScrollIndex.name, () => {
+describe(getArtistAlbumScrollIndex.name, () => {
   describe('when on the Nth artist', () => {
     it('should return N', () => {
       expect.assertions(3);
 
-      expect(getScrollIndex(['A', 'B', 'C'], {}, 'A', null, [])).toBe(0);
-      expect(getScrollIndex(['A', 'B', 'C'], {}, 'B', null, [])).toBe(1);
-      expect(getScrollIndex(['A', 'B', 'C'], {}, 'C', null, [])).toBe(2);
+      expect(getArtistAlbumScrollIndex(['A', 'B', 'C'], {}, 'A', null, [])).toBe(0);
+      expect(getArtistAlbumScrollIndex(['A', 'B', 'C'], {}, 'B', null, [])).toBe(1);
+      expect(getArtistAlbumScrollIndex(['A', 'B', 'C'], {}, 'C', null, [])).toBe(2);
     });
   });
 
@@ -245,13 +245,13 @@ describe(getScrollIndex.name, () => {
         B: ['b1'],
       };
 
-      expect(getScrollIndex(['A', 'B'], artistAlbums, 'A', 'a1', ['A'])).toBe(1);
-      expect(getScrollIndex(['A', 'B'], artistAlbums, 'A', 'a2', ['A'])).toBe(2);
-      expect(getScrollIndex(['A', 'B'], artistAlbums, 'B', null, ['A'])).toBe(3);
+      expect(getArtistAlbumScrollIndex(['A', 'B'], artistAlbums, 'A', 'a1', ['A'])).toBe(1);
+      expect(getArtistAlbumScrollIndex(['A', 'B'], artistAlbums, 'A', 'a2', ['A'])).toBe(2);
+      expect(getArtistAlbumScrollIndex(['A', 'B'], artistAlbums, 'B', null, ['A'])).toBe(3);
 
-      expect(getScrollIndex(['A', 'B'], artistAlbums, 'B', 'b1', ['B'])).toBe(2);
+      expect(getArtistAlbumScrollIndex(['A', 'B'], artistAlbums, 'B', 'b1', ['B'])).toBe(2);
 
-      expect(getScrollIndex(['A', 'B'], artistAlbums, 'B', 'b1', ['A', 'B'])).toBe(4);
+      expect(getArtistAlbumScrollIndex(['A', 'B'], artistAlbums, 'B', 'b1', ['A', 'B'])).toBe(4);
     });
   });
 });

@@ -1,12 +1,14 @@
-import React, { Dispatch, useCallback } from 'react';
+import React, { Dispatch, Suspense, useCallback } from 'react';
 
 import { LocalAction, stateSet } from '../actions';
 import { DispatchContext, StateContext } from '../context/state';
 import { useMaster } from '../hooks/master';
 import { useKeepalive } from '../hooks/socket';
+import { useCurrentlyPlayingSongInfo } from '../hooks/status';
 import { GlobalState } from '../reducer';
 import { isMaster } from '../selectors';
 import { getSongUrl } from '../utils/url';
+import { LoadingWrapper } from './identify';
 import { Player } from './player';
 import { uiProviders } from './ui';
 import { UIProvider } from './ui/types';
@@ -23,6 +25,7 @@ const UI = uiProviders[uiProvider];
 export const App: React.FC<Props> = ({ socket, state, dispatch }) => {
   useKeepalive(socket);
   useMaster(state, dispatch);
+  const currentSong = useCurrentlyPlayingSongInfo(state.player.songId);
 
   const onTimeUpdate = useCallback(
     (currentTime: number): void => {
@@ -44,7 +47,9 @@ export const App: React.FC<Props> = ({ socket, state, dispatch }) => {
       )}
       <StateContext.Provider value={state}>
         <DispatchContext.Provider value={dispatch}>
-          <UI isMaster={isMaster(state)} />
+          <Suspense fallback={LoadingWrapper}>
+            <UI isMaster={isMaster(state)} currentSong={currentSong} />
+          </Suspense>
         </DispatchContext.Provider>
       </StateContext.Provider>
     </>

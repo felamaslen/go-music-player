@@ -9,6 +9,12 @@ export type Props = {
   onIdentify: (name: string) => void;
 };
 
+export const LoadingWrapper: React.FC = () => (
+  <Styled.Container>
+    <CircleLoader size={100} color="white" />
+  </Styled.Container>
+);
+
 export const Identify: React.FC<Props> = ({ connecting, onIdentify }) => {
   const [name, setName] = useState<string>('');
   const onChange = useCallback(
@@ -36,6 +42,10 @@ export const Identify: React.FC<Props> = ({ connecting, onIdentify }) => {
   );
   const buttonHandlers = useCTA(onConnect);
 
+  if (connecting) {
+    return <LoadingWrapper />;
+  }
+
   return (
     <Styled.Container>
       <Styled.Title>go-music-player</Styled.Title>
@@ -46,9 +56,6 @@ export const Identify: React.FC<Props> = ({ connecting, onIdentify }) => {
           Connect
         </button>
       </Styled.InputGroup>
-      <Styled.Loader visible={connecting}>
-        <CircleLoader size={50} color="white" />
-      </Styled.Loader>
     </Styled.Container>
   );
 };

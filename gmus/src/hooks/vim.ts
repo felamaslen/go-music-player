@@ -1,4 +1,5 @@
-import { Dispatch, useEffect } from 'react';
+import { useThrottleCallback } from '@react-hook/throttle';
+import { Dispatch, useCallback, useEffect } from 'react';
 
 export const Keys = {
   tab: 'Tab',
@@ -23,14 +24,8 @@ export type ActionKeyPressed = {
 };
 
 export function useVimBindings(dispatch: Dispatch<ActionKeyPressed>, skip = false): void {
-  useEffect(() => {
-    if (skip) {
-      return (): void => {
-        // pass
-      };
-    }
-
-    const listener = (event: KeyboardEvent): void => {
+  const listener = useCallback(
+    (event: KeyboardEvent): void => {
       if (!availableKeys.includes(event.key)) {
         return;
       }
@@ -39,11 +34,22 @@ export function useVimBindings(dispatch: Dispatch<ActionKeyPressed>, skip = fals
 
       const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: event.key };
       dispatch(action);
-    };
+    },
+    [dispatch],
+  );
 
-    window.addEventListener('keydown', listener);
+  const listenerThrottled = useThrottleCallback(listener, 20, true);
+
+  useEffect(() => {
+    if (skip) {
+      return (): void => {
+        // pass
+      };
+    }
+
+    window.addEventListener('keydown', listenerThrottled);
     return (): void => {
-      window.removeEventListener('keydown', listener);
+      window.removeEventListener('keydown', listenerThrottled);
     };
-  }, [dispatch, skip]);
+  }, [skip, listenerThrottled]);
 }

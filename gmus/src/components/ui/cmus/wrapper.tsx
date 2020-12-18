@@ -21,7 +21,7 @@ import { PlayerStatus } from './views/status';
 
 import * as Styled from './wrapper.styles';
 
-export const CmusUIProvider: UIProviderComponent = () => {
+export const CmusUIProvider: UIProviderComponent = ({ currentSong }) => {
   const dispatch = useContext(DispatchContext);
   const [stateUI, dispatchUI] = useReducer<Reducer<CmusUIState, CmusUIAction>>(
     cmusUIReducer,
@@ -40,13 +40,17 @@ export const CmusUIProvider: UIProviderComponent = () => {
     <CmusUIStateContext.Provider value={stateUI}>
       <CmusUIDispatchContext.Provider value={dispatchUI}>
         <Styled.Wrapper>
-          <Styled.View>{stateUI.view === View.Library && <ViewLibrary />}</Styled.View>
+          <Styled.View>
+            {stateUI.view === View.Library && (
+              <ViewLibrary currentArtist={currentSong?.artist ?? null} />
+            )}
+          </Styled.View>
           {!!stateUI.overlay && (
             <>
               <Styled.Overlay>{stateUI.overlay === Overlay.Help && <HelpDialog />}</Styled.Overlay>
             </>
           )}
-          <PlayerStatus />
+          <PlayerStatus song={currentSong} />
           <CommandView />
         </Styled.Wrapper>
       </CmusUIDispatchContext.Provider>

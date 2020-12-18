@@ -17,6 +17,8 @@ describe(useVimBindings.name, () => {
   describe('when a key is pressed', () => {
     it('should dispatch a KeyPress action', () => {
       expect.assertions(2);
+      jest.useFakeTimers();
+
       render(<TestComponent dispatch={dispatch} />);
 
       expect(dispatch).not.toHaveBeenCalled();
@@ -28,12 +30,15 @@ describe(useVimBindings.name, () => {
       });
 
       expect(dispatch).toHaveBeenCalledWith({ type: ActionTypeKeyPressed, key: 'Tab' });
+
+      jest.useRealTimers();
     });
   });
 
   describe('when the key is unhandled', () => {
     it('should not dispatch anything', () => {
       expect.assertions(2);
+      jest.useFakeTimers();
       render(<TestComponent dispatch={dispatch} />);
 
       expect(dispatch).not.toHaveBeenCalled();
@@ -43,14 +48,20 @@ describe(useVimBindings.name, () => {
           key: '@',
         });
       });
+      act(() => {
+        jest.runAllTimers();
+      });
 
       expect(dispatch).not.toHaveBeenCalled();
+
+      jest.useRealTimers();
     });
   });
 
   describe('when skipping', () => {
     it('should not listen to any keys', () => {
       expect.assertions(1);
+      jest.useFakeTimers();
       render(<TestComponent dispatch={dispatch} skip={true} />);
 
       act(() => {
@@ -58,8 +69,13 @@ describe(useVimBindings.name, () => {
           key: 'Tab',
         });
       });
+      act(() => {
+        jest.runAllTimers();
+      });
 
       expect(dispatch).not.toHaveBeenCalled();
+
+      jest.useRealTimers();
     });
   });
 });
