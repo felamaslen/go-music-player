@@ -25,7 +25,7 @@ const sendAlbumsRequest = (
   axios: AxiosInstance,
   query: AlbumsQuery,
 ): Promise<AxiosResponse<AlbumsResponse>> =>
-  axios.get(`${getApiUrl()}/albums?artist=${query.artist}`);
+  axios.get(`${getApiUrl()}/albums?artist=${encodeURIComponent(query.artist)}`);
 
 type SongsResponse = {
   artist: string;

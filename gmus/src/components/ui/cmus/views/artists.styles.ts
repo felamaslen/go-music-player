@@ -11,6 +11,6 @@ export const ArtistTitle = styled(ActiveHighlightRow)``;
 
 export const AlbumTitle = styled(ActiveHighlightRow)`
   span {
-    padding-left: ${rem(16)};
+    padding-left: ${rem(32)};
   }
 `;

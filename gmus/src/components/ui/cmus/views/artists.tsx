@@ -8,13 +8,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { FixedSizeNodeData, FixedSizeTree as Tree, TreeWalker, TreeWalkerValue } from 'react-vtree';
-import { NodeComponentProps, NodePublicState } from 'react-vtree/dist/es/Tree';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { FixedSizeList as List } from 'react-window';
 
 import { useArtistsAlbumsAndSongs } from '../../../../hooks/fetch/artists';
+import { namedMemo } from '../../../../utils/component';
 import { artistAlbumsLoaded, artistSongsLoaded } from '../actions';
 import { CmusUIDispatchContext, CmusUIStateContext } from '../reducer';
-import { CmusUIState } from '../types';
+import { NoWrapFill } from '../styled/layout';
+import { AsciiSpinner } from '../styled/spinner';
 import { getScrollIndex } from '../utils/scroll';
 
 import * as Styled from './artists.styles';
@@ -23,122 +25,67 @@ type Props = {
   active: boolean;
 };
 
-type TreeNode = {
-  name: string;
+type ArtistData = {
   id: string;
-  focused: boolean;
+  artist: string;
+  loading: boolean;
   active: boolean;
-  shouldBeOpen?: boolean;
-  children?: TreeNode[];
+  parentActive: boolean;
 };
 
-type TreeMeta = {
-  node: TreeNode;
+type AlbumData = {
+  id: string;
+  album: string;
+  active: boolean;
+  parentActive: boolean;
 };
 
-type TreeData = FixedSizeNodeData &
-  Omit<TreeNode, 'children'> & {
-    isArtist: boolean;
-  };
+type RowData = ArtistData | AlbumData;
 
-function useTreeWalker(
-  { artists, artistAlbums, library: { activeArtist, activeAlbum, expandedArtists } }: CmusUIState,
-  focused: boolean,
-): { treeWalker: TreeWalker<TreeData, TreeMeta>; haveData: boolean } {
-  const treeNodes = useMemo<TreeNode[]>(
-    () =>
-      artists.map<TreeNode>((artist) => ({
-        name: artist,
-        id: artist,
-        focused,
-        active: activeArtist === artist && activeAlbum === null,
-        shouldBeOpen: expandedArtists.includes(artist),
-        children:
-          artistAlbums[artist]?.map<TreeNode>((album) => ({
-            name: album,
-            id: `${artist}-${album}`,
-            focused,
-            active: activeArtist === artist && activeAlbum === album,
-          })) ?? undefined,
-      })),
-    [artists, artistAlbums, focused, activeArtist, activeAlbum, expandedArtists],
-  );
+const isArtist = (data: RowData): data is ArtistData => Reflect.has(data, 'artist');
 
-  const getNodeData = useCallback(
-    (node: TreeNode, isArtist: boolean): TreeWalkerValue<TreeData, TreeMeta> => ({
-      data: {
-        id: node.id,
-        name: node.name,
-        focused: node.focused,
-        active: node.active,
-        shouldBeOpen: node.shouldBeOpen,
-        isOpenByDefault: !!node.shouldBeOpen,
-        isArtist,
-      },
-      node,
-    }),
-    [],
-  );
+const itemKey = (index: number, data: RowData[]): string => data[index].id;
 
-  const treeWalker = useMemo<TreeWalker<TreeData, TreeMeta>>(
-    () =>
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      function* treeWalkerGenerator() {
-        for (let i = 0; i < treeNodes.length; i += 1) {
-          yield getNodeData(treeNodes[i], true);
-        }
+const Artist = namedMemo<{ row: ArtistData; style: CSSProperties }>(
+  'Artist',
+  ({ row: { artist, loading, active, parentActive }, style }) => (
+    <Styled.ArtistTitle active={active} parentActive={parentActive} style={style}>
+      {loading ? <AsciiSpinner /> : <>&nbsp;&nbsp;</>}
+      <NoWrapFill>{artist || 'Unknown Artist'}</NoWrapFill>
+    </Styled.ArtistTitle>
+  ),
+);
 
-        while (true) {
-          const parent = yield;
-
-          if (parent?.node.children) {
-            for (let i = 0; i < parent.node.children.length; i += 1) {
-              yield getNodeData(parent.node.children[i], false);
-            }
-          }
-        }
-      },
-    [treeNodes, getNodeData],
-  );
-
-  return { treeWalker, haveData: treeNodes.length > 0 };
-}
-
-const Node: React.FC<NodeComponentProps<TreeData, NodePublicState<TreeData>>> = ({
-  data: { name, isArtist, focused, active, shouldBeOpen },
-  isOpen,
-  setOpen,
-  style,
-}) => {
-  useEffect(() => {
-    if (!!isOpen !== !!shouldBeOpen) {
-      setOpen(!!shouldBeOpen);
-    }
-  }, [isOpen, shouldBeOpen, setOpen]);
-
-  if (isArtist) {
-    return (
-      <Styled.ArtistTitle active={active} parentActive={focused} style={style as CSSProperties}>
-        <span>{name || 'Unknown Artist'}</span>
-      </Styled.ArtistTitle>
-    );
-  }
-
-  return (
-    <Styled.AlbumTitle active={active} parentActive={focused} style={style as CSSProperties}>
-      <span>{name || 'Unknown Album'}</span>
+const Album = namedMemo<{ row: AlbumData; style: CSSProperties }>(
+  'Album',
+  ({ row: { album, active, parentActive }, style }) => (
+    <Styled.AlbumTitle active={active} parentActive={parentActive} style={style}>
+      <NoWrapFill>{album || 'Unknown Album'}</NoWrapFill>
     </Styled.AlbumTitle>
-  );
-};
+  ),
+);
+
+const Row = namedMemo<{ index: number; data: RowData[]; style: CSSProperties }>(
+  'ArtistListRow',
+  ({ index, data, style }) => {
+    const row = data[index];
+    if (isArtist(row)) {
+      return <Artist row={row} style={style} />;
+    }
+    return <Album row={row} style={style} />;
+  },
+);
 
 const lineHeight = 16;
 const scrollThresholdLines = 4;
 
-export const Artists: React.FC<Props> = ({ active }) => {
+export const Artists: React.FC<Props> = ({ active: parentActive }) => {
   const dispatchUI = useContext(CmusUIDispatchContext);
   const state = useContext(CmusUIStateContext);
   const {
-    library: { activeArtist, expandedArtists },
+    artists,
+    artistAlbums,
+    library: { activeArtist, activeAlbum, expandedArtists },
   } = state;
 
   const [debouncedActiveArtist, setDebouncedActiveArtist] = useDebounce(activeArtist, 100);
@@ -161,6 +108,36 @@ export const Artists: React.FC<Props> = ({ active }) => {
       dispatchUI(artistSongsLoaded(songs.artist, songs.songs));
     }
   }, [dispatchUI, songs]);
+
+  const itemData = useMemo<RowData[]>(
+    () =>
+      artists.reduce<RowData[]>((last, artist) => {
+        const expanded = expandedArtists.includes(artist);
+        const artistRow: ArtistData = {
+          id: artist,
+          artist,
+          loading: !(artist in artistAlbums) && expandedArtists.includes(artist),
+          active: activeArtist === artist && activeAlbum === null,
+          parentActive,
+        };
+
+        if (!expanded) {
+          return [...last, artistRow];
+        }
+
+        return [
+          ...last,
+          artistRow,
+          ...(artistAlbums[artist] ?? []).map<AlbumData>((album) => ({
+            id: `${artist}-${album}`,
+            album,
+            active: activeArtist === artist && activeAlbum === album,
+            parentActive: parentActive && activeArtist === artist && activeAlbum === album,
+          })),
+        ];
+      }, []),
+    [parentActive, artists, artistAlbums, activeArtist, activeAlbum, expandedArtists],
+  );
 
   const ref = useRef<HTMLDivElement>(null);
   const [windowDimensions, setWindowDimensions] = useState<{ width: number; height: number }>({
@@ -213,21 +190,23 @@ export const Artists: React.FC<Props> = ({ active }) => {
     }
   }, [windowDimensions.height, scrollIndex]);
 
-  const { treeWalker, haveData } = useTreeWalker(state, active);
-
   return (
     <Styled.Container ref={ref}>
-      {haveData && (
-        <Tree
-          outerRef={windowRef}
-          treeWalker={treeWalker}
-          itemSize={lineHeight}
-          width={windowDimensions.width}
-          height={windowDimensions.height}
-        >
-          {Node}
-        </Tree>
-      )}
+      <AutoSizer>
+        {({ height, width }): React.ReactElement => (
+          <List
+            outerRef={windowRef}
+            height={height}
+            width={width}
+            itemCount={artists.length}
+            itemSize={lineHeight}
+            itemKey={itemKey}
+            itemData={itemData}
+          >
+            {Row}
+          </List>
+        )}
+      </AutoSizer>
     </Styled.Container>
   );
 };

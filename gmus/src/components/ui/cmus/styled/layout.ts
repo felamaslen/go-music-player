@@ -11,6 +11,12 @@ export const FlexColumn = styled(FlexRow)`
   flex-flow: column;
 `;
 
+export const NoWrapFill = styled.span`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+`;
+
 export const NoWrap = styled.div`
   white-space: nowrap;
 `;
@@ -45,12 +51,6 @@ export const ActiveHighlightRow = styled(FlexRow)<{
 
   white-space: nowrap;
   width: 100%;
-
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-  }
 `;
 
 export const FlexList = styled(FlexColumn)`

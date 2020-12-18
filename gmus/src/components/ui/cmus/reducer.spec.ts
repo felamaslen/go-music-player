@@ -423,6 +423,28 @@ describe(cmusUIReducer.name, () => {
               expect(result).toStrictEqual(stateNoActive);
             });
           });
+
+          describe('when the active album will disappear', () => {
+            const stateWithActiveAlbum: CmusUIState = {
+              ...initialCmusUIState,
+              artistAlbums: {
+                'Artist A': ['Album A', 'Album B', 'Album C'],
+              },
+              library: {
+                ...initialCmusUIState.library,
+                activeArtist: 'Artist A',
+                expandedArtists: ['Artist A'],
+                activeAlbum: 'Album B',
+              },
+            };
+
+            it('should set the active album to null', () => {
+              expect.assertions(2);
+              const result = cmusUIReducer(stateWithActiveAlbum, action);
+              expect(result.library.activeArtist).toBe('Artist A');
+              expect(result.library.activeAlbum).toBeNull();
+            });
+          });
         });
       });
     });

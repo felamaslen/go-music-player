@@ -117,6 +117,7 @@ function toggleExpandArtist(library: CmusUIState['library']): CmusUIState['libra
       expandedArtists: library.expandedArtists.filter(
         (compare) => compare !== library.activeArtist,
       ),
+      activeAlbum: null,
     };
   }
   return { ...library, expandedArtists: [...library.expandedArtists, library.activeArtist] };
