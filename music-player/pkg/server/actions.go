@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 
+	"github.com/felamaslen/go-music-player/pkg/logger"
 	"github.com/go-redis/redis/v7"
 )
 
@@ -19,10 +20,11 @@ type Action struct {
 	Payload    interface{} `json:"payload"`
 }
 
-func broadcastAction(thisPodClients *map[string]*Client, action *Action) []error {
+func broadcastAction(l *logger.Logger, thisPodClients *map[string]*Client, action *Action) []error {
 	var errors []error
 
 	for _, client := range *thisPodClients {
+		l.Debug("[->Client] %s (%s)\n", action.Type, client.name)
 		if err := client.send(action); err != nil {
 			errors = append(errors, err)
 		}

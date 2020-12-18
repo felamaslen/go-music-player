@@ -94,7 +94,7 @@ func subscribeToBroadcast(
 					l.Debug("[<-Client] %s (%s)\n", actionFromPubsub.Type, *actionFromPubsub.FromClient)
 				}
 
-				errors := broadcastAction(thisPodClients, &actionFromPubsub)
+				errors := broadcastAction(l, thisPodClients, &actionFromPubsub)
 
 				if len(errors) > 0 {
 					l.Warn("Error broadcasting: %v\n", errors)

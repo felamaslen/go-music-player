@@ -97,8 +97,6 @@ func (c *Client) subscribeToMe(l *logger.Logger, rdb *redis.Client) {
 			})
 			c.exposeToNetwork(l, rdb)
 		} else {
-			l.Debug("[->Client] %s (%s)\n", actionFromClient.Type, c.name)
-
 			actionFromClient.FromClient = &c.name
 
 			if err := publishAction(rdb, &actionFromClient); err != nil {
