@@ -1,16 +1,16 @@
-# go-music-player
+# go-music-player (gmus)
 
 ## Backend
 
 This manages the music library database, serves requests and handles client connections.
 
-For more info, see the [readme](music-player/README.md).
+For more info, see the [readme](./gmus-backend/README.md).
 
 ## Frontend clients
 
 Each frontend implements the APIs provided by the backend. Their job is to play music, or control the master client. The following clients are implemented:
 
-- [gmus-web](./gmus/README.md) - web client
+- [gmus-web](./gmus-web/README.md) - web client
 
 ## Architecture
 
