@@ -1,6 +1,7 @@
 package read
 
 type Song struct {
+	Id           int    `db:"id"`
 	TrackNumber  int    `db:"track_number"`
 	Title        string `db:"title"`
 	Artist       string `db:"artist"`

@@ -109,6 +109,15 @@ func getPort() int {
 	return result
 }
 
+func getListenHost() string {
+	var defaultHost = "localhost"
+	host, hasHost := os.LookupEnv("HOST")
+	if !hasHost {
+		return defaultHost
+	}
+	return host
+}
+
 func getRedisUrl() string {
 	url, hasUrl := os.LookupEnv("REDIS_URL")
 	if !hasUrl {
@@ -121,6 +130,7 @@ type config struct {
 	DatabaseUrl      string
 	LogLevel         logger.LogLevel
 	LibraryDirectory string
+	Host             string
 	Port             int
 	RedisUrl         string
 }

@@ -31,10 +31,13 @@ func StartServer() {
 
 	router.Path("/song-info").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchSongInfo))
 
+	router.Path("/next-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchNextSong))
+	router.Path("/prev-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchPrevSong))
+
 	port := conf.Port
 
 	handler := cors.AllowAll().Handler(router)
 
-	l.Info("Starting server on port %d\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("localhost:%d", port), handler))
+	l.Info("Starting server on %s:%d\n", conf.Host, port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", conf.Host, port), handler))
 }

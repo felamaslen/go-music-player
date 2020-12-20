@@ -9,6 +9,8 @@ export enum UIProvider {
 export type UIProps = {
   isMaster: boolean;
   currentSong: Song | null;
+  nextSong: () => void;
+  prevSong: () => void;
 };
 
 export type UIProviderComponent = React.FC<UIProps>;

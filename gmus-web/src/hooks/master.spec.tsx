@@ -1,8 +1,9 @@
-import { act, render } from '@testing-library/react';
+import { act, render, RenderResult } from '@testing-library/react';
 import React from 'react';
 
 import { masterSet, stateSet } from '../actions';
 import { masterStateUpdateTimeout } from '../constants/system';
+import { DispatchContext, StateContext } from '../context/state';
 import { GlobalState, initialState, nullPlayer } from '../reducer';
 
 import { useMaster } from './master';
@@ -10,10 +11,20 @@ import { useMaster } from './master';
 describe(useMaster.name, () => {
   const dispatch = jest.fn();
 
-  const TestComponent: React.FC<GlobalState> = (state) => {
-    useMaster(state, dispatch);
+  const TestComponent: React.FC = () => {
+    useMaster();
     return null;
   };
+
+  const setup = (state: GlobalState, options: Partial<RenderResult> = {}): RenderResult =>
+    render(
+      <StateContext.Provider value={state}>
+        <DispatchContext.Provider value={dispatch}>
+          <TestComponent />
+        </DispatchContext.Provider>
+      </StateContext.Provider>,
+      options,
+    );
 
   describe('when there is no master initially', () => {
     const stateNoMaster: GlobalState = {
@@ -28,7 +39,7 @@ describe(useMaster.name, () => {
 
     it('should take control of master', () => {
       expect.assertions(2);
-      const { unmount } = render(<TestComponent {...stateNoMaster} />);
+      const { unmount } = setup(stateNoMaster);
 
       expect(dispatch).toHaveBeenCalledTimes(1);
       expect(dispatch).toHaveBeenCalledWith(stateSet({ master: 'my-client-name' }));
@@ -44,7 +55,7 @@ describe(useMaster.name, () => {
 
       it('should not take control of master', () => {
         expect.assertions(1);
-        const { unmount } = render(<TestComponent {...stateNoMasterUninit} />);
+        const { unmount } = setup(stateNoMasterUninit);
 
         expect(dispatch).not.toHaveBeenCalled();
 
@@ -84,10 +95,10 @@ describe(useMaster.name, () => {
       expect.assertions(2);
       jest.useFakeTimers();
 
-      const { container, unmount } = render(<TestComponent {...stateWithMaster} />);
+      const { container, unmount } = setup(stateWithMaster);
 
       act(() => {
-        render(<TestComponent {...stateMasterWentAway} />, { container });
+        setup(stateMasterWentAway, { container });
       });
 
       expect(dispatch).not.toHaveBeenCalled();
@@ -119,14 +130,14 @@ describe(useMaster.name, () => {
         expect.assertions(1);
         jest.useFakeTimers();
 
-        const { container, unmount } = render(<TestComponent {...stateWithMaster} />);
+        const { container, unmount } = setup(stateWithMaster);
         act(() => {
-          render(<TestComponent {...stateMasterWentAway} />, { container });
+          setup(stateMasterWentAway, { container });
         });
 
         setImmediate(() => {
           act(() => {
-            render(<TestComponent {...stateMasterWentAwayAnotherTookControl} />, { container });
+            setup(stateMasterWentAwayAnotherTookControl, { container });
           });
         });
 
@@ -155,7 +166,7 @@ describe(useMaster.name, () => {
     it('should continually refresh the server with the current state', () => {
       expect.assertions(6);
       const clock = jest.useFakeTimers();
-      const { unmount } = render(<TestComponent {...stateMaster} />);
+      const { unmount } = setup(stateMaster);
 
       act(() => {
         clock.runTimersToTime(masterStateUpdateTimeout - 1);
@@ -202,7 +213,7 @@ describe(useMaster.name, () => {
     it('should not send state updates periodically', () => {
       expect.assertions(1);
       const clock = jest.useFakeTimers();
-      const { unmount } = render(<TestComponent {...stateSlave} />);
+      const { unmount } = setup(stateSlave);
 
       act(() => {
         clock.runTimersToTime(masterStateUpdateTimeout);

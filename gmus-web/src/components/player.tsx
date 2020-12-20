@@ -7,6 +7,7 @@ type Props = {
   playing: boolean;
   seekTime: number;
   onTimeUpdate: (time: number) => void;
+  onEnded: () => void;
   timeUpdateFPS: number;
 };
 
@@ -41,6 +42,7 @@ export const Player: React.FC<Props> = ({
   playing,
   seekTime,
   onTimeUpdate: reportTimeUpdate,
+  onEnded,
   timeUpdateFPS,
 }) => {
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -136,6 +138,7 @@ export const Player: React.FC<Props> = ({
       onProgress={onProgress}
       onTimeUpdate={onTimeUpdateThrottled}
       onWaiting={onWaiting}
+      onEnded={onEnded}
       ref={audio}
       src={src}
     />

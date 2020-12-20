@@ -1,4 +1,5 @@
 import {
+  ActionSongInfoFetched,
   ActionStateSetLocal,
   ActionStateSetRemote,
   ActionTypeLocal,
@@ -19,6 +20,7 @@ export const nullPlayer: MusicPlayer = {
 
 export const initialState: GlobalState = {
   initialised: false,
+  songInfo: null,
   player: nullPlayer,
   clientList: [],
   myClientName: '',
@@ -55,6 +57,22 @@ function onLocalStateSet(state: GlobalState, action: ActionStateSetLocal): Globa
   }
 
   return state;
+}
+
+function onSongFetched(state: GlobalState, action: ActionSongInfoFetched): GlobalState {
+  const nextState: GlobalState = { ...state, songInfo: action.payload.song };
+  if (!action.payload.replace) {
+    return nextState;
+  }
+  return {
+    ...nextState,
+    player: {
+      ...state.player,
+      playing: !!action.payload.song,
+      songId: action.payload.song?.id ?? null,
+      seekTime: 0,
+    },
+  };
 }
 
 export function globalReducer(state: GlobalState, action: AnyAction): GlobalState {
@@ -104,6 +122,9 @@ export function globalReducer(state: GlobalState, action: AnyAction): GlobalStat
         return state;
       }
       return { ...state, player: { ...state.player, playing: !state.player.playing } };
+
+    case ActionTypeLocal.SongInfoFetched:
+      return onSongFetched(state, action);
 
     default:
       return state;

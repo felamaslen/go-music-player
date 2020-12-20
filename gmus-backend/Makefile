@@ -1,9 +1,9 @@
 build.scan:
-	go build -o bin/scan ./cmd/scan
+	go build -o bin/gmus.scan ./cmd/gmus.scan
 build.migrate:
-	go build -o bin/migrate ./cmd/migrate
+	go build -o bin/gmus.migrate ./cmd/gmus.migrate
 build.server:
-	go build -o bin/server ./cmd/server
+	go build -o bin/gmus.server ./cmd/gmus.server
 
 build:
 	make build.scan
@@ -20,11 +20,11 @@ test:
 	GO_ENV=test ginkgo ./...
 
 migrate:
-	go run ./cmd/migrate
+	go run ./cmd/gmus.migrate
 migrate.make:
 	migrate create -ext sql -dir migrations -seq $(NAME)
 
 run.scan:
-	GO_ENV=development go run ./cmd/scan
+	GO_ENV=development go run ./cmd/gmus.scan
 run.server:
-	GO_ENV=development go run ./cmd/server
+	GO_ENV=development go run ./cmd/gmus.server

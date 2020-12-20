@@ -7,7 +7,9 @@ import * as Styled from './help.styles';
 type Command = { command: string; description: string };
 
 const commandsGeneral: Command[] = [
+  { command: 'z', description: 'previous song' },
   { command: 'c', description: 'play / pause' },
+  { command: 'b', description: 'next song' },
   { command: 'j', description: 'select next list item' },
   { command: 'k', description: 'select previous list item' },
   { command: '<PageDown>', description: 'select next page of list items' },

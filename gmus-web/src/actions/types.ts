@@ -13,6 +13,7 @@ export enum ActionTypeLocal {
   Seeked = '@@local/SEEKED',
   MasterSet = '@@local/MASTER_SET',
   PlayPaused = '@@local/PLAY_PAUSED',
+  SongInfoFetched = '@@local/SONG_INFO_FETCHED',
 }
 
 export interface Action<T extends string = string, P = unknown> {

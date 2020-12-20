@@ -71,3 +71,11 @@ Fetches songs for a particular artist, and outputs them in JSON format.
 #### `GET /song-info?id=<id>`
 
 Fetches info for a particular song, based on its ID, and outputs it in JSON format.
+
+#### `GET /next-song?id=<id>`
+
+Fetches next song info.
+
+#### `GET /prev-song?id=<id>`
+
+Fetches previous song info.

@@ -96,7 +96,7 @@ func SelectSongsByArtist(db *sqlx.DB, artist string) (songs *[]*read.SongExterna
     ,duration
   from songs
   where artist = $1
-  order by album, track_number, title
+  order by album, track_number, title, id
   `, artist)
 
 	return

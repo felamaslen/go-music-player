@@ -15,3 +15,5 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
 ENV PATH="/app/bin:${PATH}"
+
+CMD gmus.server

@@ -1,31 +1,37 @@
 version: "2"
 services:
-  gmusic:
-    container_name: gmusic
+  gmus-backend:
+    container_name: gmus-backend
     build:
       context: .
     volumes:
       - .:/app
+      - /app/bin
     links:
-      - music-player-db:db
-      - music-player-redis:redis
+      - gmus-db:db
+      - gmus-redis:redis
     networks:
-      - net_gmusic_dev
+      - net_gmus_dev
     ports:
-      - ${PORT}:3000
+      - 3002:80
     env_file:
       - .env
     environment:
       GO_ENV: development
-      PORT: 3000
-      DATABASE_URL: postgres://docker:docker@db:5432/music_player
+      HOST: 0.0.0.0
+      PORT: 80
+      POSTGRES_HOST: db
+      POSTGRES_DATABASE: music_player
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_PORT: 5432
       REDIS_URL: redis:6379
 
-  music-player-db:
+  gmus-db:
     restart: always
     image: postgres:10.4
     networks:
-      - net_gmusic_dev
+      - net_gmus_dev
     ports:
       - 5417:5432
     environment:
@@ -34,14 +40,14 @@ services:
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  music-player-redis:
+  gmus-redis:
     restart: always
     image: redis:6-alpine
     networks:
-      - net_gmusic_dev
+      - net_gmus_dev
     ports:
       - 6381:6379
 
 networks:
-  net_gmusic_dev:
+  net_gmus_dev:
     driver: bridge

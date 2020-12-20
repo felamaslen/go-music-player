@@ -8,8 +8,10 @@ import {
   nameSet,
   playPaused,
   seeked,
+  songInfoFetched,
   stateSet,
 } from '../actions';
+import { Song } from '../types';
 import { MusicPlayer } from '../types/state';
 import { globalReducer, initialState, nullPlayer } from './reducer';
 import { GlobalState } from './types';
@@ -493,6 +495,39 @@ describe(globalReducer.name, () => {
         const result = globalReducer(stateSlave, action);
 
         expect(result.player).toBe(stateSlave.player);
+      });
+    });
+  });
+
+  describe(ActionTypeLocal.SongInfoFetched, () => {
+    const song: Song = {
+      id: 123,
+      track: 17,
+      title: 'Some song',
+      artist: 'Some artist',
+      album: 'Some album',
+      time: 214,
+    };
+
+    const action = songInfoFetched(song);
+
+    it('should set the song info in state', () => {
+      expect.assertions(1);
+      const result = globalReducer(initialState, action);
+      expect(result.songInfo).toStrictEqual<Song>(song);
+    });
+
+    describe('when set to replace the current song', () => {
+      const actionReplace = songInfoFetched(song, true);
+
+      it('should play the given song from the start', () => {
+        expect.assertions(4);
+        const result = globalReducer(initialState, actionReplace);
+
+        expect(result.songInfo).toStrictEqual<Song>(song);
+        expect(result.player.playing).toBe(true);
+        expect(result.player.songId).toBe(song.id);
+        expect(result.player.seekTime).toBe(0);
       });
     });
   });

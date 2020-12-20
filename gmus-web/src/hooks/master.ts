@@ -1,11 +1,13 @@
-import { Dispatch, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 
-import { LocalAction, masterSet, stateSet } from '../actions';
+import { masterSet, stateSet } from '../actions';
 import { masterStateUpdateTimeout } from '../constants/system';
-import { GlobalState } from '../reducer';
+import { DispatchContext, StateContext } from '../context/state';
 import { isMaster } from '../selectors';
 
-export function useMaster(state: GlobalState, dispatch: Dispatch<LocalAction>): void {
+export function useMaster(): void {
+  const state = useContext(StateContext);
+  const dispatch = useContext(DispatchContext);
   const clientIsMaster = isMaster(state);
 
   const masterUpdateTimer = useRef<number>(0);

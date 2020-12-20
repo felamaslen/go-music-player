@@ -1,3 +1,4 @@
+import { Song } from '../types';
 import { Member, MusicPlayer } from '../types/state';
 import { ActionErrorOccurred } from './error';
 import { ActionLocal, ActionRemote, ActionTypeLocal, ActionTypeRemote } from './types';
@@ -51,6 +52,16 @@ export const playPaused = (): ActionPlayPaused => ({
   payload: undefined,
 });
 
+export type ActionSongInfoFetched = ActionLocal<
+  ActionTypeLocal.SongInfoFetched,
+  { song: Song | null; replace: boolean }
+>;
+
+export const songInfoFetched = (song: Song | null, replace = false): ActionSongInfoFetched => ({
+  type: ActionTypeLocal.SongInfoFetched,
+  payload: { song, replace },
+});
+
 export type LocalAction =
   | LoggedOut
   | ActionErrorOccurred
@@ -58,6 +69,7 @@ export type LocalAction =
   | ActionStateSetLocal
   | ActionSeeked
   | ActionPlayPaused
-  | ActionMasterSet;
+  | ActionMasterSet
+  | ActionSongInfoFetched;
 
 export type AnyAction = LocalAction | RemoteAction;

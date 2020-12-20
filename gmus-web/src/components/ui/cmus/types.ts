@@ -22,6 +22,10 @@ export type CmusUIState = {
     delta: number;
     serialNumber: number;
   };
+  skipSong: {
+    delta: 0 | 1 | -1;
+    serialNumber: number;
+  };
   view: View;
   commandMode: boolean;
   overlay: Overlay | null;

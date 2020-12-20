@@ -1,6 +1,7 @@
 import React, { Reducer, useCallback, useReducer } from 'react';
 
 import { AnyAction, nameSet } from '../actions';
+import { DispatchContext, StateContext } from '../context/state';
 import { useDispatchWithEffects, useOnMessage, useSocket } from '../hooks/socket';
 import { globalReducer, GlobalState, initialState } from '../reducer';
 import { init } from '../utils/state';
@@ -31,5 +32,11 @@ export const Root: React.FC = () => {
     return <Identify connecting={connecting} onIdentify={onIdentify} />;
   }
 
-  return <App socket={socket} state={state} dispatch={dispatchWithEffects} />;
+  return (
+    <StateContext.Provider value={state}>
+      <DispatchContext.Provider value={dispatchWithEffects}>
+        <App socket={socket} />
+      </DispatchContext.Provider>
+    </StateContext.Provider>
+  );
 };

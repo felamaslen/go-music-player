@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useReducer } from 'reinspect';
 
 import { DispatchContext } from '../../../context/state';
@@ -25,7 +25,7 @@ import * as Styled from './wrapper.styles';
 
 const viewTitles = Object.values(View);
 
-export const CmusUIProvider: UIProviderComponent = ({ currentSong }) => {
+export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, prevSong }) => {
   const dispatch = useContext(DispatchContext);
   const [stateUI, dispatchUI] = useReducer(cmusUIReducer, initialCmusUIState, init, 'ui');
 
@@ -34,6 +34,19 @@ export const CmusUIProvider: UIProviderComponent = ({ currentSong }) => {
       dispatch(stateUI.globalAction);
     }
   }, [dispatch, stateUI.globalAction, stateUI.globalActionSerialNumber]);
+
+  const lastSkipSerialNumber = useRef<number>(0);
+  useEffect(() => {
+    if (lastSkipSerialNumber.current !== stateUI.skipSong.serialNumber) {
+      lastSkipSerialNumber.current = stateUI.skipSong.serialNumber;
+
+      if (stateUI.skipSong.delta === 1) {
+        nextSong();
+      } else if (stateUI.skipSong.delta === -1) {
+        prevSong();
+      }
+    }
+  }, [stateUI.skipSong, nextSong, prevSong]);
 
   useVimBindings(dispatchUI, stateUI.commandMode);
 

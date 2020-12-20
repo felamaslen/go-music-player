@@ -1,65 +1,65 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Song } from '../../types/songs';
 import { getApiUrl } from '../../utils/url';
-import { useCancellableRequest } from '../request';
+import { useRequestCallback } from '../request';
 
 type ArtistsResponse = {
   artists: string[];
 };
 
-const sendArtistsRequest = (axios: AxiosInstance): Promise<AxiosResponse<ArtistsResponse>> =>
-  axios.get(`${getApiUrl()}/artists`);
-
-type AlbumsResponse = {
-  artist: string;
-  albums: string[];
-};
-
-type AlbumsQuery = {
-  artist: string;
-};
-
-const sendAlbumsRequest = (
-  axios: AxiosInstance,
-  query: AlbumsQuery,
-): Promise<AxiosResponse<AlbumsResponse>> =>
-  axios.get(`${getApiUrl()}/albums?artist=${encodeURIComponent(query.artist)}`);
-
-type SongsResponse = {
-  artist: string;
-  songs: Song[];
-};
-
-type SongsQuery = AlbumsQuery;
-
-const sendSongsRequest = (
-  axios: AxiosInstance,
-  query: SongsQuery,
-): Promise<AxiosResponse<SongsResponse>> =>
-  axios.get(`${getApiUrl()}/songs?artist=${encodeURIComponent(query.artist)}`);
-
 export function useArtists(): ArtistsResponse & {
   fetching: boolean;
 } {
-  const [artists, setArtists] = useState<string[]>([]);
+  const sendRequest = useCallback(
+    (axios: AxiosInstance): Promise<AxiosResponse<ArtistsResponse>> =>
+      axios.get(`${getApiUrl()}/artists`),
+    [],
+  );
 
-  const [pause, setPause] = useState<boolean>(false);
-
-  const handleResponse = useCallback((response: ArtistsResponse) => {
-    setArtists((last) => Array.from(new Set([...last, ...response.artists])));
-    setPause(true);
-  }, []);
-
-  const fetching = useCancellableRequest<void, ArtistsResponse>({
-    query: undefined,
-    pause,
-    sendRequest: sendArtistsRequest,
-    handleResponse,
+  const [onFetch, response, fetching] = useRequestCallback<void, ArtistsResponse>({
+    sendRequest,
   });
 
-  return { artists, fetching };
+  useEffect(onFetch, [onFetch]);
+
+  return { artists: response?.artists ?? [], fetching };
+}
+
+type ArtistDependencyResponse<K extends string, T> = { artist: string } & { [key in K]: T[] };
+
+function useArtistDependency<K extends string, T>(
+  key: K,
+  artist: string,
+  pause: boolean,
+): [ArtistDependencyResponse<K, T> | null, boolean] {
+  const sendRequest = useCallback(
+    (axios: AxiosInstance, query: string): Promise<AxiosResponse<ArtistDependencyResponse<K, T>>> =>
+      axios.get(`${getApiUrl()}/${key}?artist=${encodeURIComponent(query)}`),
+    [key],
+  );
+
+  const [onFetch, response, fetching] = useRequestCallback<string, ArtistDependencyResponse<K, T>>({
+    sendRequest,
+  });
+
+  const [hasLoadedByArtist, setHasLoadedByArtist] = useState<Record<string, boolean>>({});
+  const hasLoadedThisArtist = !!hasLoadedByArtist[artist];
+
+  useEffect(() => {
+    if (!pause && !hasLoadedThisArtist) {
+      onFetch(artist);
+    }
+  }, [onFetch, pause, hasLoadedThisArtist, artist]);
+
+  useEffect(() => {
+    if (response) {
+      setHasLoadedByArtist((last) => ({ ...last, [response.artist]: true }));
+    }
+  }, [response]);
+
+  return [response, fetching];
 }
 
 export function useArtistsAlbumsAndSongs(
@@ -67,42 +67,17 @@ export function useArtistsAlbumsAndSongs(
   pauseAlbums: boolean,
   pauseSongs: boolean,
 ): {
-  albums: AlbumsResponse | undefined;
-  songs: SongsResponse | undefined;
+  albums: ArtistDependencyResponse<'albums', string> | null;
+  songs: ArtistDependencyResponse<'songs', Song> | null;
   fetchingAlbums: boolean;
   fetchingSongs: boolean;
 } {
-  const [hasLoadedAlbums, setHasLoadedAlbums] = useState<Record<string, boolean>>({});
-  const [hasLoadedSongs, setHasLoadedSongs] = useState<Record<string, boolean>>({});
-
-  const query = useMemo<AlbumsQuery>(() => ({ artist }), [artist]);
-
-  const [albums, setAlbums] = useState<AlbumsResponse | undefined>();
-  const [songs, setSongs] = useState<SongsResponse | undefined>();
-
-  const handleAlbumsResponse = useCallback((response: AlbumsResponse) => {
-    setAlbums(response);
-    setHasLoadedAlbums((last) => ({ ...last, [response.artist]: true }));
-  }, []);
-
-  const handleSongsResponse = useCallback((response: SongsResponse) => {
-    setSongs(response);
-    setHasLoadedSongs((last) => ({ ...last, [response.artist]: true }));
-  }, []);
-
-  const fetchingAlbums = useCancellableRequest<AlbumsQuery, AlbumsResponse>({
-    query,
-    pause: pauseAlbums || hasLoadedAlbums[artist],
-    sendRequest: sendAlbumsRequest,
-    handleResponse: handleAlbumsResponse,
-  });
-
-  const fetchingSongs = useCancellableRequest<SongsQuery, SongsResponse>({
-    query,
-    pause: pauseSongs || hasLoadedSongs[artist],
-    sendRequest: sendSongsRequest,
-    handleResponse: handleSongsResponse,
-  });
+  const [albums, fetchingAlbums] = useArtistDependency<'albums', string>(
+    'albums',
+    artist,
+    pauseAlbums,
+  );
+  const [songs, fetchingSongs] = useArtistDependency<'songs', Song>('songs', artist, pauseSongs);
 
   return {
     albums,

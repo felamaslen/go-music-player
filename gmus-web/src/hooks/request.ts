@@ -1,72 +1,70 @@
 import axios, { Canceler, AxiosInstance, AxiosResponse } from 'axios';
-import { useEffect, useRef, useState } from 'react';
+import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 
 type Options<Query, Response> = {
-  query: Query;
-  pause?: boolean;
   sendRequest: (axiosInstance: AxiosInstance, query: Query) => Promise<AxiosResponse<Response>>;
-  handleResponse: (res: Response, query: Query) => void;
   onError?: (err: Error) => void;
-  onClear?: () => void;
-  debounceDelay?: number;
 };
 
-export function useCancellableRequest<Query, Response = void>({
-  query,
-  pause,
-  sendRequest,
-  handleResponse,
+export function useRequestCallback<Query, Response = void>({
   onError,
-  onClear,
-}: Options<Query, Response>): boolean {
+  sendRequest,
+}: Options<Query, Response>): [
+  (query: Query) => void,
+  Response | null,
+  boolean,
+  RefObject<((unmount?: boolean) => void) | undefined>,
+] {
+  const [response, setResponse] = useState<Response | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const cancelRequest = useRef<Canceler>();
+  const cancel = useRef<(unmount?: boolean) => void>();
 
-  useEffect(() => {
-    setLoading(!!query);
-    if (!query) {
-      onClear?.();
-    }
-  }, [query, onClear]);
+  useEffect(() => (): void => cancel.current?.(true), []);
 
-  useEffect(() => {
-    let cancelled = false;
-    const request = async (): Promise<void> => {
-      try {
-        const axiosWithToken = axios.create({
-          cancelToken: new axios.CancelToken((token): void => {
-            cancelRequest.current = token;
-          }),
-        });
-        const res = await sendRequest(axiosWithToken, query);
-        if (cancelled) {
-          return;
+  const onRequest = useCallback(
+    (query: Query) => {
+      let cancelled = false;
+      let unmounted = false;
+
+      let cancelRequest: Canceler | null = null;
+
+      cancel.current?.();
+      cancel.current = (unmount = false): void => {
+        cancelled = true;
+        unmounted = unmount;
+        cancelRequest?.();
+      };
+
+      const axiosWithToken = axios.create({
+        cancelToken: new axios.CancelToken((token): void => {
+          cancelRequest = token;
+        }),
+      });
+
+      const makeRequest = async (): Promise<void> => {
+        try {
+          setLoading(true);
+          const res = await sendRequest(axiosWithToken, query);
+
+          if (!cancelled) {
+            setResponse(res.data);
+          }
+        } catch (err) {
+          if (!axios.isCancel(err)) {
+            onError?.(err);
+          }
+        } finally {
+          if (!unmounted) {
+            setLoading(false);
+          }
         }
+      };
 
-        handleResponse(res.data, query);
-      } catch (err) {
-        if (!axios.isCancel(err)) {
-          onError?.(err);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
+      makeRequest();
+    },
+    [onError, sendRequest],
+  );
 
-    if (!pause) {
-      request();
-    }
-
-    return (): void => {
-      cancelled = true;
-      if (cancelRequest.current) {
-        cancelRequest.current();
-      }
-    };
-  }, [sendRequest, handleResponse, onError, query, pause]);
-
-  return loading;
+  return [onRequest, response, loading, cancel];
 }

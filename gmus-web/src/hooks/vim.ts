@@ -12,9 +12,11 @@ export const Keys = {
   pageUp: 'PageUp',
   '1': '1',
   '2': '2',
+  B: 'b',
   C: 'c',
   J: 'j',
   K: 'k',
+  Z: 'z',
 };
 
 const availableKeys = Object.values(Keys);
