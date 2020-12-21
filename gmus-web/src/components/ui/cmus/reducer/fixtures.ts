@@ -51,3 +51,5 @@ export const stateQueue: CmusUIState = {
     active: null,
   },
 };
+
+export const stateSearching: CmusUIState = { ...initialCmusUIState, searchMode: true };

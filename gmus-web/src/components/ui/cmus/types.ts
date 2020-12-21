@@ -29,6 +29,7 @@ export type CmusUIState = {
   };
   view: View;
   commandMode: boolean;
+  searchMode: boolean;
   overlay: Overlay | null;
   artists: string[];
   artistAlbums: Record<string, string[]>;
@@ -39,7 +40,6 @@ export type CmusUIState = {
     activeAlbum: string | null;
     activeSongId: number | null;
     modeWindow: LibraryModeWindow;
-    visibleSongs: Song[];
   };
   clientList: {
     active: string | null;

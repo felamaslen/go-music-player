@@ -10,6 +10,7 @@ export const Keys = {
   question: '?',
   pageDown: 'PageDown',
   pageUp: 'PageUp',
+  slash: '/',
   '1': '1',
   '2': '2',
   '3': '3',

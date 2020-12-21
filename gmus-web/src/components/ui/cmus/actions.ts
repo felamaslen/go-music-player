@@ -9,6 +9,7 @@ export enum CmusUIActionType {
   CommandSet = '@@ui/cmus/COMMAND_SET',
   ClientActivated = '@@ui/cmus/CLIENT_ACTIVATED',
   QueueInfoLoaded = '@@ui/cmus/QUEUE_INFO_LOADED',
+  Searched = '@@ui/cmus/SEARCHED',
 }
 
 export type ArtistsSet = Action<CmusUIActionType.ArtistsSet, string[]>;
@@ -65,6 +66,13 @@ export const queueInfoLoaded = (songs: Song[]): QueueInfoLoaded => ({
   payload: songs,
 });
 
+export type Searched = Action<CmusUIActionType.Searched, string | null>;
+
+export const searched = (term: string | null): Searched => ({
+  type: CmusUIActionType.Searched,
+  payload: term,
+});
+
 export type CmusUIAction =
   | ArtistsSet
   | ArtistAlbumsLoaded
@@ -72,4 +80,5 @@ export type CmusUIAction =
   | CommandSet
   | ClientActivated
   | QueueInfoLoaded
+  | Searched
   | ActionKeyPressed;

@@ -25,6 +25,7 @@ const commandsLibrary: Command[] = [
   { command: '<Tab>', description: 'switch between artists/albums and songs' },
   { command: '<Space>', description: 'toggle albums for selected artist' },
   { command: '<Enter>', description: 'play the selected song' },
+  { command: '/', description: 'search for an item' },
 ];
 
 const commandsClientList: Command[] = [

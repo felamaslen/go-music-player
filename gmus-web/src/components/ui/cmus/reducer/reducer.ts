@@ -8,6 +8,7 @@ import { CmusUIState, LibraryModeWindow, View } from '../types';
 import { setArtistAlbums, setArtists, setArtistSongs } from './artists';
 import { onCommand } from './command';
 import { handleKeyPress } from './keypress';
+import { handleSearch } from './search';
 
 export const initialCmusUIState: CmusUIState = {
   globalAction: null,
@@ -16,6 +17,7 @@ export const initialCmusUIState: CmusUIState = {
   skipSong: { delta: 0, serialNumber: 0 },
   view: View.Library,
   commandMode: false,
+  searchMode: false,
   overlay: null,
   artists: [],
   artistAlbums: {},
@@ -26,7 +28,6 @@ export const initialCmusUIState: CmusUIState = {
     activeArtist: null,
     activeAlbum: null,
     activeSongId: null,
-    visibleSongs: [],
   },
   clientList: {
     active: null,
@@ -54,6 +55,9 @@ export function cmusUIReducer(state: CmusUIState, action: CmusUIAction): CmusUIS
 
     case CmusUIActionType.CommandSet:
       return onCommand(state, action);
+
+    case CmusUIActionType.Searched:
+      return handleSearch(state, action);
 
     case CmusUIActionType.ClientActivated:
       return { ...state, clientList: { active: action.payload } };

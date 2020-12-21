@@ -13,6 +13,7 @@ import {
   CmusUIStateContext,
   initialCmusUIState,
 } from './reducer';
+import { Search } from './search';
 import { Overlay, View } from './types';
 import { useLibrary } from './utils/library';
 import { ViewClientList } from './views/clients';
@@ -49,11 +50,13 @@ export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, pre
     }
   }, [stateUI.skipSong, nextSong, prevSong]);
 
-  useVimBindings(dispatchUI, stateUI.commandMode);
+  useVimBindings(dispatchUI, stateUI.commandMode || stateUI.searchMode);
 
   useLibrary(stateUI, dispatchUI);
 
   const showOverlay = !!stateUI.overlay || stateUI.view === View.ClientList;
+
+  const showLibrary = stateUI.view === View.Library || stateUI.view === View.ClientList;
 
   return (
     <CmusUIStateContext.Provider value={stateUI}>
@@ -68,9 +71,7 @@ export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, pre
             ))}
           </Styled.ViewTitle>
           <Styled.View>
-            {(stateUI.view === View.Library || stateUI.view === View.ClientList) && (
-              <ViewLibrary currentArtist={currentSong?.artist ?? null} />
-            )}
+            <ViewLibrary currentArtist={currentSong?.artist ?? null} hidden={!showLibrary} />
             {stateUI.view === View.Queue && <ViewQueue currentSong={currentSong} />}
           </Styled.View>
           {showOverlay && (
@@ -79,6 +80,7 @@ export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, pre
               {stateUI.overlay === Overlay.Help && <HelpDialog />}
             </Styled.Overlay>
           )}
+          {stateUI.searchMode && <Search />}
           <PlayerStatus song={currentSong} />
           <CommandView />
         </Styled.Wrapper>

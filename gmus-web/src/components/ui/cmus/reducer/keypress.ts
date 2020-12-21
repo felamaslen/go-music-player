@@ -106,6 +106,9 @@ export function handleKeyPress(state: CmusUIState, action: ActionKeyPressed): Cm
     case Keys.esc:
       return { ...state, overlay: null };
 
+    case Keys.slash:
+      return { ...state, searchMode: true };
+
     case Keys.question:
       return { ...state, overlay: Overlay.Help };
 
