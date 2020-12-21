@@ -35,7 +35,9 @@ export const ViewQueue: React.FC<Props> = ({ currentSong }) => {
   });
 
   useEffect(() => {
-    fetchQueueInfo(queue);
+    if (queue.length) {
+      fetchQueueInfo(queue);
+    }
   }, [fetchQueueInfo, queue]);
 
   const orderedSongInfo = useMemo<Song[]>(

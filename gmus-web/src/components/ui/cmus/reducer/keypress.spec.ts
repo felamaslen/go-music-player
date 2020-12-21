@@ -1,4 +1,11 @@
-import { masterSet, playPaused, queueOrdered, queuePushed, stateSet } from '../../../../actions';
+import {
+  masterSet,
+  playPaused,
+  queueOrdered,
+  queuePushed,
+  queueRemoved,
+  stateSet,
+} from '../../../../actions';
 import { ActionKeyPressed, ActionTypeKeyPressed, Keys } from '../../../../hooks/vim';
 import { Song } from '../../../../types';
 
@@ -653,6 +660,23 @@ describe(ActionTypeKeyPressed, () => {
             seekTime: 0,
           }),
         );
+      });
+    });
+  });
+
+  describe(Keys.D, () => {
+    const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.D };
+
+    describe('when on the queue view', () => {
+      it('should set the globalAction to remove the active song from the queue', () => {
+        expect.assertions(1);
+
+        const result = cmusUIReducer(
+          { ...stateQueue, queue: { ...stateQueue.queue, active: 75 } },
+          action,
+        );
+
+        expect(result.globalAction).toStrictEqual(queueRemoved(75));
       });
     });
   });

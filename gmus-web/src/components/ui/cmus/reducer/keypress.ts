@@ -1,4 +1,4 @@
-import { masterSet, playPaused, queuePushed, stateSet } from '../../../../actions';
+import { masterSet, playPaused, queuePushed, queueRemoved, stateSet } from '../../../../actions';
 import { ActionKeyPressed, Keys } from '../../../../hooks/vim';
 import { CmusUIState, LibraryModeWindow, Overlay, View } from '../types';
 import { handleOrder } from './order';
@@ -117,6 +117,12 @@ export function handleKeyPress(state: CmusUIState, action: ActionKeyPressed): Cm
 
     case Keys.C:
       return withGlobalAction(state, playPaused());
+
+    case Keys.D:
+      if (state.view === View.Queue && state.queue.active) {
+        return withGlobalAction(state, queueRemoved(state.queue.active));
+      }
+      return state;
 
     case Keys.E:
       if (

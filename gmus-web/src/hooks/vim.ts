@@ -15,6 +15,7 @@ export const Keys = {
   '3': '3',
   B: 'b',
   C: 'c',
+  D: 'd',
   E: 'e',
   J: 'j',
   K: 'k',
