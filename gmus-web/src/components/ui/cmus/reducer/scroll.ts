@@ -65,10 +65,25 @@ function handleScrollLibrary(state: CmusUIState, delta: number): CmusUIState {
   }
 }
 
+function handleScrollQueue(state: CmusUIState, delta: number): CmusUIState {
+  const scrolledItem =
+    scrollThroughItems(state.queue.info, (compare) => compare.id === state.queue.active, delta) ??
+    state.queue.info[0];
+  return {
+    ...state,
+    queue: {
+      ...state.queue,
+      active: scrolledItem?.id ?? null,
+    },
+  };
+}
+
 export function handleScroll(state: CmusUIState, delta: number): CmusUIState {
   switch (state.view) {
     case View.Library:
       return handleScrollLibrary(state, delta);
+    case View.Queue:
+      return handleScrollQueue(state, delta);
     default:
       return {
         ...state,

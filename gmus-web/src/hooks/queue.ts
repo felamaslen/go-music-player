@@ -1,8 +1,8 @@
 import { useThrottleCallback } from '@react-hook/throttle';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { Dispatch, useCallback, useContext, useEffect } from 'react';
-import { LocalAction, songInfoFetched, stateSet } from '../actions';
-import { DispatchContext } from '../context/state';
+import { LocalAction, queueShifted, songInfoFetched, stateSet } from '../actions';
+import { DispatchContext, StateContext } from '../context/state';
 import { NullSong, Song, songExists } from '../types';
 import { getApiUrl } from '../utils/url';
 
@@ -38,14 +38,34 @@ function useNextOrPrevSong(
 }
 
 export function usePlayQueue(): {
-  onNext: (songId: number) => void;
-  onPrev: (songId: number) => void;
+  onNext: () => void;
+  onPrev: () => void;
   loading: boolean;
 } {
   const dispatch = useContext(DispatchContext);
+  const {
+    player: { queue, songId },
+  } = useContext(StateContext);
 
   const [onRequestNext, loadingNext] = useNextOrPrevSong('next', dispatch);
   const [onRequestPrev, loadingPrev] = useNextOrPrevSong('prev', dispatch);
 
-  return { onNext: onRequestNext, onPrev: onRequestPrev, loading: loadingNext || loadingPrev };
+  const loading = loadingNext || loadingPrev;
+
+  const firstQueuedSongId = queue[0];
+  const onNext = useCallback(() => {
+    if (firstQueuedSongId) {
+      dispatch(queueShifted());
+    } else if (!loading && songId) {
+      onRequestNext(songId);
+    }
+  }, [dispatch, firstQueuedSongId, songId, loading, onRequestNext]);
+
+  const onPrev = useCallback(() => {
+    if (!loading && songId) {
+      onRequestPrev(songId);
+    }
+  }, [songId, loading, onRequestPrev]);
+
+  return { onNext, onPrev, loading };
 }

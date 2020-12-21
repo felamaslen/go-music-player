@@ -62,6 +62,33 @@ export const songInfoFetched = (song: Song | null, replace = false): ActionSongI
   payload: { song, replace },
 });
 
+export type ActionQueuePushed = ActionLocal<ActionTypeLocal.QueuePushed, number>;
+export const queuePushed = (songId: number): ActionQueuePushed => ({
+  type: ActionTypeLocal.QueuePushed,
+  payload: songId,
+});
+
+export type ActionQueueShifted = ActionLocal<ActionTypeLocal.QueueShifted, void>;
+export const queueShifted = (): ActionQueueShifted => ({
+  type: ActionTypeLocal.QueueShifted,
+  payload: undefined,
+});
+
+export type ActionQueueRemoved = ActionLocal<ActionTypeLocal.QueueRemoved, number>;
+export const queueRemoved = (songId: number): ActionQueueRemoved => ({
+  type: ActionTypeLocal.QueueRemoved,
+  payload: songId,
+});
+
+export type ActionQueueOrdered = ActionLocal<
+  ActionTypeLocal.QueueOrdered,
+  { songId: number; delta: -1 | 1 }
+>;
+export const queueOrdered = (songId: number, delta: -1 | 1): ActionQueueOrdered => ({
+  type: ActionTypeLocal.QueueOrdered,
+  payload: { songId, delta },
+});
+
 export type LocalAction =
   | LoggedOut
   | ActionErrorOccurred
@@ -70,6 +97,10 @@ export type LocalAction =
   | ActionSeeked
   | ActionPlayPaused
   | ActionMasterSet
-  | ActionSongInfoFetched;
+  | ActionSongInfoFetched
+  | ActionQueuePushed
+  | ActionQueueShifted
+  | ActionQueueRemoved
+  | ActionQueueOrdered;
 
 export type AnyAction = LocalAction | RemoteAction;

@@ -1,3 +1,4 @@
+import { Song } from '../../../../types';
 import { CmusUIState, LibraryModeWindow, View } from '../types';
 import { initialCmusUIState } from './reducer';
 
@@ -30,5 +31,23 @@ export const stateWithActiveArtist: CmusUIState = {
   library: {
     ...initialCmusUIState.library,
     activeArtist: 'My artist',
+  },
+};
+
+export const stateWithActiveSong: CmusUIState = {
+  ...stateLibrary,
+  library: {
+    ...stateLibrary.library,
+    modeWindow: LibraryModeWindow.SongList,
+    activeSongId: 1867,
+  },
+};
+
+export const stateQueue: CmusUIState = {
+  ...initialCmusUIState,
+  view: View.Queue,
+  queue: {
+    info: [{ id: 887 } as Song, { id: 75 } as Song, { id: 189 } as Song],
+    active: null,
   },
 };

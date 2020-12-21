@@ -7,6 +7,7 @@ import * as Styled from './identify.styles';
 export type Props = {
   connecting: boolean;
   onIdentify: (name: string) => void;
+  setInteracted: (interacted: boolean) => void;
 };
 
 export const LoadingWrapper: React.FC = () => (
@@ -15,7 +16,7 @@ export const LoadingWrapper: React.FC = () => (
   </Styled.Container>
 );
 
-export const Identify: React.FC<Props> = ({ connecting, onIdentify }) => {
+export const Identify: React.FC<Props> = ({ connecting, onIdentify, setInteracted }) => {
   const [name, setName] = useState<string>('');
   const onChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => setName(event.target.value),
@@ -23,7 +24,8 @@ export const Identify: React.FC<Props> = ({ connecting, onIdentify }) => {
   );
   const onConnect = useCallback(() => {
     onIdentify(name);
-  }, [name, onIdentify]);
+    setInteracted(true);
+  }, [name, onIdentify, setInteracted]);
 
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {

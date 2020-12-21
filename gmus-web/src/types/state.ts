@@ -9,4 +9,5 @@ export type MusicPlayer = {
   currentTime: number;
   seekTime: number;
   master: string;
+  queue: number[];
 };

@@ -1,10 +1,16 @@
-import { masterSet, playPaused, stateSet } from '../../../../actions';
+import { masterSet, playPaused, queueOrdered, queuePushed, stateSet } from '../../../../actions';
 import { ActionKeyPressed, ActionTypeKeyPressed, Keys } from '../../../../hooks/vim';
 import { Song } from '../../../../types';
 
 import { CmusUIState, LibraryModeWindow, Overlay, View } from '../types';
 
-import { stateDifferentView, stateFromMode, stateLibrary } from './fixtures';
+import {
+  stateDifferentView,
+  stateFromMode,
+  stateLibrary,
+  stateQueue,
+  stateWithActiveSong,
+} from './fixtures';
 import { cmusUIReducer, initialCmusUIState } from './reducer';
 
 describe(ActionTypeKeyPressed, () => {
@@ -12,6 +18,7 @@ describe(ActionTypeKeyPressed, () => {
     key          | toView
     ${Keys['1']} | ${View.Library}
     ${Keys['2']} | ${View.ClientList}
+    ${Keys['3']} | ${View.Queue}
   `('$key', ({ key, toView }) => {
     const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key };
 
@@ -64,6 +71,18 @@ describe(ActionTypeKeyPressed, () => {
       const result = cmusUIReducer(stateLibrary, action);
       expect(result.globalAction).toStrictEqual(playPaused());
       expect(result.globalActionSerialNumber).toBe(stateLibrary.globalActionSerialNumber + 1);
+    });
+  });
+
+  describe(Keys.E, () => {
+    const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.E };
+
+    describe('when in library view', () => {
+      it('should set global action to add the selected song to the queue', () => {
+        expect.assertions(1);
+        const result = cmusUIReducer(stateWithActiveSong, action);
+        expect(result.globalAction).toStrictEqual(queuePushed(1867));
+      });
     });
   });
 
@@ -171,6 +190,14 @@ describe(ActionTypeKeyPressed, () => {
 
           expect(result.library.activeSongId).toBe(456);
         });
+      });
+    });
+
+    describe('when in queue view', () => {
+      it('should select the next item in the queue', () => {
+        expect.assertions(1);
+        const result = cmusUIReducer(stateQueue, action);
+        expect(result.queue.active).toBe(887);
       });
     });
 
@@ -291,11 +318,52 @@ describe(ActionTypeKeyPressed, () => {
       });
     });
 
+    describe('when in queue view', () => {
+      it('should select the next item in the queue', () => {
+        expect.assertions(1);
+        const result = cmusUIReducer(
+          { ...stateQueue, queue: { ...stateQueue.queue, active: 189 } },
+          action,
+        );
+        expect(result.queue.active).toBe(75);
+      });
+    });
+
     describe('when in a different view', () => {
       it('should set the scroll delta and increment the serial number', () => {
         expect.assertions(1);
         const result = cmusUIReducer(stateDifferentView, action);
         expect(result.scroll).toStrictEqual({ delta: -1, serialNumber: 8814 });
+      });
+    });
+  });
+
+  describe(Keys.p, () => {
+    const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.p };
+
+    describe('when on the queue view', () => {
+      it('should set a global action to move the song down the queue', () => {
+        expect.assertions(1);
+        const result = cmusUIReducer(
+          { ...stateQueue, queue: { ...stateQueue.queue, active: 75 } },
+          action,
+        );
+        expect(result.globalAction).toStrictEqual(queueOrdered(75, 1));
+      });
+    });
+  });
+
+  describe(Keys.P, () => {
+    const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.P };
+
+    describe('when on the queue view', () => {
+      it('should set a global action to move the song up the queue', () => {
+        expect.assertions(1);
+        const result = cmusUIReducer(
+          { ...stateQueue, queue: { ...stateQueue.queue, active: 75 } },
+          action,
+        );
+        expect(result.globalAction).toStrictEqual(queueOrdered(75, -1));
       });
     });
   });
@@ -565,6 +633,26 @@ describe(ActionTypeKeyPressed, () => {
         expect.assertions(1);
         const result = cmusUIReducer(state, action);
         expect(result.globalAction).toStrictEqual(masterSet('some-active-client'));
+      });
+    });
+
+    describe('when on the queue view', () => {
+      it('should set the globalAction to play the active song', () => {
+        expect.assertions(1);
+
+        const result = cmusUIReducer(
+          { ...stateQueue, queue: { ...stateQueue.queue, active: 75 } },
+          action,
+        );
+
+        expect(result.globalAction).toStrictEqual(
+          stateSet({
+            playing: true,
+            songId: 75,
+            currentTime: 0,
+            seekTime: 0,
+          }),
+        );
       });
     });
   });

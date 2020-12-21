@@ -4,14 +4,14 @@ import (
 	"net/http"
 
 	"github.com/felamaslen/gmus-backend/pkg/logger"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis"
 )
 
-type RouteHandler func(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error
+type RouteHandler func(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error
 
 func routeHandler(
 	l *logger.Logger,
-	rdb *redis.Client,
+	rdb redis.Cmdable,
 	handler RouteHandler,
 ) func(w http.ResponseWriter, r *http.Request) {
 

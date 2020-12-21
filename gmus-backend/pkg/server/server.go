@@ -7,7 +7,7 @@ import (
 
 	"github.com/felamaslen/gmus-backend/pkg/config"
 	"github.com/felamaslen/gmus-backend/pkg/logger"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -30,6 +30,7 @@ func StartServer() {
 	router.Path("/songs").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchSongs))
 
 	router.Path("/song-info").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchSongInfo))
+	router.Path("/multi-song-info").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchMultiSongInfo))
 
 	router.Path("/next-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchNextSong))
 	router.Path("/prev-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchPrevSong))

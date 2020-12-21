@@ -19,6 +19,7 @@ import { ViewClientList } from './views/clients';
 import { CommandView } from './views/command';
 import { HelpDialog } from './views/help';
 import { ViewLibrary } from './views/library';
+import { ViewQueue } from './views/queue';
 import { PlayerStatus } from './views/status';
 
 import * as Styled from './wrapper.styles';
@@ -70,6 +71,7 @@ export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, pre
             {(stateUI.view === View.Library || stateUI.view === View.ClientList) && (
               <ViewLibrary currentArtist={currentSong?.artist ?? null} />
             )}
+            {stateUI.view === View.Queue && <ViewQueue currentSong={currentSong} />}
           </Styled.View>
           {showOverlay && (
             <Styled.Overlay>

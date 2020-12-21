@@ -80,6 +80,7 @@ describe(useMaster.name, () => {
         currentTime: 17,
         seekTime: -1,
         master: 'master-client-a',
+        queue: [],
       },
     };
 
@@ -226,3 +227,4 @@ describe(useMaster.name, () => {
     });
   });
 });
+

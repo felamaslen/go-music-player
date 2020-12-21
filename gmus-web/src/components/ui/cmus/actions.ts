@@ -8,6 +8,7 @@ export enum CmusUIActionType {
   ArtistSongsLoaded = '@@ui/cmus/ARTIST_SONGS_LOADED',
   CommandSet = '@@ui/cmus/COMMAND_SET',
   ClientActivated = '@@ui/cmus/CLIENT_ACTIVATED',
+  QueueInfoLoaded = '@@ui/cmus/QUEUE_INFO_LOADED',
 }
 
 export type ArtistsSet = Action<CmusUIActionType.ArtistsSet, string[]>;
@@ -57,10 +58,18 @@ export const clientActivated = (name: string | null): ClientActivated => ({
   payload: name,
 });
 
+export type QueueInfoLoaded = Action<CmusUIActionType.QueueInfoLoaded, Song[]>;
+
+export const queueInfoLoaded = (songs: Song[]): QueueInfoLoaded => ({
+  type: CmusUIActionType.QueueInfoLoaded,
+  payload: songs,
+});
+
 export type CmusUIAction =
   | ArtistsSet
   | ArtistAlbumsLoaded
   | ArtistSongsLoaded
   | CommandSet
   | ClientActivated
+  | QueueInfoLoaded
   | ActionKeyPressed;

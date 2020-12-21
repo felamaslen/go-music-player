@@ -29,12 +29,15 @@ type Member struct {
 // The master client is responsible for:
 // 1. Playing the music
 // 2. Keeping the server updated regularly about the current state
+//
+// This type here is merely used for validation of client state messages.
+// Each client implementation MUST adhere to this spec.
 
 type MusicPlayer struct {
-	SongId      int     `json:"songId"`
-	Playing     bool    `json:"playing"`
-	CurrentTime float32 `json:"currentTime"`
-	SeekTime    int     `json:"setTime"`
-
-	Master string `json:"master"`
+	SongId      *int    `json:"songId" validate:"omitempty,gte=1"`
+	Playing     bool    `json:"playing" validate:"-"`
+	CurrentTime float32 `json:"currentTime" validate:"gte=0"`
+	SeekTime    float32 `json:"seekTime" validate:"min=-1"`
+	Master      string  `json:"master" validate:"required"`
+	Queue       *[]int  `json:"queue" validate:"required"`
 }

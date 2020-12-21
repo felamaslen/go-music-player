@@ -82,8 +82,12 @@ export const Player: React.FC<Props> = ({
     );
   }, []);
 
-  const play = useCallback(() => {
-    audio.current?.play();
+  const play = useCallback(async () => {
+    try {
+      await audio.current?.play();
+    } catch {
+      // pass
+    }
   }, []);
 
   const pause = useCallback(() => {

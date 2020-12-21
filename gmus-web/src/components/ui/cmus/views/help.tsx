@@ -16,6 +16,7 @@ const commandsGeneral: Command[] = [
   { command: '<PageUp>', description: 'select pervious page of list items' },
   { command: '1', description: 'show library view' },
   { command: '2', description: 'show client list' },
+  { command: '3', description: 'show queue' },
   { command: ':q', description: 'log out' },
   { command: '<Esc>', description: 'close this dialog' },
 ];
@@ -30,6 +31,13 @@ const commandsClientList: Command[] = [
   { command: '<Enter>', description: 'set the selected client to master' },
 ];
 
+const commandsQueue: Command[] = [
+  { command: 'd', description: 'remove the selected song from the queue' },
+  { command: 'P', description: 'move the selected song up the queue' },
+  { command: 'p', description: 'move the selected song down the queue' },
+  { command: '<Enter>', description: 'play the selected song' },
+];
+
 type CommandGroup = {
   title: string;
   commands: Command[];
@@ -39,6 +47,7 @@ const commandGroups: CommandGroup[] = [
   { title: 'General', commands: commandsGeneral },
   { title: 'Library view', commands: commandsLibrary },
   { title: 'Client list', commands: commandsClientList },
+  { title: 'Queue', commands: commandsQueue },
 ];
 
 export const HelpDialog: React.FC = () => (

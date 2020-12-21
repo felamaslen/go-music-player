@@ -4,6 +4,7 @@ import { Song } from '../../../types/songs';
 export enum View {
   Library = 'Library',
   ClientList = 'Client list',
+  Queue = 'Queue',
 }
 
 export enum Overlay {
@@ -42,5 +43,9 @@ export type CmusUIState = {
   };
   clientList: {
     active: string | null;
+  };
+  queue: {
+    info: Song[];
+    active: number | null;
   };
 };

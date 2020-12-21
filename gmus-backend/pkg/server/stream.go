@@ -10,10 +10,10 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/database"
 	"github.com/felamaslen/gmus-backend/pkg/logger"
 	"github.com/felamaslen/gmus-backend/pkg/repository"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis"
 )
 
-func streamSong(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error {
+func streamSong(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 	songIdQuery := r.URL.Query().Get("songid")
 	songId, err := strconv.Atoi(songIdQuery)
 	if err != nil {
@@ -24,16 +24,17 @@ func streamSong(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *h
 
 	db := database.GetConnection()
 
-	song, err := repository.SelectSong(db, songId)
+	songs, err := repository.SelectSong(db, []int{songId})
 	if err != nil {
-		if err.Error() == "No such ID" {
-			w.WriteHeader(404)
-			w.Write([]byte("No such song"))
-			return nil
-		}
-
 		return err
 	}
+	if len(*songs) == 0 {
+		w.WriteHeader(404)
+		w.Write([]byte("No such song"))
+		return nil
+	}
+
+	song := (*songs)[0]
 
 	fullFilePath := fmt.Sprintf("%s/%s", song.BasePath, song.RelativePath)
 

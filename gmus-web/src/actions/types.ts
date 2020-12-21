@@ -14,6 +14,10 @@ export enum ActionTypeLocal {
   MasterSet = '@@local/MASTER_SET',
   PlayPaused = '@@local/PLAY_PAUSED',
   SongInfoFetched = '@@local/SONG_INFO_FETCHED',
+  QueuePushed = '@@local/QUEUE_PUSHED',
+  QueueShifted = '@@local/QUEUE_SHIFTED',
+  QueueRemoved = '@@local/QUEUE_REMOVED',
+  QueueOrdered = '@@local/QUEUE_ORDERED',
 }
 
 export interface Action<T extends string = string, P = unknown> {

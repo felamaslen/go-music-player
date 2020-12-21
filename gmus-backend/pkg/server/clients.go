@@ -1,11 +1,12 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/felamaslen/gmus-backend/pkg/logger"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis"
 )
 
 func getClientNameFromRequest(r *http.Request) string {
@@ -22,7 +23,7 @@ func endSubscription(sub *redis.PubSub) error {
 	return nil
 }
 
-func publishClientList(l *logger.Logger, rdb *redis.Client) error {
+func publishClientList(l *logger.Logger, rdb redis.Cmdable) error {
 	clients, err := rdb.ZRangeWithScores(KEY_CLIENT_NAMES, 0, -1).Result()
 	if err != nil {
 		return err
@@ -36,12 +37,12 @@ func publishClientList(l *logger.Logger, rdb *redis.Client) error {
 		})
 	}
 
-	actionClientListUpdated := Action{
+	actionClientListUpdated, err := json.Marshal(Action{
 		Type:    ClientListUpdated,
 		Payload: members,
-	}
+	})
 
-	if err := publishAction(rdb, &actionClientListUpdated); err != nil {
+	if err := PublishAction(rdb, actionClientListUpdated); err != nil {
 		return err
 	}
 	return nil
@@ -53,11 +54,11 @@ func (c *Client) send(message interface{}) error {
 	return c.conn.WriteJSON(message)
 }
 
-func (c *Client) exposeToNetwork(l *logger.Logger, rdb *redis.Client) error {
+func (c *Client) exposeToNetwork(l *logger.Logger, rdb redis.Cmdable) error {
 	// Expose the client to all pods running the server
 	now := time.Now().Unix()
 
-	if _, err := rdb.ZAdd(KEY_CLIENT_NAMES, &redis.Z{
+	if _, err := rdb.ZAdd(KEY_CLIENT_NAMES, redis.Z{
 		Score:  float64(now),
 		Member: c.name,
 	}).Result(); err != nil {
@@ -69,7 +70,7 @@ func (c *Client) exposeToNetwork(l *logger.Logger, rdb *redis.Client) error {
 	return nil
 }
 
-func (c *Client) disposeFromNetwork(l *logger.Logger, rdb *redis.Client) error {
+func (c *Client) disposeFromNetwork(l *logger.Logger, rdb redis.Cmdable) error {
 	// Make sure other clients know when one goes away
 	if _, err := rdb.ZRem(KEY_CLIENT_NAMES, c.name).Result(); err != nil {
 		return err
@@ -80,7 +81,7 @@ func (c *Client) disposeFromNetwork(l *logger.Logger, rdb *redis.Client) error {
 	return nil
 }
 
-func (c *Client) subscribeToMe(l *logger.Logger, rdb *redis.Client) {
+func (c *Client) subscribeToMe(l *logger.Logger, rdb redis.Cmdable) {
 	// Subscribe this pod to messages from the client. This pod is responsible for
 	// onward publishing to other pods where necessary, via internal pubsub
 
@@ -99,14 +100,14 @@ func (c *Client) subscribeToMe(l *logger.Logger, rdb *redis.Client) {
 		} else {
 			actionFromClient.FromClient = &c.name
 
-			if err := publishAction(rdb, &actionFromClient); err != nil {
+			if err := PublishActionFromClient(rdb, &actionFromClient); err != nil {
 				l.Error("Error publishing action from client: %v\n", err)
 			}
 		}
 	}
 }
 
-func (c *Client) onConnect(l *logger.Logger, rdb *redis.Client) error {
+func (c *Client) onConnect(l *logger.Logger, rdb redis.Cmdable) error {
 	l.Verbose("[Client connected] %s\n", c.name)
 
 	if err := c.exposeToNetwork(l, rdb); err != nil {
@@ -119,7 +120,7 @@ func (c *Client) onConnect(l *logger.Logger, rdb *redis.Client) error {
 	return nil
 }
 
-func (c *Client) onDisconnect(l *logger.Logger, rdb *redis.Client) error {
+func (c *Client) onDisconnect(l *logger.Logger, rdb redis.Cmdable) error {
 	l.Verbose("[Client disconnected] %s\n", c.name)
 
 	if err := c.disposeFromNetwork(l, rdb); err != nil {

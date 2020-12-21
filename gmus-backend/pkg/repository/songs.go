@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -10,12 +8,17 @@ import (
 
 const BATCH_SIZE = 100
 
-func SelectSong(db *sqlx.DB, id int) (song *read.Song, err error) {
-	var songs []*read.Song
+func SelectSong(db *sqlx.DB, ids []int) (songs *[]*read.Song, err error) {
+	songs = &[]*read.Song{}
+	var idsArray pq.Int64Array
+	for _, id := range ids {
+		idsArray = append(idsArray, int64(id))
+	}
 
-	err = db.Select(&songs, `
+	err = db.Select(songs, `
   select
-    track_number
+    id
+    ,track_number
     ,title
     ,artist
     ,album
@@ -24,14 +27,8 @@ func SelectSong(db *sqlx.DB, id int) (song *read.Song, err error) {
     ,base_path
     ,relative_path
   from songs
-  where id = $1
-  `, int64(id))
-
-	if len(songs) == 0 {
-		err = errors.New("No such ID")
-	} else {
-		song = songs[0]
-	}
+  where id = ANY($1)
+  `, idsArray)
 
 	return
 }

@@ -19,6 +19,7 @@ var _ = Describe("songs repository", func() {
 
 	Describe("SelectSong", func() {
 		var id int64
+		var id2 int64
 
 		BeforeEach(func() {
 			db.QueryRowx(
@@ -36,16 +37,34 @@ var _ = Describe("songs repository", func() {
 				"/path/to",
 				"file.ogg",
 			).Scan(&id)
+
+			db.QueryRowx(
+				`
+	insert into songs (track_number, title, artist, album, duration, modified_date, base_path, relative_path)
+	values ($1, $2, $3, $4, $5, $6, $7, $8)
+	returning id
+	`,
+				13,
+				"Track 1",
+				"Untitled Artist",
+				"Some album",
+				218,
+				1993,
+				"/path/different",
+				"other.ogg",
+			).Scan(&id2)
 		})
 
 		It("should retrieve a song from the database", func() {
 			Expect(id).NotTo(BeZero())
 
-			result, err := repository.SelectSong(db, int(id))
+			result, err := repository.SelectSong(db, []int{int(id)})
 
 			Expect(err).To(BeNil())
 
-			Expect(result).To(Equal(&read.Song{
+			Expect(*result).To(HaveLen(1))
+			Expect((*result)[0]).To(Equal(&read.Song{
+				Id:           int(id),
 				TrackNumber:  7,
 				Title:        "Hey Jude",
 				Artist:       "The Beatles",
@@ -57,12 +76,46 @@ var _ = Describe("songs repository", func() {
 			}))
 		})
 
-		Context("when the song does not exist", func() {
-			It("should return an error", func() {
-				result, err := repository.SelectSong(db, 88113)
+		It("should retrieve multiple songs from the database", func() {
+			Expect(id).NotTo(BeZero())
+			Expect(id2).NotTo(BeZero())
 
-				Expect(err).To(MatchError("No such ID"))
-				Expect(result).To(BeNil())
+			result, err := repository.SelectSong(db, []int{int(id), int(id2)})
+
+			Expect(err).To(BeNil())
+
+			Expect(*result).To(HaveLen(2))
+			Expect((*result)[0]).To(Equal(&read.Song{
+				Id:           int(id),
+				TrackNumber:  7,
+				Title:        "Hey Jude",
+				Artist:       "The Beatles",
+				Album:        "",
+				Duration:     431,
+				BasePath:     "/path/to",
+				RelativePath: "file.ogg",
+				ModifiedDate: 8876,
+			}))
+
+			Expect((*result)[1]).To(Equal(&read.Song{
+				Id:           int(id2),
+				TrackNumber:  13,
+				Title:        "Track 1",
+				Artist:       "Untitled Artist",
+				Album:        "Some album",
+				Duration:     218,
+				BasePath:     "/path/different",
+				RelativePath: "other.ogg",
+				ModifiedDate: 1993,
+			}))
+		})
+
+		Context("when the song does not exist", func() {
+			It("should return an empty array", func() {
+				result, err := repository.SelectSong(db, []int{88113})
+
+				Expect(err).To(BeNil())
+				Expect(*result).To(HaveLen(0))
 			})
 		})
 	})

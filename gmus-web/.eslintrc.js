@@ -1,5 +1,5 @@
 module.exports = {
-  plugins: ['jsx-a11y', 'prettier', 'react', 'react-hooks', 'import', 'jest'],
+  plugins: ['jsx-a11y', 'react', 'react-hooks', 'import', 'jest'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 8,
@@ -96,7 +96,6 @@ module.exports = {
     'no-unused-expressions': 'off',
     'no-use-before-define': 'off',
     'no-warning-comments': 'warn',
-    'prettier/prettier': ['error'],
     'react/jsx-filename-extension': [
       2,
       {

@@ -9,7 +9,7 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/logger"
 	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/felamaslen/gmus-backend/pkg/repository"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -17,7 +17,7 @@ type ArtistsResponse struct {
 	Artists []string `json:"artists"`
 }
 
-func routeFetchArtists(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error {
+func routeFetchArtists(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 	db := database.GetConnection()
 	artists, err := repository.SelectAllArtists(db)
 	if err != nil {
@@ -40,7 +40,7 @@ type AlbumsResponse struct {
 	Albums []string `json:"albums"`
 }
 
-func routeFetchAlbums(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error {
+func routeFetchAlbums(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 	artist := r.URL.Query().Get("artist")
 
 	db := database.GetConnection()
@@ -67,7 +67,7 @@ type SongsResponse struct {
 	Songs  *[]*read.SongExternal `json:"songs"`
 }
 
-func routeFetchSongs(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error {
+func routeFetchSongs(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 	artist := r.URL.Query().Get("artist")
 
 	db := database.GetConnection()
@@ -100,7 +100,7 @@ func validateSongId(w http.ResponseWriter, r *http.Request) (id int, err error) 
 	return
 }
 
-func routeFetchSongInfo(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error {
+func routeFetchSongInfo(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 	id, err := validateSongId(w, r)
 	if err != nil {
 		return nil
@@ -108,14 +108,16 @@ func routeFetchSongInfo(l *logger.Logger, rdb *redis.Client, w http.ResponseWrit
 
 	db := database.GetConnection()
 
-	song, err := repository.SelectSong(db, id)
+	songs, err := repository.SelectSong(db, []int{id})
 	if err != nil {
-		if err.Error() == "No such ID" {
-			http.Error(w, "Song not found", http.StatusNotFound)
-			return nil
-		}
 		return err
 	}
+	if len(*songs) == 0 {
+		http.Error(w, "Song not found", http.StatusNotFound)
+		return nil
+	}
+
+	song := (*songs)[0]
 
 	response, err := json.Marshal(read.SongExternal{
 		Id:          id,
@@ -125,6 +127,53 @@ func routeFetchSongInfo(l *logger.Logger, rdb *redis.Client, w http.ResponseWrit
 		Album:       song.Album,
 		Duration:    song.Duration,
 	})
+	if err != nil {
+		return err
+	}
+
+	w.Write(response)
+	return nil
+}
+
+func routeFetchMultiSongInfo(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
+	idsArray := r.URL.Query()["ids"]
+	if len(idsArray) == 0 {
+		http.Error(w, "Must provide valid list of IDs", http.StatusBadRequest)
+		return nil
+	}
+
+	var ids []int
+	for _, id := range idsArray {
+		idInt, err := strconv.Atoi(id)
+		if err != nil {
+			http.Error(w, "All IDs must be numeric", http.StatusBadRequest)
+			return nil
+		}
+		if idInt < 1 {
+			http.Error(w, "All IDs must be positive integers", http.StatusBadRequest)
+			return nil
+		}
+		ids = append(ids, idInt)
+	}
+
+	songs, err := repository.SelectSong(database.GetConnection(), ids)
+	if err != nil {
+		return err
+	}
+
+	songsArray := []read.SongExternal{}
+	for _, song := range *songs {
+		songsArray = append(songsArray, read.SongExternal{
+			Id:          song.Id,
+			TrackNumber: song.TrackNumber,
+			Title:       song.Title,
+			Artist:      song.Artist,
+			Album:       song.Album,
+			Duration:    song.Duration,
+		})
+	}
+
+	response, err := json.Marshal(songsArray)
 	if err != nil {
 		return err
 	}
@@ -161,14 +210,14 @@ func respondWithSongOrNull(db *sqlx.DB, w http.ResponseWriter, song *read.Song) 
 	return nil
 }
 
-func routeFetchNextSong(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error {
+func routeFetchNextSong(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 	id, err := validateSongId(w, r)
 	if err != nil {
 		return nil
 	}
 
 	db := database.GetConnection()
-	nextSong, err := repository.GetNextSong(db, int64(id))
+	nextSong, err := repository.GetNextSong(db, id)
 	if err != nil {
 		return err
 	}
@@ -179,14 +228,14 @@ func routeFetchNextSong(l *logger.Logger, rdb *redis.Client, w http.ResponseWrit
 	return nil
 }
 
-func routeFetchPrevSong(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error {
+func routeFetchPrevSong(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 	id, err := validateSongId(w, r)
 	if err != nil {
 		return nil
 	}
 
 	db := database.GetConnection()
-	prevSong, err := repository.GetPrevSong(db, int64(id))
+	prevSong, err := repository.GetPrevSong(db, id)
 	if err != nil {
 		return err
 	}

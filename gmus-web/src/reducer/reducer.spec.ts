@@ -29,6 +29,7 @@ describe(globalReducer.name, () => {
           currentTime: 0,
           seekTime: -1,
           master: 'some-master-client',
+          queue: [],
         },
       });
 
@@ -57,6 +58,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'some-master-client',
+            queue: [],
           },
         };
 
@@ -70,6 +72,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'some-master-client',
+            queue: [],
           });
         });
       });
@@ -84,6 +87,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'some-master-client',
+            queue: [],
           },
         };
 
@@ -97,6 +101,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: -1,
             master: 'some-master-client',
+            queue: [],
           });
         });
       });
@@ -111,6 +116,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'other-master-client',
+            queue: [],
           },
         };
 
@@ -124,6 +130,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: -1,
             master: 'other-master-client',
+            queue: [],
           });
         });
       });
@@ -153,6 +160,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'some-master-client',
+            queue: [],
           },
         };
 
@@ -160,12 +168,13 @@ describe(globalReducer.name, () => {
           expect.assertions(1);
           const result = globalReducer(stateSlave, action);
 
-          expect(result.player).toStrictEqual({
+          expect(result.player).toStrictEqual<MusicPlayer>({
             songId: 123,
             playing: true,
             currentTime: 75,
             seekTime: -1,
             master: 'some-master-client',
+            queue: [],
           });
         });
       });
@@ -180,6 +189,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'my-client',
+            queue: [],
           },
         };
 
@@ -187,12 +197,13 @@ describe(globalReducer.name, () => {
           expect.assertions(1);
           const result = globalReducer(stateSlave, actionToMaster);
 
-          expect(result.player).toStrictEqual({
+          expect(result.player).toStrictEqual<MusicPlayer>({
             songId: 123,
             playing: true,
             currentTime: 75,
             seekTime: 87,
             master: 'my-client',
+            queue: [],
           });
         });
       });
@@ -261,6 +272,7 @@ describe(globalReducer.name, () => {
           currentTime: 75,
           seekTime: 87,
           master: 'some-master-client',
+          queue: [],
         });
       });
 
@@ -275,7 +287,7 @@ describe(globalReducer.name, () => {
 
           const result = globalReducer(stateMaster, actionPartial);
 
-          expect(result.player).toStrictEqual({
+          expect(result.player).toStrictEqual<MusicPlayer>({
             ...nullPlayer,
             master: 'some-master-client',
             currentTime: 31,
@@ -331,6 +343,7 @@ describe(globalReducer.name, () => {
           currentTime: 31,
           seekTime: -1,
           master: 'some-master-client',
+          queue: [],
         },
         myClientName: 'some-master-client',
       };
@@ -345,6 +358,7 @@ describe(globalReducer.name, () => {
           currentTime: 31,
           seekTime: 173,
           master: 'some-master-client',
+          queue: [],
         });
       });
     });
@@ -381,6 +395,7 @@ describe(globalReducer.name, () => {
         master: 'some-master-client',
         currentTime: 13,
         seekTime: -1,
+        queue: [],
       },
     };
 

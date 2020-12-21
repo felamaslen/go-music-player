@@ -1,6 +1,7 @@
-import { masterSet, playPaused, stateSet } from '../../../../actions';
+import { masterSet, playPaused, queuePushed, stateSet } from '../../../../actions';
 import { ActionKeyPressed, Keys } from '../../../../hooks/vim';
 import { CmusUIState, LibraryModeWindow, Overlay, View } from '../types';
+import { handleOrder } from './order';
 import { handleScroll } from './scroll';
 import { withGlobalAction } from './utils';
 
@@ -33,6 +34,17 @@ function toggleExpandArtist(library: CmusUIState['library']): CmusUIState['libra
   return { ...library, expandedArtists: [...library.expandedArtists, library.activeArtist] };
 }
 
+const activateSong = (state: CmusUIState, songId: number): CmusUIState =>
+  withGlobalAction(
+    state,
+    stateSet({
+      playing: true,
+      songId,
+      currentTime: 0,
+      seekTime: 0,
+    }),
+  );
+
 function handleActivate(state: CmusUIState): CmusUIState {
   switch (state.view) {
     case View.Library:
@@ -41,17 +53,15 @@ function handleActivate(state: CmusUIState): CmusUIState {
           return state;
         }
 
-        return withGlobalAction(
-          state,
-          stateSet({
-            playing: true,
-            songId: state.library.activeSongId,
-            currentTime: 0,
-            seekTime: 0,
-          }),
-        );
+        return activateSong(state, state.library.activeSongId);
       }
       return state;
+
+    case View.Queue:
+      if (!state.queue.active) {
+        return state;
+      }
+      return activateSong(state, state.queue.active);
 
     case View.ClientList:
       if (!state.clientList.active) {
@@ -73,6 +83,8 @@ export function handleKeyPress(state: CmusUIState, action: ActionKeyPressed): Cm
       return { ...state, view: View.Library };
     case Keys['2']:
       return { ...state, view: View.ClientList };
+    case Keys['3']:
+      return { ...state, view: View.Queue };
 
     case Keys.tab:
       if (state.view === View.Library) {
@@ -106,10 +118,25 @@ export function handleKeyPress(state: CmusUIState, action: ActionKeyPressed): Cm
     case Keys.C:
       return withGlobalAction(state, playPaused());
 
+    case Keys.E:
+      if (
+        state.view === View.Library &&
+        state.library.modeWindow === LibraryModeWindow.SongList &&
+        state.library.activeSongId
+      ) {
+        return withGlobalAction(state, queuePushed(state.library.activeSongId));
+      }
+      return state;
+
     case Keys.J:
       return handleScroll(state, 1);
     case Keys.K:
       return handleScroll(state, -1);
+
+    case Keys.p:
+      return handleOrder(state, 1);
+    case Keys.P:
+      return handleOrder(state, -1);
 
     case Keys.pageDown:
       return handleScroll(state, 20);

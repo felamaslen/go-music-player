@@ -10,18 +10,20 @@ import { useCurrentlyPlayingSongInfo } from '../hooks/status';
 import { isMaster } from '../selectors';
 import { getSongUrl } from '../utils/url';
 import { LoadingWrapper } from './identify';
+import { Interact, Props as InteractProps } from './interact';
 import { Player } from './player';
 import { uiProviders } from './ui';
 import { UIProvider } from './ui/types';
 
 export type Props = {
   socket: WebSocket;
-};
+  interacted: boolean;
+} & InteractProps;
 
 const uiProvider = UIProvider.Cmus;
 const UI = uiProviders[uiProvider];
 
-export const App: React.FC<Props> = ({ socket }) => {
+export const App: React.FC<Props> = ({ socket, interacted, setInteracted }) => {
   useKeepalive(socket);
   useMaster();
   useCurrentlyPlayingSongInfo();
@@ -36,26 +38,7 @@ export const App: React.FC<Props> = ({ socket }) => {
     [dispatch],
   );
 
-  const { onNext, onPrev, loading: loadingQueue } = usePlayQueue();
-  const onEnded = useCallback(() => {
-    if (state.player.songId) {
-      onNext(state.player.songId);
-    }
-  }, [onNext, state.player.songId]);
-
-  const nextSong = useCallback(() => {
-    if (loadingQueue || !state.player.songId) {
-      return;
-    }
-    onNext(state.player.songId);
-  }, [loadingQueue, onNext, state.player.songId]);
-
-  const prevSong = useCallback(() => {
-    if (loadingQueue || !state.player.songId) {
-      return;
-    }
-    onPrev(state.player.songId);
-  }, [loadingQueue, onPrev, state.player.songId]);
+  const { onNext, onPrev } = usePlayQueue();
 
   return (
     <>
@@ -66,18 +49,21 @@ export const App: React.FC<Props> = ({ socket }) => {
           seekTime={state.player.seekTime}
           onTimeUpdate={onTimeUpdate}
           timeUpdateFPS={1}
-          onEnded={onEnded}
+          onEnded={onNext}
         />
       )}
       <StateInspector name="ui">
-        <Suspense fallback={<LoadingWrapper />}>
-          <UI
-            isMaster={isMaster(state)}
-            currentSong={state.songInfo}
-            nextSong={nextSong}
-            prevSong={prevSong}
-          />
-        </Suspense>
+        {!interacted && <Interact setInteracted={setInteracted} />}
+        {interacted && (
+          <Suspense fallback={<LoadingWrapper />}>
+            <UI
+              isMaster={isMaster(state)}
+              currentSong={state.songInfo}
+              nextSong={onNext}
+              prevSong={onPrev}
+            />
+          </Suspense>
+        )}
       </StateInspector>
     </>
   );

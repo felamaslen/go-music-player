@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/felamaslen/gmus-backend/pkg/logger"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -19,7 +19,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func handleClientSubscription(thisPodClients *map[string]*Client) RouteHandler {
-	return func(l *logger.Logger, rdb *redis.Client, w http.ResponseWriter, r *http.Request) error {
+	return func(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 		clientName := getClientNameFromRequest(r)
 		if len(clientName) == 0 {
 			w.WriteHeader(400)
@@ -94,7 +94,7 @@ func subscribeToBroadcast(
 					l.Debug("[<-Client] %s (%s)\n", actionFromPubsub.Type, *actionFromPubsub.FromClient)
 				}
 
-				errors := broadcastAction(l, thisPodClients, &actionFromPubsub)
+				errors := BroadcastAction(l, thisPodClients, &actionFromPubsub)
 
 				if len(errors) > 0 {
 					l.Warn("Error broadcasting: %v\n", errors)
@@ -104,7 +104,7 @@ func subscribeToBroadcast(
 	}
 }
 
-func pruneDisappearedClients(l *logger.Logger, rdb *redis.Client) {
+func pruneDisappearedClients(l *logger.Logger, rdb redis.Cmdable) {
 	for {
 		now := time.Now().Unix()
 		rdb.ZRemRangeByScore(KEY_CLIENT_NAMES, "0", fmt.Sprintf("%d", now-CLIENT_TTL_SEC))

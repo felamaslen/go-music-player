@@ -12,10 +12,14 @@ export const Keys = {
   pageUp: 'PageUp',
   '1': '1',
   '2': '2',
+  '3': '3',
   B: 'b',
   C: 'c',
+  E: 'e',
   J: 'j',
   K: 'k',
+  P: 'P',
+  p: 'p',
   Z: 'z',
 };
 

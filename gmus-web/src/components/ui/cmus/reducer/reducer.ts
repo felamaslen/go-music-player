@@ -31,6 +31,10 @@ export const initialCmusUIState: CmusUIState = {
   clientList: {
     active: null,
   },
+  queue: {
+    info: [],
+    active: null,
+  },
 };
 
 export const CmusUIStateContext = createContext<CmusUIState>(initialCmusUIState);
@@ -53,6 +57,17 @@ export function cmusUIReducer(state: CmusUIState, action: CmusUIAction): CmusUIS
 
     case CmusUIActionType.ClientActivated:
       return { ...state, clientList: { active: action.payload } };
+
+    case CmusUIActionType.QueueInfoLoaded:
+      return {
+        ...state,
+        queue: {
+          info: action.payload,
+          active: action.payload.some(({ id }) => id === state.queue.active)
+            ? state.queue.active
+            : action.payload[0]?.id ?? null,
+        },
+      };
 
     default:
       return state;
