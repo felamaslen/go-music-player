@@ -172,8 +172,9 @@ var _ = Describe("songs repository", func() {
 			modifiedBatch[0].Title = "Title A modified"
 
 			BeforeEach(func() {
-				repository.BatchUpsertSongs(db, &songs, 2)
+				setup.PrepareDatabaseForTesting()
 
+				repository.BatchUpsertSongs(db, &songs, 2)
 				repository.BatchUpsertSongs(db, &modifiedBatch, 2)
 
 				db.Select(&result, `

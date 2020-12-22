@@ -17,7 +17,7 @@ export const Search: React.FC = () => {
         dispatchUI(searched(null));
       } else if (event.key === 'Backspace') {
         setTerm((last) => last.substring(0, last.length - 1));
-      } else if (/^\w$/.test(event.key)) {
+      } else if (/^[\w\s]$/.test(event.key)) {
         setTerm((last) => `${last}${event.key}`);
       }
     };

@@ -21,6 +21,8 @@ func StartServer() {
 
 	router := mux.NewRouter()
 
+	healthRoutes(l, router)
+
 	initPubsub(l, rdb, router)
 
 	router.Path("/stream").Methods("GET").HandlerFunc(routeHandler(l, rdb, streamSong))

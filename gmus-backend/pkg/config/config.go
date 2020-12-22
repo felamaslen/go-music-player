@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -20,6 +21,8 @@ func getEnvFile() (string, bool) {
 	switch goEnv {
 	case "test":
 		return "test.env", true
+	case "ci":
+		return "ci.env", true
 	case "development":
 		return ".env", true
 	default:
@@ -63,7 +66,7 @@ func getDatabaseUrl() string {
 		log.Fatal("Must set POSTGRES_DATABASE")
 	}
 
-	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", user, password, host, portNumeric, database)
+	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", user, url.QueryEscape(password), host, portNumeric, database)
 
 	return databaseUrl
 }

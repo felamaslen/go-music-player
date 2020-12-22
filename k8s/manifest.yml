@@ -1,46 +1,128 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: gmusic
+  name: gmus-backend
 spec:
   type: LoadBalancer
   selector:
-    app: gmusic
+    app: gmus-backend
   ports:
     - name: http
       protocol: TCP
       port: 8080
-      targetPort: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: gmusic-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: gmusic
-                port:
-                  number: 80
+      targetPort: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: gmusic-database
+  name: gmus-web
+spec:
+  type: LoadBalancer
+  selector:
+    app: gmus-web
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gmus-backend
   labels:
-    app: gmusic-database
+    app: gmus-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gmus-backend
+  template:
+    metadata:
+      labels:
+        app: gmus-backend
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: gmus-backend
+          image: docker.fela.space/gmus-backend:0
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: gmus-backend
+          env:
+            - name: GO_ENV
+              value: production
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-pass
+                  key: password
+          livenessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            httpGet:
+              path: /liveness
+              port: 8080
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            httpGet:
+              path: /readiness
+              port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gmus-web
+  labels:
+    app: gmus-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gmus-web
+  template:
+    metadata:
+      labels:
+        app: gmus-web
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: gmus-web
+          image: docker.fela.space/gmus-web:0
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: gmus-web
+          livenessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            httpGet:
+              path: /liveness
+              port: 8080
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            httpGet:
+              path: /readiness
+              port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gmus-database
+  labels:
+    app: gmus-database
 spec:
   ports:
     - port: 5432
   selector:
-    app: gmusic-database
+    app: gmus-database
     tier: postgres
   clusterIP: None
 ---
@@ -54,9 +136,9 @@ volumeBindingMode: WaitForFirstConsumer
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: postgres-pv
+  name: postgres-pv-gmus
   labels:
-    app: gmusic-database
+    app: gmus-database
 spec:
   storageClassName: manual
   capacity:
@@ -64,14 +146,14 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /var/local/gmusic-database
+    path: /var/local/gmus-database
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: postgres-pv-claim
+  name: postgres-pv-claim-gmus
   labels:
-    app: gmusic-database
+    app: gmus-database
 spec:
   storageClassName: manual
   accessModes:
@@ -83,20 +165,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gmusic-database
+  name: gmus-database
   labels:
-    app: gmusic-database
+    app: gmus-database
 spec:
   selector:
     matchLabels:
-      app: gmusic-database
+      app: gmus-database
       tier: postgres
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: gmusic-database
+        app: gmus-database
         tier: postgres
     spec:
       containers:
@@ -104,7 +186,7 @@ spec:
           name: postgres
           env:
             - name: POSTGRES_USER
-              value: gmusic
+              value: gmus
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -119,12 +201,52 @@ spec:
       volumes:
         - name: postgres-persistent-storage
           persistentVolumeClaim:
-            claimName: postgres-pv-claim
+            claimName: postgres-pv-claim-gmus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gmus-redis
+  labels:
+    app: gmus-redis
+spec:
+  ports:
+    - port: 6379
+  selector:
+    app: gmus-redis
+    tier: redis
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gmus-redis
+  labels:
+    app: gmus-redis
+spec:
+  selector:
+    matchLabels:
+      app: gmus-redis
+      tier: redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gmus-redis
+        tier: redis
+    spec:
+      containers:
+        - image: redis:6-alpine
+          name: redis
+          ports:
+            - containerPort: 6379
+              name: redis
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: gmusic-scan-library
+  name: gmus-scan-library
 spec:
   schedule: "45 5 * * *"
   jobTemplate:
@@ -132,17 +254,19 @@ spec:
       template:
         spec:
           containers:
-            - name: gmusic-scan
-              image: docker.fela.space/gmusic:0
+            - name: gmus-scan
+              image: docker.fela.space/gmus-backend:0
               args:
                 - scan
               envFrom:
                 - configMapRef:
-                    name: gmusic
+                    name: gmus-backend
               env:
-                - name: DATABASE_URL
+                - name: GO_ENV
+                  value: production
+                - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: postgres-pass
-                      key: url
+                      key: password
           restartPolicy: Never
