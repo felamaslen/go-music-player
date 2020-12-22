@@ -80,9 +80,8 @@ describe(useRequestCallback.name, () => {
     });
 
     describe('when the request is cancelled', () => {
+      // eslint-disable-next-line jest/prefer-expect-assertions
       it('should set the loading state back to false and not set the response', async () => {
-        expect.assertions(4);
-
         const { getByText, getByTestId, unmount } = setupRequest();
         act(() => {
           fireEvent.click(getByText('Cancel!'));
@@ -110,8 +109,8 @@ describe(useRequestCallback.name, () => {
       onError.mockClear();
     });
 
+    // eslint-disable-next-line jest/prefer-expect-assertions
     it('should call onError', async () => {
-      expect.assertions(3);
       const { unmount } = setupRequest();
 
       await waitFor(() => {
