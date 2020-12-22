@@ -12,6 +12,7 @@ describe(formatTime.name, () => {
     ${'more than one hour'}    | ${3615}   | ${'1:00:15'}
     ${'more than one day'}     | ${86465}  | ${'1 day, 01:05'}
     ${'negative values'}       | ${-86465} | ${'-1 day, 01:05'}
+    ${'floating point values'} | ${119.99} | ${'02:00'}
   `('should handle case: $case', ({ input, output }) => {
     expect.assertions(1);
     expect(formatTime(input)).toBe(output);

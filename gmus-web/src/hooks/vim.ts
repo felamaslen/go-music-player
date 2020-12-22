@@ -49,7 +49,11 @@ export function useVimBindings(dispatch: Dispatch<ActionKeyPressed>, skip = fals
     [dispatch],
   );
 
-  const listenerThrottled = useThrottleCallback(listener, 60, true);
+  const listenerThrottled = useThrottleCallback(
+    listener,
+    process.env.NODE_ENV === 'development' ? 15 : 60,
+    true,
+  );
 
   useEffect(() => {
     if (skip) {

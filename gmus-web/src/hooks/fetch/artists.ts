@@ -9,6 +9,8 @@ type ArtistsResponse = {
   artists: string[];
 };
 
+const emptyArtists: string[] = [];
+
 export function useArtists(): ArtistsResponse & {
   fetching: boolean;
 } {
@@ -24,7 +26,7 @@ export function useArtists(): ArtistsResponse & {
 
   useEffect(onFetch, [onFetch]);
 
-  return { artists: response?.artists ?? [], fetching };
+  return { artists: response?.artists ?? emptyArtists, fetching };
 }
 
 type ArtistDependencyResponse<K extends string, T> = { artist: string } & { [key in K]: T[] };

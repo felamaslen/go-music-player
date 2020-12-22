@@ -39,7 +39,10 @@ func StartServer() {
 
 	port := conf.Port
 
-	handler := cors.AllowAll().Handler(router)
+	handler := cors.New(cors.Options{
+		AllowedOrigins:   conf.AllowedOrigins,
+		AllowCredentials: true,
+	}).Handler(router)
 
 	l.Info("Starting server on %s:%d\n", conf.Host, port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", conf.Host, port), handler))

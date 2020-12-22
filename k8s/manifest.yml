@@ -257,7 +257,7 @@ spec:
             - name: gmus-scan
               image: docker.fela.space/gmus-backend:0
               args:
-                - scan
+                - gmus.scan
               envFrom:
                 - configMapRef:
                     name: gmus-backend

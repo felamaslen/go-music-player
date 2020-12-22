@@ -5,7 +5,7 @@ export function formatTime(seconds: number | null): string {
     return '';
   }
 
-  const totalSecondsAbsolute = Math.abs(seconds);
+  const totalSecondsAbsolute = Math.abs(Math.round(seconds));
   const sign = seconds < 0 ? '-' : '';
 
   const hours = Math.floor(totalSecondsAbsolute / 3600);

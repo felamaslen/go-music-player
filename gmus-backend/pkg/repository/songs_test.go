@@ -172,14 +172,14 @@ var _ = Describe("songs repository", func() {
 			modifiedBatch[0].Title = "Title A modified"
 
 			BeforeEach(func() {
-				setup.PrepareDatabaseForTesting()
-
 				repository.BatchUpsertSongs(db, &songs, 2)
 				repository.BatchUpsertSongs(db, &modifiedBatch, 2)
 
+				result = []*read.Song{}
 				db.Select(&result, `
-	select track_number, title, artist, album, duration, base_path, relative_path, modified_date
-	from songs
+  select track_number, title, artist, album, duration, base_path, relative_path, modified_date
+  from songs
+  where relative_path in ('song1.ogg', 'song2.ogg')
 	`)
 			})
 

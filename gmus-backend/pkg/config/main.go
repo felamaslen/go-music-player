@@ -14,5 +14,6 @@ func GetConfig() config {
 		Host:             getListenHost(),
 		Port:             getPort(),
 		RedisUrl:         getRedisUrl(),
+		AllowedOrigins:   getAllowedOrigins(),
 	}
 }

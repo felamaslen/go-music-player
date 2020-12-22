@@ -67,9 +67,8 @@ describe(useRequestCallback.name, () => {
       unmount();
     });
 
+    // eslint-disable-next-line jest/prefer-expect-assertions
     it('should set the response and loading state back to false', async () => {
-      expect.assertions(3);
-
       const { getByTestId, unmount } = setupRequest();
 
       await waitFor(() => {

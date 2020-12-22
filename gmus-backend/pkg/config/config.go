@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 
@@ -129,6 +130,15 @@ func getRedisUrl() string {
 	return url
 }
 
+func getAllowedOrigins() []string {
+	origins, hasOrigins := os.LookupEnv("ALLOWED_ORIGINS")
+	if !hasOrigins {
+		return []string{"*"}
+	}
+
+	return strings.Split(origins, ",")
+}
+
 type config struct {
 	DatabaseUrl      string
 	LogLevel         logger.LogLevel
@@ -136,4 +146,5 @@ type config struct {
 	Host             string
 	Port             int
 	RedisUrl         string
+	AllowedOrigins   []string
 }
