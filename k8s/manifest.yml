@@ -60,6 +60,10 @@ spec:
                 secretKeyRef:
                   name: postgres-pass
                   key: password
+          volumeMounts:
+            - name: gmus-library
+              mountPath: /music
+              readOnly: true
           livenessProbe:
             initialDelaySeconds: 5
             periodSeconds: 5
@@ -72,6 +76,10 @@ spec:
             httpGet:
               path: /readiness
               port: 8080
+      volumes:
+        - name: gmus-library
+          hostPath:
+            path: LIBRARY_DIRECTORY
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -269,4 +277,12 @@ spec:
                     secretKeyRef:
                       name: postgres-pass
                       key: password
+              volumeMounts:
+                - name: gmus-library
+                  mountPath: /music
+                  readOnly: true
           restartPolicy: Never
+          volumes:
+            - name: gmus-library
+              hostPath:
+                path: LIBRARY_DIRECTORY

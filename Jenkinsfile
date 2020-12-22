@@ -56,7 +56,7 @@ node {
 
     stage('Deploy') {
       if (env.BRANCH_NAME == "master") {
-        sh './k8s/deploy.sh'
+        sh 'LIBRARY_DIRECTORY=/data/user/music/ogg ./k8s/deploy.sh'
       }
     }
   }

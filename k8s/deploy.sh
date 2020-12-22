@@ -12,6 +12,7 @@ namespace="gmus"
 cat ./manifest.yml \
   | sed -e "s/docker\.fela\.space\/gmus-backend\:0/$(echo $IMAGE_BACKEND | sed -e 's/\//\\\//')/g" \
   | sed -e "s/docker\.fela\.space\/gmus-web\:0/$(echo $IMAGE_WEB | sed -e 's/\//\\\//')/g" \
+  | sed -e "s/LIBRARY_DIRECTORY/$(echo $LIBRARY_DIRECTORY | sed -e 's/\//\\\//g')/g" \
   > ./manifest_with_image.yml
 
 echo "Updating deployment..."
