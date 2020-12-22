@@ -3,7 +3,7 @@ TAG 	:= $$(git log -1 --pretty=%H)
 IMG 	:= ${NAME}:${TAG}
 
 build.docker:
-	docker build -t docker.fela.space/gmus-web-builder:latest -f builder.Dockerfile .
+	docker build -t docker.fela.space/gmus-web-builder:latest --build-arg REACT_APP_API_URL=${REACT_APP_API_URL} -f builder.Dockerfile .
 	docker build -t ${IMG} .
 
 push:

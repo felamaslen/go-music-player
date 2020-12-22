@@ -11,5 +11,6 @@ COPY --chown=appuser:appgroup src ./src
 COPY --chown=appuser:appgroup public ./public
 COPY --chown=appuser:appgroup README.md .env.test .prettierrc.js .eslintrc.js tsconfig.json ./
 
-ENV REACT_APP_API_URL=http://localhost:3002
+ARG REACT_APP_API_URL=http://localhost:3002
+ENV REACT_APP_API_URL=${REACT_APP_API_URL}
 RUN yarn build
