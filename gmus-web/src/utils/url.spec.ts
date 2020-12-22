@@ -7,10 +7,11 @@ describe(getPubsubUrl.name, () => {
   });
 
   describe.each`
-    case                 | apiUrl                     | testCase          | expectedPubsubUrl
-    ${'is https'}        | ${'https://some.api:1876'} | ${'a secure URL'} | ${'wss://some.api:1876/pubsub'}
-    ${'has no port'}     | ${'http://some.api'}       | ${'no port'}      | ${'ws://some.api/pubsub'}
-    ${'has no protocol'} | ${'//some.api'}            | ${'no protocol'}  | ${'ws://some.api/pubsub'}
+    case                 | apiUrl                     | testCase                 | expectedPubsubUrl
+    ${'is https'}        | ${'https://some.api:1876'} | ${'a secure URL'}        | ${'wss://some.api:1876/pubsub'}
+    ${'has no port'}     | ${'http://some.api'}       | ${'no port'}             | ${'ws://some.api/pubsub'}
+    ${'has no protocol'} | ${'//some.api'}            | ${'the origin protocol'} | ${'ws://some.api/pubsub'}
+    ${'has a path'}      | ${'http://some/api'}       | ${'the full URL'}        | ${'ws://some/api/pubsub'}
   `('when the URL $case', ({ testCase, apiUrl, expectedPubsubUrl }) => {
     const envBefore = process.env.REACT_APP_API_URL;
     beforeAll(() => {

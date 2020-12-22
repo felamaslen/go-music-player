@@ -10,7 +10,7 @@ export function getPubsubUrl(): string {
   const apiUrl = new URL(getApiUrl());
   return `${apiUrl.protocol === 'https:' ? 'wss' : 'ws'}://${apiUrl.hostname}${
     apiUrl.port ? `:${apiUrl.port}` : ''
-  }/pubsub`;
+  }${apiUrl.pathname}${apiUrl.pathname === '/' ? '' : '/'}pubsub`;
 }
 
 export function getSongUrl(songId: number): string {
