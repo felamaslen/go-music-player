@@ -1,5 +1,7 @@
 FROM node:14-alpine AS builder
 
+RUN apk update && apk add make
+
 RUN mkdir /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && chown appuser:appgroup /app
 USER appuser
