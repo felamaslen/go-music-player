@@ -77,10 +77,12 @@ describe(ActionTypeKeyPressed, () => {
     const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.E };
 
     describe('when in library view', () => {
-      it('should set global action to add the selected song to the queue', () => {
-        expect.assertions(1);
-        const result = cmusUIReducer(stateWithActiveSong, action);
-        expect(result.globalAction).toStrictEqual(queuePushed(1867));
+      describe('when in songs list mode', () => {
+        it('should set global action to add the selected song to the queue', () => {
+          expect.assertions(1);
+          const result = cmusUIReducer(stateWithActiveSong, action);
+          expect(result.globalAction).toStrictEqual(queuePushed(1867));
+        });
       });
     });
   });

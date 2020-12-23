@@ -32,7 +32,7 @@ node {
           stage('Lint') {
             parallel([
               "gmus-web:lint": {
-                sh "docker run -e 'CI=1' --rm docker.fela.space/gmus-web-builder:latest sh -c 'yarn lint'"
+                sh "docker run -e 'CI=1' --rm docker.fela.space/gmus-web-builder:latest sh -c 'make lint'"
               },
               "gmus-backend:lint": {
                 sh "docker run --rm ${IMAGE_BACKEND} sh -c 'make lint'"
@@ -43,7 +43,7 @@ node {
           stage('Test') {
             parallel([
               "gmus-web:unit tests": {
-                sh "docker run --rm -e 'CI=1' -e 'REACT_APP_API_URL=http://my-api.url:1234' docker.fela.space/gmus-web-builder:latest sh -c 'yarn test'"
+                sh "docker run --rm -e 'CI=1' -e 'REACT_APP_API_URL=http://my-api.url:1234' docker.fela.space/gmus-web-builder:latest sh -c 'make test'"
               },
               "gmus-backend:tests": {
                 sh "docker run --rm --link ${pg.id}:db --link ${redis.id}:redis ${IMAGE_BACKEND} sh -c 'make test.ci'"

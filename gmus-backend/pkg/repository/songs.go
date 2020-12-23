@@ -15,33 +15,14 @@ func SelectSong(db *sqlx.DB, ids []int) (songs *[]*read.Song, err error) {
 		idsArray = append(idsArray, int64(id))
 	}
 
-	err = db.Select(songs, `
-  select
-    id
-    ,track_number
-    ,title
-    ,artist
-    ,album
-    ,duration
-    ,modified_date
-    ,base_path
-    ,relative_path
-  from songs
-  where id = ANY($1)
-  `, idsArray)
+	err = db.Select(songs, querySelectSongById, idsArray)
 
 	return
 }
 
 func SelectPagedArtists(db *sqlx.DB, limit int, offset int) (artists *[]string, err error) {
 	artists = &[]string{}
-	err = db.Select(artists, `
-  select distinct artist
-  from songs
-  order by artist
-  limit $1
-  offset $2
-  `, limit, offset)
+	err = db.Select(artists, querySelectArtistsOrdered, limit, offset)
 	return
 }
 
@@ -52,11 +33,7 @@ type CountRow struct {
 func SelectArtistCount(db *sqlx.DB) (count int, err error) {
 	var countRow CountRow
 
-	err = db.QueryRowx(`
-  select count(*) as count from (
-    select distinct artist from songs
-  ) distinct_artists
-  `).StructScan(&countRow)
+	err = db.QueryRowx(queryCountArtists).StructScan(&countRow)
 
 	count = countRow.Count
 
@@ -71,30 +48,14 @@ func SelectAllArtists(db *sqlx.DB) (artists *[]string, err error) {
 
 func SelectAlbumsByArtist(db *sqlx.DB, artist string) (albums *[]string, err error) {
 	albums = &[]string{}
-	err = db.Select(albums, `
-  select distinct album
-  from songs
-  where artist = $1
-  order by album
-  `, artist)
+	err = db.Select(albums, querySelectAlbumsByArtist, artist)
 
 	return
 }
 
 func SelectSongsByArtist(db *sqlx.DB, artist string) (songs *[]*read.SongExternal, err error) {
 	songs = &[]*read.SongExternal{}
-	err = db.Select(songs, `
-  select
-    id
-    ,track_number
-    ,title
-    ,artist
-    ,album
-    ,duration
-  from songs
-  where artist = $1
-  order by album, track_number, title, id
-  `, artist)
+	err = db.Select(songs, querySelectSongsByArtist, artist)
 
 	return
 }
@@ -125,36 +86,7 @@ func BatchUpsertSongs(db *sqlx.DB, batch *[BATCH_SIZE]*read.Song, batchSize int)
 	}
 
 	_, err := db.Exec(
-		`
-    insert into songs (
-      track_number
-      ,title
-      ,artist
-      ,album
-      ,duration
-      ,modified_date
-      ,base_path
-      ,relative_path
-    )
-    select * from unnest(
-      $1::integer[]
-      ,$2::varchar[]
-      ,$3::varchar[]
-      ,$4::varchar[]
-      ,$5::integer[]
-      ,$6::bigint[]
-      ,$7::varchar[]
-      ,$8::varchar[]
-    )
-    on conflict (base_path, relative_path) do update
-    set
-      track_number = excluded.track_number
-      ,title = excluded.title
-      ,artist = excluded.artist
-      ,album = excluded.album
-      ,duration = excluded.duration
-      ,modified_date = excluded.modified_date
-    `,
+		queryInsertSongs,
 		trackNumbers,
 		titles,
 		artists,

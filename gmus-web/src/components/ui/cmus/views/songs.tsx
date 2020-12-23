@@ -1,6 +1,7 @@
-import React, { CSSProperties, useContext, useMemo, useRef } from 'react';
+import groupBy from 'lodash/groupBy';
+import React, { CSSProperties, useCallback, useContext, useMemo, useRef } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { FixedSizeList as List } from 'react-window';
+import { VariableSizeList as List } from 'react-window';
 import { StateContext } from '../../../../context/state';
 
 import { Song } from '../../../../types';
@@ -22,18 +23,64 @@ type SongData = {
   active: boolean;
   parentActive: boolean;
   highlight: boolean;
+  queuePosition: number;
 };
 
-const itemKey = (index: number, data: SongData[]): number => data[index].song.id;
+type Separator = {
+  album: string;
+};
 
-const Row = namedMemo<{ index: number; data: SongData[]; style: CSSProperties }>(
+type ItemData = (SongData | Separator) & { id: number };
+
+const isSeparator = (item: ItemData | Separator): item is Separator => !Reflect.has(item, 'song');
+
+const itemKey = (index: number, data: ItemData[]): number => data[index].id;
+
+const queueSymbols = [
+  '⑴',
+  '⑵',
+  '⑶',
+  '⑷',
+  '⑸',
+  '⑹',
+  '⑺',
+  '⑻',
+  '⑼',
+  '⑽',
+  '⑾',
+  '⑿',
+  '⒀',
+  '⒁',
+  '⒂',
+  '⒃',
+  '⒄',
+  '⒅',
+  '⒆',
+  '⒇',
+];
+
+const Row = namedMemo<{ index: number; data: ItemData[]; style: CSSProperties }>(
   'Song',
   ({ index, data, style }) => {
-    const { song, active, parentActive, highlight } = data[index];
+    const item = data[index];
+    if (isSeparator(item)) {
+      return (
+        <Styled.Separator style={style}>
+          <Styled.SeparatorText>{item.album || 'Unknown Album'}</Styled.SeparatorText>
+        </Styled.Separator>
+      );
+    }
+    const { song, active, parentActive, highlight, queuePosition } = item;
     return (
       <Styled.Song active={active} parentActive={parentActive} style={style} highlight={highlight}>
+        <Styled.QueuePosition invert={active && !parentActive}>
+          {queuePosition >= 0 && queuePosition < queueSymbols.length
+            ? queueSymbols[queuePosition]
+            : ''}
+        </Styled.QueuePosition>
         <NoWrapFill>
-          {song.track} - {song.title || 'Untitled Track'}
+          {song.track ? `${song.track} - ` : ''}
+          {song.title || 'Untitled Track'}
         </NoWrapFill>
       </Styled.Song>
     );
@@ -42,22 +89,36 @@ const Row = namedMemo<{ index: number; data: SongData[]; style: CSSProperties }>
 
 export const Songs: React.FC<Props> = ({ active: parentActive }) => {
   const globalState = useContext(StateContext);
-  const { songId: playingSongId } = globalState.player;
+  const { songId: playingSongId, queue } = globalState.player;
 
   const state = useContext(CmusUIStateContext);
-  const { activeArtist, activeSongId } = state.library;
+  const { activeArtist, activeAlbum, activeSongId } = state.library;
 
   const filteredSongs = getFilteredSongs(state);
 
-  const itemData = useMemo<SongData[]>(
-    () =>
-      filteredSongs.map<SongData>((song) => ({
-        song,
-        active: song.id === activeSongId,
-        parentActive,
-        highlight: song.id === playingSongId,
-      })),
-    [parentActive, activeSongId, playingSongId, filteredSongs],
+  const itemData = useMemo<ItemData[]>(() => {
+    const allSongs = filteredSongs.map<SongData & { id: number }>((song) => ({
+      id: song.id,
+      song,
+      active: song.id === activeSongId,
+      parentActive,
+      highlight: song.id === playingSongId,
+      queuePosition: queue.indexOf(song.id),
+    }));
+
+    if (activeAlbum !== null) {
+      return allSongs;
+    }
+
+    return Object.entries(groupBy(allSongs, ({ song }) => song.album)).reduce<ItemData[]>(
+      (last, [album, group], index) => [...last, { id: -index, album }, ...group],
+      [],
+    );
+  }, [parentActive, activeSongId, playingSongId, filteredSongs, activeAlbum, queue]);
+
+  const getItemSize = useCallback(
+    (index: number): number => lineHeight * (isSeparator(itemData[index]) ? 2 : 1),
+    [itemData],
   );
 
   const windowRef = useRef<HTMLDivElement>(null);
@@ -78,11 +139,12 @@ export const Songs: React.FC<Props> = ({ active: parentActive }) => {
       <AutoSizer>
         {({ height, width }): React.ReactElement => (
           <List
+            key={`${activeArtist}-${activeAlbum}`}
             outerRef={windowRef}
             height={height}
             width={width}
             itemCount={itemData.length}
-            itemSize={lineHeight}
+            itemSize={getItemSize}
             itemKey={itemKey}
             itemData={itemData}
           >

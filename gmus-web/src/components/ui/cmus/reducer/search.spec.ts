@@ -23,7 +23,8 @@ describe('Searching', () => {
       artists: ['Amy Winehouse', 'Anticon', 'Bach'],
       library: {
         ...stateSearching.library,
-        activeArtist: null,
+        activeArtist: 'Amy Winehouse',
+        activeAlbum: 'Back to Black',
         modeWindow: LibraryModeWindow.ArtistList,
         activeSongId: 883,
       },
@@ -49,10 +50,11 @@ describe('Searching', () => {
 
     describe('artists', () => {
       it('should select the first match', () => {
-        expect.assertions(2);
+        expect.assertions(3);
         const result = cmusUIReducer(stateSearchingArtists, searched('ant'));
         expect(result.library.activeArtist).toBe('Anticon');
         expect(result.library.activeSongId).toBeNull();
+        expect(result.library.activeAlbum).toBeNull();
       });
 
       describe('when the artist has songs loaded', () => {

@@ -23,11 +23,7 @@ var _ = Describe("songs repository", func() {
 
 		BeforeEach(func() {
 			db.QueryRowx(
-				`
-	insert into songs (track_number, title, artist, album, duration, modified_date, base_path, relative_path)
-	values ($1, $2, $3, $4, $5, $6, $7, $8)
-	returning id
-	`,
+				testQueryInsertHeyJude,
 				7,
 				"Hey Jude",
 				"The Beatles",
@@ -39,11 +35,7 @@ var _ = Describe("songs repository", func() {
 			).Scan(&id)
 
 			db.QueryRowx(
-				`
-	insert into songs (track_number, title, artist, album, duration, modified_date, base_path, relative_path)
-	values ($1, $2, $3, $4, $5, $6, $7, $8)
-	returning id
-	`,
+				testQueryInsertTrack1,
 				13,
 				"Track 1",
 				"Untitled Artist",
@@ -151,10 +143,7 @@ var _ = Describe("songs repository", func() {
 
 			It("should insert the batch into the database", func() {
 				var result []*read.Song
-				db.Select(&result, `
-	select track_number, title, artist, album, duration, base_path, relative_path, modified_date
-	from songs
-	`)
+				db.Select(&result, testQuerySelectAllSongs)
 
 				Expect(result).To(HaveLen(2))
 				Expect(songs[0]).To(BeElementOf(result))
@@ -176,11 +165,7 @@ var _ = Describe("songs repository", func() {
 				repository.BatchUpsertSongs(db, &modifiedBatch, 2)
 
 				result = []*read.Song{}
-				db.Select(&result, `
-  select track_number, title, artist, album, duration, base_path, relative_path, modified_date
-  from songs
-  where relative_path in ('song1.ogg', 'song2.ogg')
-	`)
+				db.Select(&result, testQuerySelectSong12)
 			})
 
 			It("should not create any additional rows", func() {

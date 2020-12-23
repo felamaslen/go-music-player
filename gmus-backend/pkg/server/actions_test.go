@@ -36,19 +36,7 @@ var _ = Describe("Server actions", func() {
 		Describe("state set actions", func() {
 			Context("when the action is valid", func() {
 				var action server.Action
-				json.Unmarshal([]byte(`
-{
-  "type": "STATE_SET",
-  "payload": {
-    "songId": 123,
-    "playing": true,
-    "currentTime": 94,
-    "seekTime": -1,
-    "queue": [],
-    "master": "some-master-client"
-  }
-}
-`), &action)
+				json.Unmarshal([]byte(actionStateSetValid), &action)
 				myClient := "my-client"
 				action.FromClient = &myClient
 
@@ -83,19 +71,7 @@ var _ = Describe("Server actions", func() {
 
 			Context("when the song ID is non-positive", func() {
 				var action server.Action
-				json.Unmarshal([]byte(`
-{
-  "type": "STATE_SET",
-  "payload": {
-    "songId": 0,
-    "playing": true,
-    "currentTime": 94,
-    "seekTime": -1,
-    "queue": [],
-    "master": "some-master-client"
-  }
-}
-`), &action)
+				json.Unmarshal([]byte(actionStateSetIdNonPositive), &action)
 
 				It("should not publish a message", func() {
 					err := server.PublishActionFromClient(rdb, &action)
@@ -106,19 +82,7 @@ var _ = Describe("Server actions", func() {
 
 			Context("when the song ID is null", func() {
 				var action server.Action
-				json.Unmarshal([]byte(`
-{
-  "type": "STATE_SET",
-  "payload": {
-    "songId": null,
-    "playing": false,
-    "currentTime": 0,
-    "seekTime": -1,
-    "queue": [],
-    "master": "some-master-client"
-  }
-}
-`), &action)
+				json.Unmarshal([]byte(actionStateSetSongIdNull), &action)
 
 				expectedAction := server.Action{
 					Type: server.StateSet,
@@ -150,19 +114,7 @@ var _ = Describe("Server actions", func() {
 
 			Context("when the current time is negative", func() {
 				var action server.Action
-				json.Unmarshal([]byte(`
-{
-  "type": "STATE_SET",
-  "payload": {
-    "songId": 123,
-    "playing": false,
-    "currentTime": -32,
-    "seekTime": -1,
-    "queue": [],
-    "master": "some-master-client"
-  }
-}
-`), &action)
+				json.Unmarshal([]byte(actionStateSetCurrentTimeNegative), &action)
 
 				It("should not publish a message", func() {
 					err := server.PublishActionFromClient(rdb, &action)
@@ -173,19 +125,7 @@ var _ = Describe("Server actions", func() {
 
 			Context("when the seek time is less than -1", func() {
 				var action server.Action
-				json.Unmarshal([]byte(`
-{
-  "type": "STATE_SET",
-  "payload": {
-    "songId": 123,
-    "playing": false,
-    "currentTime": 13,
-    "seekTime": -3,
-    "queue": [],
-    "master": "some-master-client"
-  }
-}
-`), &action)
+				json.Unmarshal([]byte(actionStateSetSeekTimeTooNegative), &action)
 
 				It("should not publish a message", func() {
 					err := server.PublishActionFromClient(rdb, &action)
@@ -196,19 +136,7 @@ var _ = Describe("Server actions", func() {
 
 			Context("when the master is empty", func() {
 				var action server.Action
-				json.Unmarshal([]byte(`
-{
-  "type": "STATE_SET",
-  "payload": {
-    "songId": 123,
-    "playing": false,
-    "currentTime": 13,
-    "seekTime": -3,
-    "queue": [],
-    "master": ""
-  }
-}
-`), &action)
+				json.Unmarshal([]byte(actionStateSetMasterEmpty), &action)
 
 				It("should not publish a message", func() {
 					err := server.PublishActionFromClient(rdb, &action)
@@ -220,16 +148,7 @@ var _ = Describe("Server actions", func() {
 
 		Describe("when the action is unrecognised", func() {
 			var action server.Action
-			// CLIENT_LIST_UPDATED should only ever come from the server
-			err := json.Unmarshal([]byte(`
-{
-  "type": "CLIENT_LIST_UPDATED",
-  "payload": [
-    { "name": "client-a", "lastPing": 123 },
-    { "name": "client-b", "lastPing": 456 }
-  ]
-}
-`), &action)
+			err := json.Unmarshal([]byte(actionUnrecognised), &action)
 			if err != nil {
 				panic(err)
 			}

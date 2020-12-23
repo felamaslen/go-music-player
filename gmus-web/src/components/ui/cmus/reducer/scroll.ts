@@ -4,7 +4,7 @@ import { getFilteredSongs } from '../selectors';
 import { CmusUIState, LibraryModeWindow, View } from '../types';
 import { getNextActiveArtistAndAlbum } from '../utils/scroll';
 
-const scrollSongs = (state: CmusUIState, delta: number): CmusUIState =>
+export const scrollSongs = (state: CmusUIState, delta: number): CmusUIState =>
   state.library.activeArtist === null
     ? state
     : {

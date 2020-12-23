@@ -105,9 +105,10 @@ describe(useCurrentlyPlayingSongInfo.name, () => {
           .reply(200, testSong, { 'Access-Control-Allow-Origin': '*' });
       });
 
-      // eslint-disable-next-line jest/prefer-expect-assertions
       it('should fetch the info for the updated song ID, and update the state', async () => {
+        expect.hasAssertions();
         setup(stateStale);
+
         await waitFor(() => {
           expect(dispatch).toHaveBeenCalledTimes(1);
         });

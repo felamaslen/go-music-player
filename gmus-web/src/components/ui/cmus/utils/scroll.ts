@@ -133,13 +133,17 @@ export function getArtistAlbumScrollIndex(
 }
 
 export function getSongScrollIndex(
-  filteredSongs: Pick<Song, 'id'>[],
+  filteredSongs: Pick<Song, 'id' | 'album'>[],
   activeSongId: number | null,
 ): number {
-  if (activeSongId === null) {
+  const songIndex = filteredSongs.findIndex(({ id }) => id === activeSongId);
+  if (songIndex === -1) {
     return -1;
   }
-  return filteredSongs.findIndex(({ id }) => id === activeSongId);
+  const numUniqueAlbums = Array.from(
+    new Set(filteredSongs.slice(0, songIndex + 1).map(({ album }) => album)),
+  ).length;
+  return songIndex + 2 * numUniqueAlbums;
 }
 
 export const lineHeight = 16;
@@ -164,9 +168,9 @@ export function useAutoJumpyScroll(ref: RefObject<HTMLDivElement>, scrollIndex: 
     if (linesBefore < 0 || linesAfter < 0) {
       ref.current.scrollTop = Math.max(0, (scrollIndex - 1) * lineHeight);
     } else if (linesAfter < scrollThresholdLines) {
-      ref.current.scrollTop += lineHeight;
+      ref.current.scrollTop += (scrollThresholdLines - linesAfter) * lineHeight;
     } else if (linesBefore < scrollThresholdLines) {
-      ref.current.scrollTop -= lineHeight;
+      ref.current.scrollTop -= (scrollThresholdLines - linesBefore) * lineHeight;
     }
   }, [scrollIndex]);
   /* eslint-enable react-hooks/exhaustive-deps, no-param-reassign */
