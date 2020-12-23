@@ -28,6 +28,9 @@ export const stateFromMode = (fromModeWindow: LibraryModeWindow): CmusUIState =>
 
 export const stateWithActiveArtist: CmusUIState = {
   ...initialCmusUIState,
+  artistSongs: {
+    'My artist': [{ id: 184, album: 'Album 1' } as Song, { id: 37, album: 'Album 2' } as Song],
+  },
   library: {
     ...initialCmusUIState.library,
     activeArtist: 'My artist',

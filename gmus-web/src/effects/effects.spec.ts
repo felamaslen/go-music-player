@@ -248,7 +248,7 @@ describe(globalEffects.name, () => {
   });
 
   describe(ActionTypeLocal.QueuePushed, () => {
-    const action = queuePushed(184);
+    const action = queuePushed([184, 79]);
 
     it('should add to the end of the queue', () => {
       expect.assertions(1);
@@ -264,18 +264,18 @@ describe(globalEffects.name, () => {
         payload: {
           ...initialState.player,
           master: 'some-master',
-          queue: [23, 184],
+          queue: [23, 184, 79],
         },
       });
     });
 
-    describe('when the song is already in the queue', () => {
+    describe('when the songs are already in the queue', () => {
       it('should not modify the queue', () => {
         expect.assertions(1);
         const result = globalEffects(
           {
             ...initialState,
-            player: { ...initialState.player, queue: [184, 23] },
+            player: { ...initialState.player, queue: [184, 23, 79] },
           },
           action,
         );

@@ -1,13 +1,15 @@
 import { rem } from 'polished';
 import styled from 'styled-components';
 
-import { ActiveHighlightRow, FlexColumn } from '../styled/layout';
+import { ActiveHighlightRow, FlexList } from '../styled/layout';
 
-export const Container = styled(FlexColumn)`
+export const Container = styled(FlexList)`
+  height: 100%;
   width: 100%;
 `;
 
 export const QueueSong = styled(ActiveHighlightRow)`
+  overflow: hidden;
   width: 100%;
 `;
 

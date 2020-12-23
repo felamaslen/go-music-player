@@ -1,5 +1,6 @@
 import {
   ActionQueueOrdered,
+  ActionQueuePushed,
   ActionTypeLocal,
   ActionTypeRemote,
   LocalAction,
@@ -22,6 +23,20 @@ function reorderQueue(queue: number[], action: ActionQueueOrdered): number[] {
 
   const reverseIndex = action.payload.delta === 1 ? currentIndex : currentIndex - 1;
   return reverseInArray(queue, reverseIndex);
+}
+
+function pushToQueue(state: GlobalState, action: ActionQueuePushed): RemoteAction | null {
+  const nextQueue = Array.from(new Set([...state.player.queue, ...action.payload]));
+  if (!state.player.master || nextQueue.length === state.player.queue.length) {
+    return null;
+  }
+  return {
+    type: ActionTypeRemote.StateSet,
+    payload: {
+      ...state.player,
+      queue: nextQueue,
+    },
+  };
 }
 
 export function globalEffects(prevState: GlobalState, action: LocalAction): RemoteAction | null {
@@ -94,16 +109,7 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
       };
 
     case ActionTypeLocal.QueuePushed:
-      if (!prevState.player.master || prevState.player.queue.includes(action.payload)) {
-        return null;
-      }
-      return {
-        type: ActionTypeRemote.StateSet,
-        payload: {
-          ...prevState.player,
-          queue: [...prevState.player.queue, action.payload],
-        },
-      };
+      return pushToQueue(prevState, action);
     case ActionTypeLocal.QueueShifted:
       if (!prevState.player.master) {
         return null;

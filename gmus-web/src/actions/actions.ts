@@ -62,10 +62,10 @@ export const songInfoFetched = (song: Song | null, replace = false): ActionSongI
   payload: { song, replace },
 });
 
-export type ActionQueuePushed = ActionLocal<ActionTypeLocal.QueuePushed, number>;
-export const queuePushed = (songId: number): ActionQueuePushed => ({
+export type ActionQueuePushed = ActionLocal<ActionTypeLocal.QueuePushed, number[]>;
+export const queuePushed = (songIds: number[]): ActionQueuePushed => ({
   type: ActionTypeLocal.QueuePushed,
-  payload: songId,
+  payload: songIds,
 });
 
 export type ActionQueueShifted = ActionLocal<ActionTypeLocal.QueueShifted, void>;

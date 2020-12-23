@@ -1,5 +1,6 @@
 import { masterSet, playPaused, queuePushed, queueRemoved, stateSet } from '../../../../actions';
 import { ActionKeyPressed, Keys } from '../../../../hooks/vim';
+import { getFilteredSongs } from '../selectors';
 import { CmusUIState, LibraryModeWindow, Overlay, View } from '../types';
 import { handleOrder } from './order';
 import { handleScroll } from './scroll';
@@ -74,6 +75,23 @@ function handleActivate(state: CmusUIState): CmusUIState {
   }
 }
 
+function addSelectedToQueue(state: CmusUIState): CmusUIState {
+  if (state.view !== View.Library) {
+    return state;
+  }
+  switch (state.library.modeWindow) {
+    case LibraryModeWindow.ArtistList:
+      return withGlobalAction(state, queuePushed(getFilteredSongs(state).map(({ id }) => id)));
+    case LibraryModeWindow.SongList:
+      if (!state.library.activeSongId) {
+        return state;
+      }
+      return withGlobalAction(state, queuePushed([state.library.activeSongId]));
+    default:
+      return state;
+  }
+}
+
 export function handleKeyPress(state: CmusUIState, action: ActionKeyPressed): CmusUIState {
   switch (action.key) {
     case Keys.colon:
@@ -128,14 +146,7 @@ export function handleKeyPress(state: CmusUIState, action: ActionKeyPressed): Cm
       return state;
 
     case Keys.E:
-      if (
-        state.view === View.Library &&
-        state.library.modeWindow === LibraryModeWindow.SongList &&
-        state.library.activeSongId
-      ) {
-        return withGlobalAction(state, queuePushed(state.library.activeSongId));
-      }
-      return state;
+      return addSelectedToQueue(state);
 
     case Keys.J:
       return handleScroll(state, 1);

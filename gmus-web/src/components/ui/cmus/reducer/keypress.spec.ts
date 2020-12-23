@@ -8,6 +8,7 @@ import {
   stateFromMode,
   stateLibrary,
   stateQueue,
+  stateWithActiveArtist,
   stateWithActiveSong,
 } from './fixtures';
 import { cmusUIReducer, initialCmusUIState } from './reducer';
@@ -77,11 +78,19 @@ describe(ActionTypeKeyPressed, () => {
     const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.E };
 
     describe('when in library view', () => {
+      describe('when in artist list mode', () => {
+        it("should add all the active artist's songs to the queue", () => {
+          expect.assertions(1);
+          const result = cmusUIReducer(stateWithActiveArtist, action);
+          expect(result.globalAction).toStrictEqual(queuePushed([184, 37]));
+        });
+      });
+
       describe('when in songs list mode', () => {
         it('should set global action to add the selected song to the queue', () => {
           expect.assertions(1);
           const result = cmusUIReducer(stateWithActiveSong, action);
-          expect(result.globalAction).toStrictEqual(queuePushed(1867));
+          expect(result.globalAction).toStrictEqual(queuePushed([1867]));
         });
       });
     });

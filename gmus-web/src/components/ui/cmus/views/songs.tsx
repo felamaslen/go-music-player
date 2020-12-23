@@ -18,7 +18,7 @@ type Props = {
   active: boolean;
 };
 
-type SongData = {
+export type SongData = {
   song: Song;
   active: boolean;
   parentActive: boolean;
