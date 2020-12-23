@@ -25,6 +25,7 @@ describe('Searching', () => {
         ...stateSearching.library,
         activeArtist: null,
         modeWindow: LibraryModeWindow.ArtistList,
+        activeSongId: 883,
       },
     };
 
@@ -48,9 +49,23 @@ describe('Searching', () => {
 
     describe('artists', () => {
       it('should select the first match', () => {
-        expect.assertions(1);
+        expect.assertions(2);
         const result = cmusUIReducer(stateSearchingArtists, searched('ant'));
         expect(result.library.activeArtist).toBe('Anticon');
+        expect(result.library.activeSongId).toBeNull();
+      });
+
+      describe('when the artist has songs loaded', () => {
+        const stateWithSongsLoaded: CmusUIState = {
+          ...stateSearchingArtists,
+          artistSongs: { Anticon: [{ id: 174 } as Song] },
+        };
+
+        it('should select the first song', () => {
+          expect.assertions(1);
+          const result = cmusUIReducer(stateWithSongsLoaded, searched('ant'));
+          expect(result.library.activeSongId).toBe(174);
+        });
       });
     });
 

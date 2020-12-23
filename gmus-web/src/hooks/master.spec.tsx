@@ -29,7 +29,6 @@ describe(useMaster.name, () => {
   describe('when there is no master initially', () => {
     const stateNoMaster: GlobalState = {
       ...initialState,
-      initialised: true,
       myClientName: 'my-client-name',
       player: {
         ...nullPlayer,
@@ -39,35 +38,24 @@ describe(useMaster.name, () => {
 
     it('should take control of master', () => {
       expect.assertions(2);
+      jest.useFakeTimers();
       const { unmount } = setup(stateNoMaster);
+
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
 
       expect(dispatch).toHaveBeenCalledTimes(1);
       expect(dispatch).toHaveBeenCalledWith(stateSet({ master: 'my-client-name' }));
 
       unmount();
-    });
-
-    describe('when the state is not initialised', () => {
-      const stateNoMasterUninit: GlobalState = {
-        ...stateNoMaster,
-        initialised: false,
-      };
-
-      it('should not take control of master', () => {
-        expect.assertions(1);
-        const { unmount } = setup(stateNoMasterUninit);
-
-        expect(dispatch).not.toHaveBeenCalled();
-
-        unmount();
-      });
+      jest.useRealTimers();
     });
   });
 
   describe('when master goes away', () => {
     const stateWithMaster: GlobalState = {
       ...initialState,
-      initialised: true,
       myClientName: 'my-client-name',
       clientList: [
         { name: 'master-client-a', lastPing: 0 },
@@ -142,7 +130,9 @@ describe(useMaster.name, () => {
           });
         });
 
-        jest.runAllTimers();
+        act(() => {
+          jest.runAllTimers();
+        });
 
         expect(dispatch).not.toHaveBeenCalled();
 
@@ -155,7 +145,6 @@ describe(useMaster.name, () => {
   describe('when the client is master', () => {
     const stateMaster: GlobalState = {
       ...initialState,
-      initialised: true,
       myClientName: 'the-master-client',
       clientList: [{ name: 'the-master-client', lastPing: 0 }],
       player: {
@@ -168,6 +157,11 @@ describe(useMaster.name, () => {
       expect.assertions(6);
       const clock = jest.useFakeTimers();
       const { unmount } = setup(stateMaster);
+      act(() => {
+        clock.runOnlyPendingTimers();
+      });
+
+      dispatch.mockClear();
 
       act(() => {
         clock.runTimersToTime(masterStateUpdateTimeout - 1);
@@ -199,7 +193,6 @@ describe(useMaster.name, () => {
   describe('when the client is a slave', () => {
     const stateSlave: GlobalState = {
       ...initialState,
-      initialised: true,
       myClientName: 'a-slave-client',
       clientList: [
         { name: 'the-master-client', lastPing: 0 },
@@ -227,4 +220,3 @@ describe(useMaster.name, () => {
     });
   });
 });
-

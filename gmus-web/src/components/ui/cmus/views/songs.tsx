@@ -6,6 +6,7 @@ import { StateContext } from '../../../../context/state';
 import { Song } from '../../../../types';
 import { namedMemo } from '../../../../utils/component';
 import { CmusUIStateContext } from '../reducer';
+import { getFilteredSongs } from '../selectors';
 import { NoWrapFill } from '../styled/layout';
 import { AsciiSpinner } from '../styled/spinner';
 import { getSongScrollIndex, lineHeight, useAutoJumpyScroll } from '../utils/scroll';
@@ -15,8 +16,6 @@ import * as Styled from './songs.styles';
 type Props = {
   active: boolean;
 };
-
-const emptyArray: Song[] = [];
 
 type SongData = {
   song: Song;
@@ -42,25 +41,13 @@ const Row = namedMemo<{ index: number; data: SongData[]; style: CSSProperties }>
 );
 
 export const Songs: React.FC<Props> = ({ active: parentActive }) => {
-  const {
-    artistSongs,
-    library: { activeArtist, activeAlbum, activeSongId },
-  } = useContext(CmusUIStateContext);
+  const globalState = useContext(StateContext);
+  const { songId: playingSongId } = globalState.player;
 
-  const {
-    player: { songId: playingSongId },
-  } = useContext(StateContext);
+  const state = useContext(CmusUIStateContext);
+  const { activeArtist, activeSongId } = state.library;
 
-  const activeArtistSongs =
-    activeArtist === null ? emptyArray : artistSongs[activeArtist] ?? emptyArray;
-
-  const filteredSongs = useMemo<Song[]>(
-    () =>
-      activeAlbum === null
-        ? activeArtistSongs
-        : activeArtistSongs.filter(({ album }) => album === activeAlbum),
-    [activeAlbum, activeArtistSongs],
-  );
+  const filteredSongs = getFilteredSongs(state);
 
   const itemData = useMemo<SongData[]>(
     () =>
@@ -78,7 +65,7 @@ export const Songs: React.FC<Props> = ({ active: parentActive }) => {
 
   useAutoJumpyScroll(windowRef, scrollIndex);
 
-  if (activeArtist && !(activeArtist in artistSongs)) {
+  if (activeArtist !== null && !(activeArtist in state.artistSongs)) {
     return (
       <Styled.Container>
         <AsciiSpinner />

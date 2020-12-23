@@ -7,7 +7,9 @@ function searchForArtist(state: CmusUIState, term: string): CmusUIState {
     return state;
   }
 
-  return { ...state, library: { ...state.library, activeArtist: closestArtist } };
+  const activeSongId = state.artistSongs[closestArtist]?.[0]?.id ?? null;
+
+  return { ...state, library: { ...state.library, activeArtist: closestArtist, activeSongId } };
 }
 
 function searchForSong(state: CmusUIState, term: string): CmusUIState {

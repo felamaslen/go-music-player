@@ -20,7 +20,6 @@ export const nullPlayer: MusicPlayer = {
 };
 
 export const initialState: GlobalState = {
-  initialised: false,
   songInfo: null,
   player: nullPlayer,
   clientList: [],
@@ -37,7 +36,7 @@ function onRemoteStateSet(state: GlobalState, action: ActionStateSetRemote): Glo
 
   const nextPlayerWithSeekTime: MusicPlayer = { ...nextPlayer, seekTime };
 
-  return { ...state, initialised: true, player: nextPlayerWithSeekTime };
+  return { ...state, player: nextPlayerWithSeekTime };
 }
 
 function onLocalStateSet(state: GlobalState, action: ActionStateSetLocal): GlobalState {

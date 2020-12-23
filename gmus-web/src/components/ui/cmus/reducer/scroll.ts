@@ -1,5 +1,6 @@
 import { Song } from '../../../../types';
 import { scrollThroughItems } from '../../../../utils/delta';
+import { getFilteredSongs } from '../selectors';
 import { CmusUIState, LibraryModeWindow, View } from '../types';
 import { getNextActiveArtistAndAlbum } from '../utils/scroll';
 
@@ -11,7 +12,7 @@ const scrollSongs = (state: CmusUIState, delta: number): CmusUIState =>
         library: {
           ...state.library,
           activeSongId: scrollThroughItems(
-            state.artistSongs[state.library.activeArtist] ?? [],
+            getFilteredSongs(state),
             (compare) => compare.id === state.library.activeSongId,
             delta,
           ).id,

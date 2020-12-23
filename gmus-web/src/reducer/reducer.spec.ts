@@ -18,24 +18,6 @@ import { GlobalState } from './types';
 
 describe(globalReducer.name, () => {
   describe(ActionTypeRemote.StateSet, () => {
-    it('should initialise the state', () => {
-      expect.assertions(1);
-      const state: GlobalState = { ...initialState, initialised: false };
-      const result = globalReducer(state, {
-        type: ActionTypeRemote.StateSet,
-        payload: {
-          songId: null,
-          playing: false,
-          currentTime: 0,
-          seekTime: -1,
-          master: 'some-master-client',
-          queue: [],
-        },
-      });
-
-      expect(result.initialised).toBe(true);
-    });
-
     describe('when the client is master', () => {
       const stateMaster: GlobalState = {
         ...initialState,

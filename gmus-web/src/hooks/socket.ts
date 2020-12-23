@@ -10,6 +10,7 @@ import { GlobalState } from '../reducer';
 import { getPubsubUrl } from '../utils/url';
 
 const getUniqueName = (name: string): string => (name.length ? `${name}-${nanoid(5)}` : '');
+const clientNameKey = 'client-name';
 
 export type OnMessage = (message: MessageEvent<unknown>) => void;
 
@@ -38,6 +39,7 @@ export function useDispatchWithEffects(
     (action: LocalAction): void => {
       if (action.type === ActionTypeLocal.LoggedOut) {
         socket?.close();
+        localStorage.removeItem(clientNameKey);
       } else {
         setLastAction(action);
         dispatch(action);
@@ -70,7 +72,7 @@ export function useSocket(
   connecting: boolean;
   connected: boolean;
 } {
-  const [storedName, saveName] = useStorageState<string>(localStorage, 'client-name', '');
+  const [storedName, saveName] = useStorageState<string>(localStorage, clientNameKey, '');
   const [uniqueName, setUniqueName] = useState<string>(getUniqueName(storedName));
   const [tempName, onIdentify] = useState<string>(storedName);
 
@@ -107,7 +109,6 @@ export function useSocket(
       ws.onclose = (): void => {
         setError(false);
         setSocket(null);
-        saveName('');
       };
     } else {
       setConnecting(false);
