@@ -178,6 +178,32 @@ describe(ActionTypeKeyPressed, () => {
     const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.enter };
 
     describe('when in library view', () => {
+      describe('when in the artist list mode', () => {
+        it('should set the globalAction to play the first song by the artist', () => {
+          expect.assertions(1);
+
+          const result = cmusUIReducer(
+            {
+              ...stateWithActiveArtist,
+              library: {
+                ...stateWithActiveArtist.library,
+                modeWindow: LibraryModeWindow.ArtistList,
+              },
+            },
+            action,
+          );
+
+          expect(result.globalAction).toStrictEqual(
+            stateSet({
+              playing: true,
+              songId: 184,
+              currentTime: 0,
+              seekTime: 0,
+            }),
+          );
+        });
+      });
+
       describe('when in the songs list mode', () => {
         const state: CmusUIState = {
           ...initialCmusUIState,

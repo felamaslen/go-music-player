@@ -330,14 +330,14 @@ describe(globalReducer.name, () => {
         myClientName: 'some-master-client',
       };
 
-      it('should set the seek time', () => {
+      it('should set the current and seek time', () => {
         expect.assertions(1);
         const result = globalReducer(stateMaster, action);
 
         expect(result.player).toStrictEqual<MusicPlayer>({
           songId: 123,
           playing: true,
-          currentTime: 31,
+          currentTime: 173,
           seekTime: 173,
           master: 'some-master-client',
           queue: [],
@@ -356,11 +356,12 @@ describe(globalReducer.name, () => {
         myClientName: 'my-client',
       };
 
-      it('should not update the player', () => {
-        expect.assertions(1);
+      it('should only set the current time (optimistically)', () => {
+        expect.assertions(2);
         const result = globalReducer(stateSlave, action);
 
-        expect(result.player).toBe(stateSlave.player);
+        expect(result.player.seekTime).toBe(stateSlave.player.seekTime);
+        expect(result.player.currentTime).toBe(173);
       });
     });
   });

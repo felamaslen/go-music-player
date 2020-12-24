@@ -4,6 +4,7 @@ import { Song } from '../../types';
 
 export enum UIProvider {
   Cmus = 'Cmus',
+  Mobile = 'Mobile',
 }
 
 export type UIProps = {

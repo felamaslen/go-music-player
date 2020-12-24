@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { useReducer } from 'reinspect';
 
 import { DispatchContext } from '../../../context/state';
+import { useMaster } from '../../../hooks/master';
 import { useVimBindings } from '../../../hooks/vim';
 import { init } from '../../../utils/state';
 
@@ -28,6 +29,8 @@ import * as Styled from './wrapper.styles';
 const viewTitles = Object.values(View);
 
 export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, prevSong }) => {
+  useMaster();
+
   const dispatch = useContext(DispatchContext);
   const [stateUI, dispatchUI] = useReducer(cmusUIReducer, initialCmusUIState, init, 'ui');
 

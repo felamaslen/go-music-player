@@ -1,9 +1,9 @@
-import React, { Suspense, useCallback, useContext } from 'react';
+import React, { Suspense, useCallback, useContext, useMemo } from 'react';
+import { useMediaQuery } from 'react-responsive';
 import { StateInspector } from 'reinspect';
 
 import { stateSet } from '../actions';
 import { DispatchContext, StateContext } from '../context/state';
-import { useMaster } from '../hooks/master';
 import { usePlayQueue } from '../hooks/queue';
 import { useKeepalive } from '../hooks/socket';
 import { useCurrentlyPlayingSongInfo } from '../hooks/status';
@@ -20,12 +20,8 @@ export type Props = {
   interacted: boolean;
 } & InteractProps;
 
-const uiProvider = UIProvider.Cmus;
-const UI = uiProviders[uiProvider];
-
 export const App: React.FC<Props> = ({ socket, interacted, setInteracted }) => {
   useKeepalive(socket);
-  useMaster();
   useCurrentlyPlayingSongInfo();
 
   const state = useContext(StateContext);
@@ -39,6 +35,12 @@ export const App: React.FC<Props> = ({ socket, interacted, setInteracted }) => {
   );
 
   const { onNext, onPrev } = usePlayQueue();
+
+  const isDesktop = useMediaQuery({ query: '(min-device-width: 1280px)' });
+
+  const UI = useMemo(() => uiProviders[isDesktop ? UIProvider.Cmus : UIProvider.Mobile], [
+    isDesktop,
+  ]);
 
   return (
     <>

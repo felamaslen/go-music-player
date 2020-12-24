@@ -35,28 +35,30 @@ function toggleExpandArtist(library: CmusUIState['library']): CmusUIState['libra
   return { ...library, expandedArtists: [...library.expandedArtists, library.activeArtist] };
 }
 
-const activateSong = (state: CmusUIState, songId: number): CmusUIState =>
-  withGlobalAction(
-    state,
-    stateSet({
-      playing: true,
-      songId,
-      currentTime: 0,
-      seekTime: 0,
-    }),
-  );
+const activateSong = (state: CmusUIState, songId: number | null): CmusUIState =>
+  songId
+    ? withGlobalAction(
+        state,
+        stateSet({
+          playing: true,
+          songId,
+          currentTime: 0,
+          seekTime: 0,
+        }),
+      )
+    : state;
 
 function handleActivate(state: CmusUIState): CmusUIState {
   switch (state.view) {
     case View.Library:
-      if (state.library.modeWindow === LibraryModeWindow.SongList) {
-        if (!state.library.activeSongId) {
+      switch (state.library.modeWindow) {
+        case LibraryModeWindow.SongList:
+          return activateSong(state, state.library.activeSongId);
+        case LibraryModeWindow.ArtistList:
+          return activateSong(state, getFilteredSongs(state)[0]?.id ?? null);
+        default:
           return state;
-        }
-
-        return activateSong(state, state.library.activeSongId);
       }
-      return state;
 
     case View.Queue:
       if (!state.queue.active) {
