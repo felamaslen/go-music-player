@@ -1,5 +1,20 @@
 version: "2"
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: gmus_nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./certificates:/etc/certificates
+    links:
+      - gmus-backend:gmus-backend
+    networks:
+      - net_gmus_dev
+    ports:
+      - ${PORT}:80
+      - ${PORT_SECURE}:443
+    env_file:
+      - .env
   gmus-backend:
     container_name: gmus-backend
     build:
@@ -7,19 +22,20 @@ services:
     volumes:
       - .:/app
       - /app/bin
+      - ${LIBRARY_DIRECTORY}:/library
     links:
       - gmus-db:db
       - gmus-redis:redis
     networks:
       - net_gmus_dev
     ports:
-      - 3002:80
+      - 3000
     env_file:
       - .env
     environment:
       GO_ENV: development
       HOST: 0.0.0.0
-      PORT: 80
+      PORT: 3000
       POSTGRES_HOST: db
       POSTGRES_DATABASE: music_player
       POSTGRES_USER: docker
