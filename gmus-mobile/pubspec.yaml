@@ -28,6 +28,7 @@ dependencies:
   get:
   http:
   nanoid:
+  shared_preferences:
   web_socket_channel:
 
 dev_dependencies:

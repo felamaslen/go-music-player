@@ -10,9 +10,12 @@ class StatusBarWrapped extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
+    if (controller == null) {
+      return null;
+    }
     return Obx(() {
-      var uniqueName = controller.uniqueName.value;
-      if (uniqueName.length == 0) {
+      var connected = controller.connected.value;
+      if (!connected) {
         return Text("Disconnected");
       }
 

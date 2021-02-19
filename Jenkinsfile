@@ -47,7 +47,7 @@ node {
                 sh "docker run --rm -e 'CI=1' -e 'REACT_APP_API_URL=http://my-api.url:1234' docker.fela.space/gmus-web-builder:latest sh -c 'make test'"
               },
               "gmus-mobile:unit tests": {
-                sh "docker run --rm ${IMAGE_MOBILE} sh -c 'flutter test'"
+                sh "docker run --rm ${IMAGE_MOBILE} sh -c 'flutter analyze && flutter test'"
               },
               "gmus-backend:tests": {
                 sh "docker run --rm --link ${pg.id}:db --link ${redis.id}:redis ${IMAGE_BACKEND} sh -c 'make test.ci'"

@@ -8,18 +8,21 @@ import '../utils/url.dart';
 import './spinner.dart';
 
 class Artists extends StatefulWidget {
+  final String apiUrl;
   final void Function(String) onSelect;
 
   Artists({
+    @required this.apiUrl,
     @required this.onSelect,
   });
 
   @override
-  _ArtistsWidgetState createState() => _ArtistsWidgetState(onSelect: this.onSelect);
+  _ArtistsWidgetState createState() => _ArtistsWidgetState(apiUrl: this.apiUrl, onSelect: this.onSelect);
 }
 
-Future<List<String>> fetchArtists() async {
-  final response = await http.get(formattedUrl('/artists'));
+Future<List<String>> fetchArtists(String apiUrl) async {
+
+  final response = await http.get(formattedUrl(apiUrl, '/artists'));
 
   if (response.statusCode == 200) {
     return List<String>.from(jsonDecode(response.body)['artists']);
@@ -29,18 +32,20 @@ Future<List<String>> fetchArtists() async {
 }
 
 class _ArtistsWidgetState extends State<Artists> {
+  String apiUrl;
   Future<List<String>> artists;
 
   final void Function(String) onSelect;
 
   _ArtistsWidgetState({
+    @required this.apiUrl,
     @required this.onSelect,
   });
 
   @override
   void initState() {
     super.initState();
-    artists = fetchArtists();
+    artists = fetchArtists(this.apiUrl);
   }
 
   @override

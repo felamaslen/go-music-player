@@ -30,4 +30,5 @@ run:
 	flutter run --dart-define=API_URL="${GMUS_MOBILE_API_URL}"
 
 test.flutter:
-	flutter test
+	@flutter analyze
+	@flutter test

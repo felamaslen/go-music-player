@@ -19,6 +19,7 @@ services:
     container_name: gmus-backend
     build:
       context: .
+    command: "make run.server"
     volumes:
       - .:/app
       - /app/bin

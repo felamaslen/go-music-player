@@ -9,20 +9,22 @@ import '../utils/url.dart';
 import './spinner.dart';
 
 class Albums extends StatefulWidget {
+  final String apiUrl;
   final String artist;
   final void Function(String, String) onSelect;
 
   Albums({
+    @required this.apiUrl,
     @required this.artist,
     @required this.onSelect,
   });
 
   @override
-  _AlbumsWidgetState createState() => _AlbumsWidgetState(artist: this.artist, onSelect: this.onSelect);
+  _AlbumsWidgetState createState() => _AlbumsWidgetState(apiUrl: this.apiUrl, artist: this.artist, onSelect: this.onSelect);
 }
 
-Future<List<String>> fetchAlbums(String artist) async {
-  final response = await http.get(formattedUrl('/albums', {
+Future<List<String>> fetchAlbums(String apiUrl, String artist) async {
+  final response = await http.get(formattedUrl(apiUrl, '/albums', {
     'artist': artist,
   }));
 
@@ -36,12 +38,14 @@ Future<List<String>> fetchAlbums(String artist) async {
 const allAlbums = 'All albums';
 
 class _AlbumsWidgetState extends State<Albums> {
+  final String apiUrl;
   final String artist;
   Future<List<String>> albums;
 
   final void Function(String, String) onSelect;
 
   _AlbumsWidgetState({
+    @required this.apiUrl,
     @required this.artist,
     @required this.onSelect,
   });
@@ -49,7 +53,7 @@ class _AlbumsWidgetState extends State<Albums> {
   @override
   void initState() {
     super.initState();
-    albums = fetchAlbums(this.artist);
+    albums = fetchAlbums(this.apiUrl, this.artist);
   }
 
   @override

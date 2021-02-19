@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gmus/socket.dart';
 
 import '../controller.dart';
 
@@ -15,8 +16,19 @@ class GmusPlayer extends StatelessWidget {
       return Row(
         children: [
           TextButton(
-              child: Text(playPauseButtonText),
-              onPressed: controller.playPause,
+            child: Text(playPauseButtonText),
+            onPressed: controller.playPause,
+          ),
+          TextButton(
+            child: Text('Disconnect'),
+            onPressed: () => disconnect(this.controller),
+          ),
+          TextButton(
+            child: Text('Reconnect'),
+            onPressed: () {
+              disconnect(this.controller);
+              connect(this.controller);
+            },
           ),
         ],
       );

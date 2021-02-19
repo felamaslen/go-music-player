@@ -10,11 +10,13 @@ import '../utils/url.dart';
 import './spinner.dart';
 
 class Songs extends StatefulWidget {
+  final String apiUrl;
   final String artist;
   final String album;
   final void Function(int) onSelect;
 
   Songs({
+    @required this.apiUrl,
     @required this.artist, // can be an empty string
     @required this.album, // can be an empty string
     @required this.onSelect,
@@ -22,14 +24,15 @@ class Songs extends StatefulWidget {
 
   @override
   _SongsWidgetState createState() => _SongsWidgetState(
+      apiUrl: this.apiUrl,
       artist: this.artist,
       album: this.album,
       onSelect: this.onSelect,
     );
 }
 
-Future<List<Song>> fetchSongs(String artist) async {
-  final response = await http.get(formattedUrl('/songs', {
+Future<List<Song>> fetchSongs(String apiUrl, String artist) async {
+  final response = await http.get(formattedUrl(apiUrl, '/songs', {
     'artist': artist,
   }));
 
@@ -46,6 +49,7 @@ Future<List<Song>> fetchSongs(String artist) async {
 }
 
 class _SongsWidgetState extends State<Songs> {
+  final String apiUrl;
   final String artist;
   final String album;
   Future<List<Song>> songs;
@@ -53,6 +57,7 @@ class _SongsWidgetState extends State<Songs> {
   final void Function(int) onSelect;
 
   _SongsWidgetState({
+    @required this.apiUrl,
     @required this.artist,
     @required this.album,
     @required this.onSelect,
@@ -61,7 +66,7 @@ class _SongsWidgetState extends State<Songs> {
   @override
   void initState() {
     super.initState();
-    songs = fetchSongs(this.artist);
+    songs = fetchSongs(this.apiUrl, this.artist);
   }
 
   @override

@@ -49,9 +49,17 @@ class _BrowserWidgetState extends State<Browser> {
     return PageView(
       controller: pageController,
       children: <Widget>[
-        Artists(onSelect: this.onSelectArtist),
-        Obx(() => Albums(artist: this.selectedArtist.value, onSelect: this.onSelectAlbum)),
+        Obx(() => Artists(
+          apiUrl: controller.apiUrl.value,
+          onSelect: this.onSelectArtist,
+        )),
+        Obx(() => Albums(
+          apiUrl: controller.apiUrl.value,
+          artist: this.selectedArtist.value,
+          onSelect: this.onSelectAlbum,
+        )),
         Obx(() => Songs(
+          apiUrl: controller.apiUrl.value,
           artist: this.selectedArtist.value,
           album: this.selectedAlbum.value,
           onSelect: this.onSelectSong,

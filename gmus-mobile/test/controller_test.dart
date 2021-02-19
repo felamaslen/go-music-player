@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gmus/actions.dart';
 import 'package:gmus/controller.dart';
+import 'package:gmus/socket.dart';
 import 'package:mockito/mockito.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -14,7 +15,7 @@ void main() {
         test('client list should be updated', () {
           Controller controller = Controller();
 
-          controller.onRemoteMessage(message);
+          onRemoteMessage(controller, message);
 
           expect(controller.clients.length, 2);
 
@@ -31,7 +32,7 @@ void main() {
 
         test('player state should be updated', () {
           Controller controller = Controller();
-          controller.onRemoteMessage(message);
+          onRemoteMessage(controller, message);
 
           expect(controller.player.value.master, 'new-master-client');
           expect(controller.player.value.songId, 7123);
@@ -42,7 +43,7 @@ void main() {
 
         test('queue should be updated', () {
           Controller controller = Controller();
-          controller.onRemoteMessage(message);
+          onRemoteMessage(controller, message);
 
           expect(controller.player.value.queue.length, 1);
           expect(controller.player.value.queue[0], 9750);
@@ -120,7 +121,7 @@ class MockChannel extends Mock implements IOWebSocketChannel {
 
 Controller mockControllerAsMaster() {
   Controller controllerAsMaster = Controller();
-  controllerAsMaster.setUniqueName('my-client-name-master');
+  controllerAsMaster.uniqueName.value = 'my-client-name-master';
   controllerAsMaster.player.value.master = 'my-client-name-master';
 
   controllerAsMaster.channel = MockChannel(sink: MockWebSocketSink());
@@ -130,7 +131,7 @@ Controller mockControllerAsMaster() {
 
 Controller mockControllerAsSlave() {
   Controller controllerAsSlave = Controller();
-  controllerAsSlave.setUniqueName('my-client-name-slave');
+  controllerAsSlave.uniqueName.value = 'my-client-name-slave';
   controllerAsSlave.player.value.master = 'other-client-name-master';
 
   controllerAsSlave.channel = MockChannel(sink: MockWebSocketSink());

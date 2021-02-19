@@ -6,7 +6,7 @@ import '../controller.dart';
 import './browser.dart';
 import './player.dart';
 
-// Main UI once identified
+// Main UI once identified and connected
 class UI extends StatelessWidget {
   final Controller controller = Get.find();
   @override

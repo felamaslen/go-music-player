@@ -3,17 +3,27 @@ import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart' as DotEnv;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gmus/components/apiurl.dart';
 
 import './config.dart';
 import './controller.dart';
+import './preferences.dart';
 
 import './components/content.dart';
 import './components/status.dart';
 
 class Gmus extends StatelessWidget {
+  final Preferences storedPreferences;
+  Gmus({
+    @required this.storedPreferences,
+  });
+
   @override
   Widget build(BuildContext context) {
-    Get.put(Controller());
+    Get.put(Controller(
+      apiUrl: this.storedPreferences.apiUrl.obs,
+      name: this.storedPreferences.clientName.obs,
+    ));
 
     return Scaffold(
       appBar: AppBar(
@@ -27,6 +37,22 @@ class Gmus extends StatelessWidget {
                 ),
                 StatusBar(),
               ],
+          ),
+        ),
+      drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.only(top: 40.0),
+            children: <Widget>[
+              ListTile(
+                title: Text('Set API URL'),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: widgetBuilderSetApiUrl,
+                  );
+                },
+              ),
+            ],
           ),
         ),
       );
@@ -49,5 +75,6 @@ Future<void> main() async {
     HttpOverrides.global = new MyHttpOverrides();
   }
 
-  runApp(GetMaterialApp(home: Gmus()));
+  getPreferences().then((preferences) =>
+      runApp(GetMaterialApp(home: Gmus(storedPreferences: preferences))));
 }
