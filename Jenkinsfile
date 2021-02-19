@@ -8,6 +8,7 @@ node {
     script {
       IMAGE_BACKEND = sh(returnStdout: true, script: "cd gmus-backend && make get_image").trim()
       IMAGE_WEB = sh(returnStdout: true, script: "cd gmus-web && make get_image").trim()
+      IMAGE_MOBILE = sh(returnStdout: true, script: "cd gmus-mobile && make get_image").trim()
     }
 
     stage('Build and push images') {
@@ -45,6 +46,9 @@ node {
               "gmus-web:unit tests": {
                 sh "docker run --rm -e 'CI=1' -e 'REACT_APP_API_URL=http://my-api.url:1234' docker.fela.space/gmus-web-builder:latest sh -c 'make test'"
               },
+              "gmus-mobile:unit tests": {
+                sh "docker run --rm ${IMAGE_MOBILE} sh -c 'flutter test'"
+              },
               "gmus-backend:tests": {
                 sh "docker run --rm --link ${pg.id}:db --link ${redis.id}:redis ${IMAGE_BACKEND} sh -c 'make test.ci'"
               }
@@ -56,7 +60,7 @@ node {
 
     stage('Deploy') {
       if (env.BRANCH_NAME == "master") {
-        sh 'LIBRARY_DIRECTORY=/data/user/music/ogg ./k8s/deploy.sh'
+        sh 'LIBRARY_DIRECTORY=$GMUS_LIBRARY_DIRECTORY ./k8s/deploy.sh'
       }
     }
   }

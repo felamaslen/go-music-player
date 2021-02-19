@@ -43,7 +43,7 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 Future<void> main() async {
-  await DotEnv.load(fileName: '.env');
+  await DotEnv.load();
 
   if (config['isDevelopment']) {
     HttpOverrides.global = new MyHttpOverrides();

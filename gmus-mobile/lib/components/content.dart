@@ -20,4 +20,3 @@ class Content extends StatelessWidget {
     });
   }
 }
-

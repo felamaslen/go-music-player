@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../config.dart';
+import '../utils/url.dart';
+
 import './spinner.dart';
 
 class Artists extends StatefulWidget {
@@ -18,7 +19,7 @@ class Artists extends StatefulWidget {
 }
 
 Future<List<String>> fetchArtists() async {
-  final response = await http.get(Uri.https(config['apiUrl'], '/artists'));
+  final response = await http.get(formattedUrl('/artists'));
 
   if (response.statusCode == 200) {
     return List<String>.from(jsonDecode(response.body)['artists']);

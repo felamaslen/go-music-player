@@ -7,6 +7,11 @@ cd $(dirname "$0")
 IMAGE_BACKEND=$(make -f ../gmus-backend/Makefile get_image)
 IMAGE_WEB=$(make -f ../gmus-web/Makefile get_image)
 
+if [[ -z $LIBRARY_DIRECTORY ]]; then
+  echo "Must set LIBRARY_DIRECTORY!"
+  exit 1
+fi
+
 namespace="gmus"
 
 cat ./manifest.yml \

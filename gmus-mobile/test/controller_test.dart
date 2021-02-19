@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gmus_mobile/actions.dart';
-import 'package:gmus_mobile/controller.dart';
+import 'package:gmus/actions.dart';
+import 'package:gmus/controller.dart';
 import 'package:mockito/mockito.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';

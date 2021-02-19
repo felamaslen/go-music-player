@@ -11,6 +11,7 @@ For more info, see the [readme](./gmus-backend/README.md).
 Each frontend implements the APIs provided by the backend. Their job is to play music, or control the master client. The following clients are implemented:
 
 - [gmus-web](./gmus-web/README.md) - web client
+- [gmus-mobile](./gmus-mobile/README.md) - mobile app
 
 ## Architecture
 

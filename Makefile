@@ -10,6 +10,7 @@ build:
 build.docker:
 	cd gmus-backend && make build.docker
 	cd gmus-web && make build.docker
+	cd gmus-mobile && make build.docker
 
 push:
 	cd gmus-backend && make push
@@ -21,6 +22,10 @@ test.backend:
 test.frontend.web:
 	cd gmus-web && yarn test
 
+test.frontend.mobile:
+	cd gmus-mobile && make test.flutter
+
 test:
 	make test.backend
 	make test.frontend.web
+	make test.frontend.mobile

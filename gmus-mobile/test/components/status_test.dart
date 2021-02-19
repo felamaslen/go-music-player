@@ -2,8 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
-import 'package:gmus_mobile/components/status.dart';
-import 'package:gmus_mobile/controller.dart';
+import 'package:gmus/components/status.dart';
+import 'package:gmus/controller.dart';
 
 class TestStatusBar extends StatelessWidget {
   final Controller controller;

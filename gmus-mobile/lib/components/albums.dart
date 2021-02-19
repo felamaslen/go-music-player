@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 
-import '../config.dart';
+import '../utils/url.dart';
 
 import './spinner.dart';
 
@@ -22,7 +22,7 @@ class Albums extends StatefulWidget {
 }
 
 Future<List<String>> fetchAlbums(String artist) async {
-  final response = await http.get(Uri.https(config['apiUrl'], '/albums', {
+  final response = await http.get(formattedUrl('/albums', {
     'artist': artist,
   }));
 
