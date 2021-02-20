@@ -8,21 +8,6 @@ import '../utils/url.dart';
 
 import './spinner.dart';
 
-class Albums extends StatefulWidget {
-  final String apiUrl;
-  final String artist;
-  final void Function(String, String) onSelect;
-
-  Albums({
-    @required this.apiUrl,
-    @required this.artist,
-    @required this.onSelect,
-  });
-
-  @override
-  _AlbumsWidgetState createState() => _AlbumsWidgetState(apiUrl: this.apiUrl, artist: this.artist, onSelect: this.onSelect);
-}
-
 Future<List<String>> fetchAlbums(String apiUrl, String artist) async {
   final response = await http.get(formattedUrl(apiUrl, '/albums', {
     'artist': artist,
@@ -37,27 +22,22 @@ Future<List<String>> fetchAlbums(String apiUrl, String artist) async {
 
 const allAlbums = 'All albums';
 
-class _AlbumsWidgetState extends State<Albums> {
-  final String apiUrl;
+class Albums extends StatelessWidget {
   final String artist;
-  Future<List<String>> albums;
-
+  final Future<List<String>> albums;
   final void Function(String, String) onSelect;
 
-  _AlbumsWidgetState({
-    @required this.apiUrl,
+  Albums({
     @required this.artist,
+    @required this.albums,
     @required this.onSelect,
   });
 
   @override
-  void initState() {
-    super.initState();
-    albums = fetchAlbums(this.apiUrl, this.artist);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    if (artist == null || albums == null) {
+      return Container();
+    }
     return FutureBuilder<List<String>>(
       future: albums,
       builder: (context, snapshot) {

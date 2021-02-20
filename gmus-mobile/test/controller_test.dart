@@ -60,7 +60,7 @@ void main() {
 
             controller.playPause();
 
-            verify(controller.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":null,"playing":true,"queue":[]}}')).called(1);
+            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":null,"playing":true,"queue":[]}}')).called(1);
           });
         });
 
@@ -72,7 +72,7 @@ void main() {
 
             controller.playPause();
 
-            verify(controller.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":182,"playing":false,"queue":[]}}')).called(1);
+            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":182,"playing":false,"queue":[]}}')).called(1);
           });
         });
       });
@@ -83,7 +83,7 @@ void main() {
           controller.player.value.playing = false;
           controller.playPause();
 
-          verifyNever(controller.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":null,"playing":true,"queue":[]}}'));
+          verifyNever(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":null,"playing":true,"queue":[]}}'));
         });
       });
     });
@@ -95,7 +95,7 @@ void main() {
 
           controller.playSong(871);
 
-          verify(controller.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":871,"playing":true,"queue":[]}}')).called(1);
+          verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":871,"playing":true,"queue":[]}}')).called(1);
         });
       });
 
@@ -124,7 +124,7 @@ Controller mockControllerAsMaster() {
   controllerAsMaster.uniqueName.value = 'my-client-name-master';
   controllerAsMaster.player.value.master = 'my-client-name-master';
 
-  controllerAsMaster.channel = MockChannel(sink: MockWebSocketSink());
+  controllerAsMaster.socket.channel = MockChannel(sink: MockWebSocketSink());
 
   return controllerAsMaster;
 }
@@ -134,8 +134,7 @@ Controller mockControllerAsSlave() {
   controllerAsSlave.uniqueName.value = 'my-client-name-slave';
   controllerAsSlave.player.value.master = 'other-client-name-master';
 
-  controllerAsSlave.channel = MockChannel(sink: MockWebSocketSink());
+  controllerAsSlave.socket.channel = MockChannel(sink: MockWebSocketSink());
 
   return controllerAsSlave;
 }
-

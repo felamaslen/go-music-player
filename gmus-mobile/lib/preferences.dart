@@ -21,7 +21,6 @@ Future<Preferences> getPreferences() async {
 
 setApiUrl(String apiUrl) async {
   SharedPreferences preferences = await SharedPreferences.getInstance();
-  print('setting preferences apiUrl=$apiUrl');
   await preferences.setString('apiUrl', apiUrl);
 }
 

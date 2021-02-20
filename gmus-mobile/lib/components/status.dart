@@ -14,7 +14,7 @@ class StatusBarWrapped extends StatelessWidget {
       return null;
     }
     return Obx(() {
-      var connected = controller.connected.value;
+      var connected = controller.socket.connected.value;
       if (!connected) {
         return Text("Disconnected");
       }

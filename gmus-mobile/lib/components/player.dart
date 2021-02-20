@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gmus/socket.dart';
 
 import '../controller.dart';
 
@@ -21,13 +20,13 @@ class GmusPlayer extends StatelessWidget {
           ),
           TextButton(
             child: Text('Disconnect'),
-            onPressed: () => disconnect(this.controller),
+            onPressed: controller.disconnect,
           ),
           TextButton(
             child: Text('Reconnect'),
-            onPressed: () {
-              disconnect(this.controller);
-              connect(this.controller);
+            onPressed: () async {
+              controller.disconnect();
+              await controller.connect();
             },
           ),
         ],

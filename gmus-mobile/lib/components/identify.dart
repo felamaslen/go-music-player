@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller.dart';
-import '../socket.dart' as socket;
 
 class Identify extends StatelessWidget {
   final Controller controller = Get.find();
@@ -10,6 +9,7 @@ class Identify extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        Text("Current name: ${controller.name.value}"),
         TextField(
             onChanged: controller.setName,
             decoration: InputDecoration(
@@ -20,7 +20,7 @@ class Identify extends StatelessWidget {
         TextButton(
             child: Text('Connect'),
             onPressed: () {
-              socket.connect(controller);
+              controller.connect();
             },
         ),
       ],

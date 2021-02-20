@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:get/get.dart';
-import 'package:web_socket_channel/io.dart';
 
 import './actions.dart' as actions;
 import './preferences.dart' as Preferences;
+import './socket.dart';
 
 class Player {
   double currentTime = 0;
@@ -38,23 +39,37 @@ class Client {
 
 class Controller extends GetxController {
   RxString apiUrl = ''.obs;
-  RxBool connected = false.obs;
 
   RxString name = ''.obs;
   RxString uniqueName = ''.obs;
 
-  IOWebSocketChannel channel;
-
   Rx<Player> player = new Player().obs;
   RxList<Client> clients = <Client>[].obs;
+
+  final Socket socket = Socket();
 
   Controller({
     this.apiUrl,
     this.name,
   });
 
+  Future<void> connect() async {
+    uniqueName.value = await socket.connect(
+      apiUrl.value,
+      name.value,
+      (message) => onRemoteMessage(this, message),
+    );
+  }
+
+  void disconnect() {
+    socket.disconnect();
+    uniqueName.value = '';
+  }
+
   setApiUrl(String apiUrl) {
+    this.disconnect();
     this.apiUrl = apiUrl.obs;
+    this.connect();
     Preferences.setApiUrl(apiUrl);
   }
 
@@ -67,21 +82,13 @@ class Controller extends GetxController {
     this.clients.assignAll(newClients);
   }
 
-  void _remoteDispatch(String action) {
-    if (this.channel == null) {
-      return;
-    }
-
-    this.channel.sink.add(action);
-  }
-
   bool _isMaster() => this.uniqueName.value == this.player.value.master;
 
   void playPause() {
     this.player.value.playing = !this.player.value.playing;
 
     if (!this._isMaster()) {
-      this._remoteDispatch(jsonEncode({
+      this.socket.dispatch(jsonEncode({
         'type': actions.STATE_SET,
         'payload': this.player.value.stringify(),
       }));
@@ -98,7 +105,7 @@ class Controller extends GetxController {
     this.player.value.seekTime = -1;
     this.player.value.playing = true;
 
-    this._remoteDispatch(jsonEncode({
+    this.socket.dispatch(jsonEncode({
       'type': actions.STATE_SET,
       'payload': this.player.value.stringify(),
     }));

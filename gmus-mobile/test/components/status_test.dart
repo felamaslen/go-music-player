@@ -32,7 +32,7 @@ void main() {
   testWidgets('Status bar should render a connected message with name', (WidgetTester tester) async {
     Controller controller = Controller();
     controller.uniqueName = 'mob-DvaU1'.obs;
-    controller.connected.value = true;
+    controller.socket.connected.value = true;
 
     await tester.pumpWidget(TestStatusBar(controller: controller));
 

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:get/get.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:web_socket_channel/io.dart';
 
@@ -17,17 +19,79 @@ String getUniqueName(String name) {
 
 const socketKeepaliveTimeoutMs = 30000;
 
-void keepalive(IOWebSocketChannel channel) {
-  var future = new Future.delayed(const Duration(milliseconds: socketKeepaliveTimeoutMs));
-  void ping(dynamic data) {
-    channel.sink.add(jsonEncode({'type': 'PING'}));
-    keepalive(channel);
-  }
-  var subscription = future.asStream().listen(ping);
+class Socket {
+  WebSocket conn;
+  IOWebSocketChannel channel;
 
-  channel.sink.done.whenComplete(() {
-    subscription.cancel();
-  });
+  RxBool connected = false.obs;
+  RxString error = ''.obs;
+
+  void _keepalive() {
+    var future = new Future.delayed(const Duration(milliseconds: socketKeepaliveTimeoutMs));
+    void ping(dynamic data) {
+      channel.sink.add(jsonEncode({'type': 'PING'}));
+      _keepalive();
+    }
+    var subscription = future.asStream().listen(ping);
+
+    channel.sink.done.whenComplete(() {
+      subscription.cancel();
+    });
+  }
+
+  Future<String> connect(
+    String apiUrl,
+    String name,
+    void Function(String) onRemoteMessage,
+  ) async {
+    if (apiUrl == null || name == null || apiUrl.length == 0 || name.length == 0) {
+      return null;
+    }
+
+    final String uniqueName = getUniqueName(name);
+
+    final String webSocketUrl = getWebSocketUrl(apiUrl);
+    final String pubsubUrl = "$webSocketUrl?client-name=$uniqueName";
+
+    connected.value = false;
+
+    try {
+      conn = await WebSocket
+        .connect(Uri.parse(pubsubUrl).toString())
+        .timeout(Duration(seconds: 10));
+
+      channel = IOWebSocketChannel(conn);
+
+      channel.stream.listen((message) => onRemoteMessage(message));
+
+      connected.value = true;
+      error.value = '';
+
+      _keepalive();
+    }
+    on SocketException {
+      error.value = "Error connecting to socket";
+    }
+    on TimeoutException {
+      error.value = "Timeout connecting to socket";
+    }
+    catch (err) {
+      error.value = "Unknown error connecting to socket";
+    }
+
+    return uniqueName;
+  }
+
+  void disconnect() {
+    conn?.close();
+  }
+
+  void dispatch(String action) {
+    if (channel == null) {
+      return;
+    }
+    channel.sink.add(action);
+  }
 }
 
 void onRemoteMessage(Controller controller, String message) {
@@ -66,43 +130,4 @@ void onRemoteMessage(Controller controller, String message) {
 
       break;
   }
-}
-
-void connect(Controller controller) {
-  if (controller == null ||
-      controller.name.value.length == 0 ||
-      controller.apiUrl.value.length == 0) {
-    return;
-  }
-
-  final String uniqueName = getUniqueName(controller.name.value);
-  controller.uniqueName.value = uniqueName;
-
-  final String webSocketUrl = getWebSocketUrl(controller.apiUrl.value);
-  final String pubsubUrl = "$webSocketUrl?client-name=$uniqueName";
-
-  var channel = IOWebSocketChannel.connect(Uri.parse(pubsubUrl));
-  controller.channel = channel;
-
-  channel.stream.listen((message) {
-    onRemoteMessage(controller, message);
-  });
-
-  controller.connected.value = true;
-
-  keepalive(channel);
-}
-
-void disconnect(Controller controller) {
-  controller.connected.value = false;
-  if (controller.channel != null) {
-    controller.channel.sink.close();
-  }
-  controller.uniqueName.value = '';
-}
-
-void setApiUrl(Controller controller, String apiUrl) {
-  disconnect(controller);
-  controller.setApiUrl(apiUrl);
-  connect(controller);
 }

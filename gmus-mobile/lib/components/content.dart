@@ -19,7 +19,10 @@ class Content extends StatelessWidget {
       if (!loggedIn) {
         return Identify();
       }
-      if (!controller.connected.isTrue) {
+      if (controller.socket.error.value.length != 0) {
+        return Center(child: Text(controller.socket.error.value));
+      }
+      if (!controller.socket.connected.value) {
         return CenterSpinner();
       }
 

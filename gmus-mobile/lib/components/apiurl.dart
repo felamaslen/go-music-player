@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller.dart';
-import '../socket.dart' as socket;
 
 class _SetApiUrl extends StatefulWidget {
   @override
@@ -33,7 +32,7 @@ class _SetApiUrlState extends State<_SetApiUrl> {
         TextButton(
           child: Text('Set'),
           onPressed: () {
-            socket.setApiUrl(controller, this.apiUrl);
+            controller.setApiUrl(apiUrl);
             Navigator.pop(context);
           },
         ),
