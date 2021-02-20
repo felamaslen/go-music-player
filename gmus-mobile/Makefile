@@ -12,7 +12,7 @@ prepare.android:
 	@./scripts/prepare_android.sh
 
 build.android:
-	@flutter build appbundle --dart-define=API_URL=${GMUS_MOBILE_API_URL}
+	@flutter build appbundle
 
 bundle.android:
 	@./scripts/bundle.sh
@@ -27,7 +27,7 @@ android-install:
 	make install.android
 
 run:
-	flutter run --dart-define=API_URL="${GMUS_MOBILE_API_URL}"
+	flutter run
 
 test.flutter:
 	@flutter analyze
