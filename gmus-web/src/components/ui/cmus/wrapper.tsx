@@ -42,8 +42,13 @@ export const CmusUIProvider: UIProviderComponent = ({
   const dispatch = useContext(DispatchContext);
   const [stateUI, dispatchUI] = useReducer(cmusUIReducer, initialCmusUIState, init, 'ui');
 
+  const globalActionSerialNumberPrev = useRef<number>(stateUI.globalActionSerialNumber);
   useEffect(() => {
-    if (stateUI.globalAction) {
+    if (
+      stateUI.globalAction &&
+      globalActionSerialNumberPrev.current !== stateUI.globalActionSerialNumber
+    ) {
+      globalActionSerialNumberPrev.current = stateUI.globalActionSerialNumber;
       dispatch(stateUI.globalAction);
     }
   }, [dispatch, stateUI.globalAction, stateUI.globalActionSerialNumber]);
