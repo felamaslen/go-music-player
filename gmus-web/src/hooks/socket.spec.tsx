@@ -1,4 +1,4 @@
-import { act, fireEvent, render, RenderResult } from '@testing-library/react';
+import { act, fireEvent, render, RenderResult, waitFor } from '@testing-library/react';
 import WS from 'jest-websocket-mock';
 import React, { Dispatch } from 'react';
 import * as storageHooks from 'react-storage-hooks';
@@ -167,9 +167,10 @@ describe(useSocket.name, () => {
   it.each`
     testCase                   | key             | expectedValue
     ${'the name'}              | ${'name'}       | ${''}
-    ${'the error status'}      | ${'error'}      | ${false}
     ${'the connecting status'} | ${'connecting'} | ${false}
-    ${'the connected status'}  | ${'connected'}  | ${false}
+    ${'the error status'}      | ${'error'}      | ${false}
+    ${'the ready status'}      | ${'ready'}      | ${false}
+    ${'the identified status'} | ${'identified'} | ${false}
   `('should return $testCase', ({ key, expectedValue }) => {
     expect.assertions(1);
     const { getByTestId } = render(<TestComponent />);
@@ -223,9 +224,19 @@ describe(useSocket.name, () => {
       expect(server).toHaveReceivedMessages(['Hello world!']);
     });
 
-    it('should set the connected state to true', async () => {
-      expect.assertions(1);
+    it('should set the connecting, ready and identified state', async () => {
+      expect.assertions(2);
       const { getByTestId } = setupIdentify();
+
+      expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
+        expect.objectContaining({
+          connecting: true,
+          error: false,
+          ready: false,
+          identified: true,
+        }),
+      );
+
       await act(async () => {
         await server.connected;
       });
@@ -233,7 +244,9 @@ describe(useSocket.name, () => {
       expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
         expect.objectContaining({
           connecting: false,
-          connected: true,
+          error: false,
+          ready: true,
+          identified: true,
         }),
       );
     });
@@ -285,14 +298,16 @@ describe(useSocket.name, () => {
         .mockReturnValue(['my-stored-name' as unknown, saveName, undefined]);
     });
 
-    it('should set connecting to true', () => {
+    it('should set the status', () => {
       expect.assertions(1);
       const { getByTestId } = render(<TestComponent />);
 
       expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
         expect.objectContaining({
           connecting: true,
-          connected: false,
+          error: false,
+          identified: true,
+          ready: false,
         }),
       );
     });
@@ -322,7 +337,9 @@ describe(useSocket.name, () => {
       expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
         expect.objectContaining({
           connecting: false,
-          connected: true,
+          error: false,
+          identified: true,
+          ready: true,
         }),
       );
     });
@@ -347,6 +364,79 @@ describe(useSocket.name, () => {
 
       expect(onMessage).toHaveBeenCalledTimes(1);
       expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({ data: 'foo' }));
+    });
+  });
+
+  describe('when an error occurs', () => {
+    let server: WS;
+    beforeEach(() => {
+      server = new WS('ws://my-api.url:1234/pubsub');
+    });
+
+    const setupError = async (): Promise<RenderResult> => {
+      const utils = render(<TestComponent />);
+      act(() => {
+        fireEvent.click(utils.getByText('Identify!'));
+      });
+
+      await server.connected;
+
+      act(() => {
+        server.error();
+      });
+
+      server = new WS('ws://my-api.url:1234/pubsub');
+
+      return utils;
+    };
+
+    it('should reconnect automatically', async () => {
+      expect.assertions(1);
+      await setupError();
+
+      await server.connected;
+
+      server.send('foo');
+
+      expect(onMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('should set error to true but keep the identified state', async () => {
+      expect.hasAssertions();
+      const { getByTestId } = await setupError();
+
+      expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
+        expect.objectContaining({
+          ready: false,
+          error: true,
+          connecting: false,
+          identified: true,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
+          expect.objectContaining({
+            ready: false,
+            error: true,
+            connecting: true,
+            identified: true,
+          }),
+        );
+      });
+
+      await server.connected;
+
+      await waitFor(() => {
+        expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
+          expect.objectContaining({
+            ready: true,
+            error: false,
+            connecting: false,
+            identified: true,
+          }),
+        );
+      });
     });
   });
 });

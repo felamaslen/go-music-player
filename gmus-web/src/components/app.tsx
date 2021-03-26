@@ -13,14 +13,22 @@ import { LoadingWrapper } from './identify';
 import { Interact, Props as InteractProps } from './interact';
 import { Player } from './player';
 import { uiProviders } from './ui';
-import { UIProvider } from './ui/types';
+import { UIProps, UIProvider } from './ui/types';
 
 export type Props = {
-  socket: WebSocket;
+  socket: WebSocket | null;
   interacted: boolean;
-} & InteractProps;
+} & InteractProps &
+  Pick<UIProps, 'connecting' | 'ready' | 'error'>;
 
-export const App: React.FC<Props> = ({ socket, interacted, setInteracted }) => {
+export const App: React.FC<Props> = ({
+  socket,
+  connecting,
+  ready,
+  error,
+  interacted,
+  setInteracted,
+}) => {
   useKeepalive(socket);
   useCurrentlyPlayingSongInfo();
 
@@ -59,6 +67,9 @@ export const App: React.FC<Props> = ({ socket, interacted, setInteracted }) => {
         {interacted && (
           <Suspense fallback={<LoadingWrapper />}>
             <UI
+              connecting={connecting}
+              ready={ready}
+              error={error}
               isMaster={isMaster(state)}
               currentSong={state.songInfo}
               nextSong={onNext}

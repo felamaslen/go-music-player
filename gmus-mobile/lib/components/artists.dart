@@ -5,8 +5,6 @@ import 'package:http/http.dart' as http;
 
 import '../utils/url.dart';
 
-import './spinner.dart';
-
 Future<List<String>> fetchArtists(String apiUrl) async {
   final response = await http.get(formattedUrl(apiUrl, '/artists'));
 

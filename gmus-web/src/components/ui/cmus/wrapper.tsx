@@ -19,6 +19,7 @@ import { Overlay, View } from './types';
 import { useLibrary } from './utils/library';
 import { ViewClientList } from './views/clients';
 import { CommandView } from './views/command';
+import { DisconnectedDialog } from './views/disconnected';
 import { HelpDialog } from './views/help';
 import { ViewLibrary } from './views/library';
 import { ViewQueue } from './views/queue';
@@ -28,7 +29,14 @@ import * as Styled from './wrapper.styles';
 
 const viewTitles = Object.values(View);
 
-export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, prevSong }) => {
+export const CmusUIProvider: UIProviderComponent = ({
+  connecting,
+  ready,
+  error,
+  currentSong,
+  nextSong,
+  prevSong,
+}) => {
   useMaster();
 
   const dispatch = useContext(DispatchContext);
@@ -53,7 +61,7 @@ export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, pre
     }
   }, [stateUI.skipSong, nextSong, prevSong]);
 
-  useVimBindings(dispatchUI, stateUI.commandMode || stateUI.searchMode);
+  useVimBindings(dispatchUI, !ready || stateUI.commandMode || stateUI.searchMode);
 
   useLibrary(stateUI, dispatchUI);
 
@@ -83,8 +91,13 @@ export const CmusUIProvider: UIProviderComponent = ({ currentSong, nextSong, pre
               {stateUI.overlay === Overlay.Help && <HelpDialog />}
             </Styled.Overlay>
           )}
+          {!ready && (
+            <Styled.Overlay>
+              <DisconnectedDialog />
+            </Styled.Overlay>
+          )}
           {stateUI.searchMode && <Search />}
-          <PlayerStatus song={currentSong} />
+          <PlayerStatus song={currentSong} connecting={connecting} error={error} ready={ready} />
           <CommandView />
         </Styled.Wrapper>
       </CmusUIDispatchContext.Provider>

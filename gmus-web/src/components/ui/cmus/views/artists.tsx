@@ -5,7 +5,7 @@ import { FixedSizeList as List } from 'react-window';
 import { namedMemo } from '../../../../utils/component';
 import { CmusUIStateContext } from '../reducer';
 import { NoWrapFill } from '../styled/layout';
-import { AsciiSpinner } from '../styled/spinner';
+import { SpinnerOrEmpty } from '../styled/spinner';
 import { getArtistAlbumScrollIndex, lineHeight, useAutoJumpyScroll } from '../utils/scroll';
 
 import * as Styled from './artists.styles';
@@ -46,7 +46,7 @@ const Artist = namedMemo<{ row: ArtistData; style: CSSProperties }>(
       style={style}
       highlight={highlight}
     >
-      {loading ? <AsciiSpinner /> : <>&nbsp;&nbsp;</>}
+      <SpinnerOrEmpty loading={loading} />
       <NoWrapFill>{artist || 'Unknown Artist'}</NoWrapFill>
     </Styled.ArtistTitle>
   ),

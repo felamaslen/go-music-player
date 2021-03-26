@@ -1,4 +1,5 @@
 import { rem } from 'polished';
+import React from 'react';
 import styled, { keyframes } from 'styled-components';
 
 const spin = keyframes`
@@ -26,3 +27,6 @@ export const AsciiSpinner = styled.span`
     width: auto;
   }
 `;
+
+export const SpinnerOrEmpty: React.FC<{ loading: boolean }> = ({ loading }) =>
+  loading ? <AsciiSpinner /> : <span>&nbsp;&nbsp;</span>;

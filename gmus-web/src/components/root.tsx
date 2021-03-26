@@ -21,13 +21,16 @@ export const Root: React.FC = () => {
     [dispatch],
   );
 
-  const { name, onIdentify, socket, connecting, connected, error } = useSocket(onMessage, onLogin);
+  const { identified, onIdentify, ready, connecting, error, socket } = useSocket(
+    onMessage,
+    onLogin,
+  );
 
   const dispatchWithEffects = useDispatchWithEffects(state, dispatch, socket);
 
   const [interacted, setInteracted] = useState<boolean>(false);
 
-  if (!(socket && connected && name) || error) {
+  if (!identified) {
     return (
       <Identify connecting={connecting} onIdentify={onIdentify} setInteracted={setInteracted} />
     );
@@ -36,7 +39,14 @@ export const Root: React.FC = () => {
   return (
     <StateContext.Provider value={state}>
       <DispatchContext.Provider value={dispatchWithEffects}>
-        <App socket={socket} interacted={interacted} setInteracted={setInteracted} />
+        <App
+          socket={socket}
+          connecting={connecting}
+          ready={ready}
+          error={error}
+          interacted={interacted}
+          setInteracted={setInteracted}
+        />
       </DispatchContext.Provider>
     </StateContext.Provider>
   );

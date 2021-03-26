@@ -50,7 +50,7 @@ services:
     networks:
       - net_gmus_dev
     ports:
-      - 5417:5432
+      - ${DB_PORT_GMUS_DEV:-5432}:5432
     environment:
       POSTGRES_USER: docker
       POSTGRES_PASSWORD: docker

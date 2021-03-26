@@ -26,6 +26,7 @@ RUN mkdir app
 WORKDIR app
 
 COPY . .
+RUN touch .env
 USER root
 RUN chown -R developer:developer /home/developer/app
 USER developer

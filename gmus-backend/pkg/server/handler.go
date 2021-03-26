@@ -16,7 +16,7 @@ func routeHandler(
 ) func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		l.Verbose("[%s] %s\n", r.Method, r.URL);
+		l.Verbose("[%s] %s\n", r.Method, r.URL)
 		err := handler(l, rdb, w, r)
 
 		if err != nil {

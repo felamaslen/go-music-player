@@ -53,8 +53,11 @@ func getDatabaseUrl() string {
 
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
+	portDev, hasPortDev := os.LookupEnv("DB_PORT_GMUS_DEV")
 	port, hasPort := os.LookupEnv("POSTGRES_PORT")
-	if !hasPort {
+	if hasPortDev {
+		port = portDev
+	} else if !hasPort {
 		port = "5432"
 	}
 	portNumeric, err := strconv.Atoi(port)

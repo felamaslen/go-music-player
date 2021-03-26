@@ -8,6 +8,9 @@ export enum UIProvider {
 }
 
 export type UIProps = {
+  connecting: boolean;
+  ready: boolean;
+  error: boolean;
   isMaster: boolean;
   currentSong: Song | null;
   nextSong: () => void;

@@ -4,11 +4,15 @@ import { isMaster } from '../../../../selectors';
 
 import { MusicPlayer, Song } from '../../../../types';
 import { formatTime } from '../../../../utils/time';
+import { AsciiSpinner } from '../styled/spinner';
 
 import * as Styled from './status.styles';
 
 export type Props = {
   song: Song | null;
+  connecting?: boolean;
+  ready?: boolean;
+  error?: boolean;
 };
 
 function getTrackMetadata(song: Song | null): string {
@@ -28,7 +32,21 @@ function getPlayPauseIcon(player: MusicPlayer): string {
   return '|';
 }
 
-export const PlayerStatus: React.FC<Props> = ({ song }) => {
+const StatusIcon: React.FC<Omit<Props, 'song'>> = ({
+  connecting = false,
+  ready = false,
+  error = false,
+}) => {
+  if (connecting) {
+    return <AsciiSpinner />;
+  }
+  if (error || !ready) {
+    return <span>!&nbsp;</span>;
+  }
+  return <span>✓&nbsp;</span>;
+};
+
+export const PlayerStatus: React.FC<Props> = ({ song, ...props }) => {
   const state = useContext(StateContext);
   return (
     <Styled.StatusContainer>
@@ -43,6 +61,8 @@ export const PlayerStatus: React.FC<Props> = ({ song }) => {
         <Styled.ClientName>
           {state.myClientName} [{isMaster(state) ? 'Master' : 'Slave'}]
         </Styled.ClientName>
+        &nbsp;
+        <StatusIcon {...props} />
       </Styled.PlayStatus>
     </Styled.StatusContainer>
   );

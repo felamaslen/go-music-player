@@ -1,6 +1,8 @@
 import { useThrottleCallback } from '@react-hook/throttle';
 import { Dispatch, useCallback, useEffect } from 'react';
 
+import { noop } from '../utils/noop';
+
 export const Keys = {
   tab: 'Tab',
   enter: 'Enter',
@@ -57,9 +59,7 @@ export function useVimBindings(dispatch: Dispatch<ActionKeyPressed>, skip = fals
 
   useEffect(() => {
     if (skip) {
-      return (): void => {
-        // pass
-      };
+      return noop;
     }
 
     window.addEventListener('keydown', listenerThrottled);

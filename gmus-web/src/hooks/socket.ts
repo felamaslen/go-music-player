@@ -7,6 +7,7 @@ import { errorOccurred } from '../actions/error';
 import { socketKeepaliveTimeout } from '../constants/system';
 import { globalEffects } from '../effects';
 import { GlobalState } from '../reducer';
+import { noop } from '../utils/noop';
 import { getPubsubUrl } from '../utils/url';
 
 const getUniqueName = (name: string): string => (name.length ? `${name}-${nanoid(5)}` : '');
@@ -61,45 +62,68 @@ export function useDispatchWithEffects(
   return dispatchWithEffects;
 }
 
-export function useSocket(
-  onMessage: OnMessage,
-  onLogin: (name: string) => void,
-): {
-  name: string | null;
-  onIdentify: (name: string) => void;
+const getConnectAttemptDelayMs = (connectAttemptNumber: number): number =>
+  Math.min(16000, 1000 * 2 ** connectAttemptNumber);
+
+type SocketState = {
+  uniqueName: string;
+  tempName: string;
   socket: WebSocket | null;
   error: boolean;
   connecting: boolean;
-  connected: boolean;
-} {
+  connectAttemptNumber: number;
+};
+
+type SocketHookResult = {
+  name: string | null;
+  identified: boolean;
+  onIdentify: (name: string) => void;
+  connecting: boolean;
+  error: boolean;
+  ready: boolean;
+  socket: WebSocket | null;
+};
+
+export function useSocket(onMessage: OnMessage, onLogin: (name: string) => void): SocketHookResult {
   const [storedName, saveName] = useStorageState<string>(localStorage, clientNameKey, '');
-  const [uniqueName, setUniqueName] = useState<string>(getUniqueName(storedName));
-  const [tempName, onIdentify] = useState<string>(storedName);
+  const [{ uniqueName, tempName, socket, error, connecting }, setState] = useState<SocketState>({
+    uniqueName: getUniqueName(storedName),
+    tempName: storedName,
+    socket: null,
+    error: false,
+    connecting: false,
+    connectAttemptNumber: 0,
+  });
 
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [error, setError] = useState<boolean>(false);
-
-  const [connecting, setConnecting] = useState<boolean>(false);
+  const connectAttemptTimer = useRef<number>();
 
   useEffect(() => {
     let cancelled = false;
     let ws: WebSocket | undefined;
-    if (tempName) {
-      setConnecting(true);
+
+    const connectIfPossible = (): void => {
+      if (!tempName) {
+        setState((last) => ({ ...last, connecting: false, error: false }));
+        return;
+      }
+
+      setState((last) => ({ ...last, connecting: true }));
 
       const uniqueTempName = getUniqueName(tempName);
       ws = new WebSocket(`${getPubsubUrl()}?client-name=${uniqueTempName}`);
 
       ws.onopen = (): void => {
         if (!cancelled && ws && ws.readyState === ws.OPEN) {
-          setError(false);
-          setConnecting(false);
+          setState((last) => ({
+            ...last,
+            error: false,
+            connecting: false,
+            connectAttemptNumber: 0,
+            uniqueName: uniqueTempName,
+            socket: ws ?? null,
+          }));
 
-          onIdentify('');
           saveName(tempName);
-          setUniqueName(uniqueTempName);
-
-          setSocket(ws);
           onLogin(uniqueTempName);
         }
       };
@@ -107,33 +131,59 @@ export function useSocket(
       ws.onmessage = onMessage;
 
       ws.onclose = (): void => {
-        setError(false);
-        setSocket(null);
+        setState((last) => {
+          clearTimeout(connectAttemptTimer.current);
+          connectAttemptTimer.current = setTimeout(
+            connectIfPossible,
+            getConnectAttemptDelayMs(last.connectAttemptNumber),
+          );
+
+          return {
+            ...last,
+            socket: null,
+            connecting: false,
+            connectAttemptNumber: last.connectAttemptNumber + 1,
+          };
+        });
       };
-    } else {
-      setConnecting(false);
-      setError(false);
-    }
+
+      ws.onerror = (): void => {
+        setState((last) => ({ ...last, error: true }));
+      };
+    };
+
+    connectIfPossible();
 
     return (): void => {
+      clearTimeout(connectAttemptTimer.current);
       cancelled = true;
     };
   }, [onMessage, onLogin, tempName, saveName]);
 
+  const onIdentify = useCallback(
+    (name: string) => setState((last) => ({ ...last, tempName: name })),
+    [],
+  );
+
   return {
     name: uniqueName,
+    identified: !!tempName,
     onIdentify,
-    socket,
-    error,
     connecting,
-    connected: !!socket && socket?.readyState === socket?.OPEN,
+    error,
+    ready: !!(socket && socket.readyState === socket.OPEN),
+    socket,
   };
 }
 
-export function useKeepalive(socket: WebSocket): void {
+export function useKeepalive(socket: WebSocket | null): void {
   const keepalive = useRef<number>();
 
   useEffect(() => {
+    if (!socket) {
+      return noop;
+    }
+
     keepalive.current = window.setInterval(() => {
       if (socket.readyState === socket.OPEN) {
         socket.send(JSON.stringify({ type: 'PING' }));
