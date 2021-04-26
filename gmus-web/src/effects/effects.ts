@@ -93,9 +93,6 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
       };
 
     case ActionTypeLocal.PlayPaused:
-      if (isMaster(prevState)) {
-        return null;
-      }
       return {
         type: ActionTypeRemote.StateSet,
         payload: {

@@ -196,38 +196,30 @@ describe(globalEffects.name, () => {
   });
 
   describe(ActionTypeLocal.PlayPaused, () => {
-    const statePriorMaster: GlobalState = {
-      ...initialState,
-      player: {
-        songId: 123,
-        playing: true,
-        currentTime: 83,
-        seekTime: 5,
-        master: 'some-master-client',
-        activeClients: [],
-        queue: [],
-      },
-      myClientName: 'some-master-client',
-    };
-
     const action = playPaused();
 
-    describe('when the client is master', () => {
-      it('should return null', () => {
-        expect.assertions(1);
-        expect(globalEffects(statePriorMaster, action)).toBeNull();
-      });
-    });
-
-    describe('when the client is a slave', () => {
-      const stateSlave: GlobalState = {
-        ...statePriorMaster,
-        myClientName: 'some-slave-client',
+    describe.each`
+      currentClient | myClientName
+      ${'master'}   | ${'some-master-client'}
+      ${'a slave'}  | ${'my client'}
+    `('when the current client is $currentClient', ({ myClientName }) => {
+      const statePrior: GlobalState = {
+        ...initialState,
+        player: {
+          songId: 123,
+          playing: true,
+          currentTime: 83,
+          seekTime: 5,
+          master: 'some-master-client',
+          activeClients: [],
+          queue: [],
+        },
+        myClientName,
       };
 
       it('should return a StateSet action informing other clients of the updated playing state', () => {
         expect.assertions(1);
-        const result = globalEffects(stateSlave, action);
+        const result = globalEffects(statePrior, action);
 
         expect(result).toStrictEqual<ActionStateSetRemote>({
           type: ActionTypeRemote.StateSet,
