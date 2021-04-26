@@ -2,6 +2,7 @@ import {
   ActionStateSetRemote,
   ActionTypeLocal,
   ActionTypeRemote,
+  activeClientToggled,
   masterSet,
   playPaused,
   queueOrdered,
@@ -28,6 +29,7 @@ describe(globalEffects.name, () => {
         currentTime: 83,
         seekTime: 87,
         master: 'my-client',
+        activeClients: [],
         queue: [],
       };
 
@@ -56,6 +58,7 @@ describe(globalEffects.name, () => {
         currentTime: 83,
         seekTime: 87,
         master: 'my-client-name',
+        activeClients: [],
         queue: [],
       },
       myClientName: 'my-client-name',
@@ -97,6 +100,7 @@ describe(globalEffects.name, () => {
         currentTime: 83,
         seekTime: 5,
         master: 'some-master-went-away',
+        activeClients: [],
         queue: [],
       },
       myClientName: 'my-client-name',
@@ -116,6 +120,7 @@ describe(globalEffects.name, () => {
           currentTime: 83,
           seekTime: -1,
           master: 'my-client-name',
+          activeClients: [],
           queue: [],
         },
       });
@@ -134,8 +139,57 @@ describe(globalEffects.name, () => {
             currentTime: 83,
             seekTime: 83,
             master: 'other-client',
+            activeClients: [],
             queue: [],
           },
+        });
+      });
+    });
+  });
+
+  describe(ActionTypeLocal.ActiveClientToggled, () => {
+    const action = activeClientToggled('some-client');
+
+    describe('when the given client is active', () => {
+      const stateWithGivenClientActive: GlobalState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          activeClients: ['some-client', 'other-client'],
+        },
+      };
+
+      it('should remove the given client from the active clients list', () => {
+        expect.assertions(1);
+        const result = globalEffects(stateWithGivenClientActive, action);
+
+        expect(result).toStrictEqual<ActionStateSetRemote>({
+          type: ActionTypeRemote.StateSet,
+          payload: expect.objectContaining({
+            activeClients: ['other-client'],
+          }),
+        });
+      });
+    });
+
+    describe('when the given client is not active', () => {
+      const stateWithGivenClientInactive: GlobalState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          activeClients: ['other-client'],
+        },
+      };
+
+      it('should add the given client to the active clients list', () => {
+        expect.assertions(1);
+        const result = globalEffects(stateWithGivenClientInactive, action);
+
+        expect(result).toStrictEqual<ActionStateSetRemote>({
+          type: ActionTypeRemote.StateSet,
+          payload: expect.objectContaining({
+            activeClients: expect.arrayContaining(['some-client', 'other-client']),
+          }),
         });
       });
     });
@@ -150,6 +204,7 @@ describe(globalEffects.name, () => {
         currentTime: 83,
         seekTime: 5,
         master: 'some-master-client',
+        activeClients: [],
         queue: [],
       },
       myClientName: 'some-master-client',
@@ -182,6 +237,7 @@ describe(globalEffects.name, () => {
             currentTime: 83,
             seekTime: 5,
             master: 'some-master-client',
+            activeClients: [],
             queue: [],
           },
         });
@@ -198,6 +254,7 @@ describe(globalEffects.name, () => {
         currentTime: 83,
         seekTime: 5,
         master: 'some-master-client',
+        activeClients: [],
         queue: [],
       },
       myClientName: 'some-master-client',
@@ -230,6 +287,7 @@ describe(globalEffects.name, () => {
             currentTime: 0,
             seekTime: 0,
             master: 'some-master-client',
+            activeClients: [],
             queue: [],
           },
         });

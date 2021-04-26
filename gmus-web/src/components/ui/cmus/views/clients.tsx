@@ -12,16 +12,25 @@ import * as Styled from './clients.styles';
 
 type ClientRowProps = {
   name: string;
-  active: boolean;
+  selected: boolean;
   isMe: boolean;
   isMaster: boolean;
+  isActive: boolean;
   isPaused: boolean;
 };
 
-const ClientRow: React.FC<ClientRowProps> = ({ name, active, isMe, isMaster, isPaused }) => (
-  <Styled.Client highlight={isMaster} active={active} parentActive={true}>
+const ClientRow: React.FC<ClientRowProps> = ({
+  name,
+  selected,
+  isMe,
+  isMaster,
+  isActive,
+  isPaused,
+}) => (
+  <Styled.Client highlight={isMaster} active={selected} parentActive={true}>
     <Styled.ClientName>{name}</Styled.ClientName>
-    {isMaster && (isPaused ? '🔈' : '🔊')}
+    {isMaster && '🤠'}
+    {(isActive || isMaster) && (isPaused ? '🔈' : '🔊')}
     {isMe ? '🏠' : '📶'}
   </Styled.Client>
 );
@@ -30,13 +39,13 @@ export const ViewClientList: React.FC = () => {
   const {
     clientList,
     myClientName,
-    player: { master, playing },
+    player: { master, activeClients, playing },
   } = useContext(StateContext);
 
   const dispatchUI = useContext(CmusUIDispatchContext);
   const {
     scroll,
-    clientList: { active: activeClient },
+    clientList: { active: selectedClient },
   } = useContext(CmusUIStateContext);
 
   const ref = useRef<HTMLDivElement>(null);
@@ -46,14 +55,14 @@ export const ViewClientList: React.FC = () => {
     [clientList],
   );
 
-  const setActiveClient = useCallback((name: string) => dispatchUI(clientActivated(name)), [
+  const setselectedClient = useCallback((name: string) => dispatchUI(clientActivated(name)), [
     dispatchUI,
   ]);
 
   const onScroll = useCallback(
     (delta: -1 | 1): void => {
-      setActiveClient(
-        scrollThroughItems(sortedClientList, (compare) => compare.name === activeClient, delta)
+      setselectedClient(
+        scrollThroughItems(sortedClientList, (compare) => compare.name === selectedClient, delta)
           .name,
       );
 
@@ -61,7 +70,7 @@ export const ViewClientList: React.FC = () => {
         ref.current.scrollTop += delta * lineHeight;
       }
     },
-    [sortedClientList, activeClient, setActiveClient],
+    [sortedClientList, selectedClient, setselectedClient],
   );
 
   const lastScrollSerial = useRef<number>(0);
@@ -80,9 +89,10 @@ export const ViewClientList: React.FC = () => {
           <ClientRow
             key={name}
             name={name}
-            active={name === activeClient}
+            selected={name === selectedClient}
             isMe={name === myClientName}
             isMaster={name === master}
+            isActive={activeClients.includes(name)}
             isPaused={!playing}
           />
         ))}

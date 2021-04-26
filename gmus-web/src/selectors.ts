@@ -4,6 +4,9 @@ import { GlobalState } from './reducer/types';
 export const isMaster = (state: Pick<GlobalState, 'player' | 'myClientName'>): boolean =>
   state.player.master === state.myClientName;
 
+export const isActiveClient = (state: Pick<GlobalState, 'player' | 'myClientName'>): boolean =>
+  isMaster(state) || state.player.activeClients.includes(state.myClientName);
+
 export const isFromOurselves = (
   state: Pick<GlobalState, 'myClientName'>,
   action: ActionRemote,

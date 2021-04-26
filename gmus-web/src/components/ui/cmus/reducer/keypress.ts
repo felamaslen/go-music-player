@@ -1,4 +1,11 @@
-import { masterSet, playPaused, queuePushed, queueRemoved, stateSet } from '../../../../actions';
+import {
+  activeClientToggled,
+  masterSet,
+  playPaused,
+  queuePushed,
+  queueRemoved,
+  stateSet,
+} from '../../../../actions';
 import { ActionKeyPressed, Keys } from '../../../../hooks/vim';
 import { getFilteredSongs } from '../selectors';
 import { CmusUIState, LibraryModeWindow, Overlay, View } from '../types';
@@ -77,6 +84,25 @@ function handleActivate(state: CmusUIState): CmusUIState {
   }
 }
 
+function handleToggle(state: CmusUIState): CmusUIState {
+  switch (state.view) {
+    case View.Library:
+      if (state.library.modeWindow === LibraryModeWindow.ArtistList) {
+        return { ...state, library: toggleExpandArtist(state.library) };
+      }
+      return state;
+
+    case View.ClientList:
+      if (!state.clientList.active) {
+        return state;
+      }
+      return withGlobalAction(state, activeClientToggled(state.clientList.active));
+
+    default:
+      return state;
+  }
+}
+
 function addSelectedToQueue(state: CmusUIState): CmusUIState {
   if (state.view !== View.Library) {
     return state;
@@ -113,12 +139,7 @@ export function handleKeyPress(state: CmusUIState, action: ActionKeyPressed): Cm
       return state;
 
     case Keys.space:
-      if (state.view === View.Library) {
-        if (state.library.modeWindow === LibraryModeWindow.ArtistList) {
-          return { ...state, library: toggleExpandArtist(state.library) };
-        }
-      }
-      return state;
+      return handleToggle(state);
 
     case Keys.enter:
       return handleActivate(state);

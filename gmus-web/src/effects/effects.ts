@@ -81,6 +81,17 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
         },
       };
 
+    case ActionTypeLocal.ActiveClientToggled:
+      return {
+        type: ActionTypeRemote.StateSet,
+        payload: {
+          ...prevState.player,
+          activeClients: prevState.player.activeClients.includes(action.payload)
+            ? prevState.player.activeClients.filter((client) => client !== action.payload)
+            : [...prevState.player.activeClients, action.payload],
+        },
+      };
+
     case ActionTypeLocal.PlayPaused:
       if (isMaster(prevState)) {
         return null;

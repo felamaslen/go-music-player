@@ -45,12 +45,13 @@ var _ = Describe("Server actions", func() {
 					Type:       server.StateSet,
 					FromClient: &myClient,
 					Payload: server.MusicPlayer{
-						SongId:      &songId,
-						Playing:     true,
-						CurrentTime: 94,
-						SeekTime:    -1,
-						Master:      "some-master-client",
-						Queue:       &[]int{},
+						SongId:        &songId,
+						Playing:       true,
+						CurrentTime:   94,
+						SeekTime:      -1,
+						Master:        "some-master-client",
+						ActiveClients: &[]string{},
+						Queue:         &[]int{},
 					},
 				}
 				expectedActionString, jsonErr := json.Marshal(expectedAction)
@@ -87,12 +88,13 @@ var _ = Describe("Server actions", func() {
 				expectedAction := server.Action{
 					Type: server.StateSet,
 					Payload: server.MusicPlayer{
-						SongId:      nil,
-						Playing:     false,
-						CurrentTime: 0,
-						SeekTime:    -1,
-						Master:      "some-master-client",
-						Queue:       &[]int{},
+						SongId:        nil,
+						Playing:       false,
+						CurrentTime:   0,
+						SeekTime:      -1,
+						Master:        "some-master-client",
+						ActiveClients: &[]string{},
+						Queue:         &[]int{},
 					},
 				}
 

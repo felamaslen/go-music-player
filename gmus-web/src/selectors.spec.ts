@@ -1,8 +1,8 @@
 import { ActionTypeRemote, stateSet } from './actions';
 import { GlobalState, initialState } from './reducer';
-import { isFromOurselves, isMaster, willBeMaster } from './selectors';
+import { isActiveClient, isFromOurselves, isMaster, willBeMaster } from './selectors';
 
-describe(isMaster.name, () => {
+describe('isMaster', () => {
   describe('when the master player is the current client', () => {
     it('should return true', () => {
       expect.assertions(1);
@@ -40,7 +40,55 @@ describe(isMaster.name, () => {
   });
 });
 
-describe(isFromOurselves.name, () => {
+describe('isActiveClient', () => {
+  describe('when the client is master', () => {
+    it('should return true', () => {
+      expect.assertions(1);
+      expect(
+        isActiveClient({
+          player: { ...initialState.player, master: 'my-client-name', activeClients: [] },
+          myClientName: 'my-client-name',
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('when the client is a slave', () => {
+    describe('when the client is in the active clients list', () => {
+      it('should return true', () => {
+        expect.assertions(1);
+        expect(
+          isActiveClient({
+            player: {
+              ...initialState.player,
+              master: 'some-other-client',
+              activeClients: ['my-client-name'],
+            },
+            myClientName: 'my-client-name',
+          }),
+        ).toBe(true);
+      });
+    });
+
+    describe('when the client is not in the active clients list', () => {
+      it('should return false', () => {
+        expect.assertions(1);
+        expect(
+          isActiveClient({
+            player: {
+              ...initialState.player,
+              master: 'some-other-client',
+              activeClients: ['different-client-name'],
+            },
+            myClientName: 'my-client-name',
+          }),
+        ).toBe(false);
+      });
+    });
+  });
+});
+
+describe('isFromOurselves', () => {
   describe('when an action was dispatched from the current client', () => {
     it('should return true', () => {
       expect.assertions(1);
@@ -90,7 +138,7 @@ describe(isFromOurselves.name, () => {
   });
 });
 
-describe(willBeMaster.name, () => {
+describe('willBeMaster', () => {
   describe('when the action will cause the current client to be master', () => {
     it('should return true', () => {
       expect.assertions(1);

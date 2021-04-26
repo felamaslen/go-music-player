@@ -45,6 +45,13 @@ export const masterSet = (name?: string): ActionMasterSet => ({
   payload: name,
 });
 
+export type ActionActiveClientToggled = ActionLocal<ActionTypeLocal.ActiveClientToggled, string>;
+
+export const activeClientToggled = (client: string): ActionActiveClientToggled => ({
+  type: ActionTypeLocal.ActiveClientToggled,
+  payload: client,
+});
+
 export type ActionPlayPaused = ActionLocal<ActionTypeLocal.PlayPaused, void>;
 
 export const playPaused = (): ActionPlayPaused => ({
@@ -97,6 +104,7 @@ export type LocalAction =
   | ActionSeeked
   | ActionPlayPaused
   | ActionMasterSet
+  | ActionActiveClientToggled
   | ActionSongInfoFetched
   | ActionQueuePushed
   | ActionQueueShifted

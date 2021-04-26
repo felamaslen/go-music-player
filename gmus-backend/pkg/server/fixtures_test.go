@@ -9,7 +9,8 @@ const actionStateSetValid = `
     "currentTime": 94,
     "seekTime": -1,
     "queue": [],
-    "master": "some-master-client"
+    "master": "some-master-client",
+    "activeClients": []
   }
 }
 `
@@ -23,7 +24,8 @@ const actionStateSetIdNonPositive = `
     "currentTime": 94,
     "seekTime": -1,
     "queue": [],
-    "master": "some-master-client"
+    "master": "some-master-client",
+    "activeClients": []
   }
 }
 `
@@ -37,7 +39,8 @@ const actionStateSetSongIdNull = `
     "currentTime": 0,
     "seekTime": -1,
     "queue": [],
-    "master": "some-master-client"
+    "master": "some-master-client",
+    "activeClients": []
   }
 }
 `
@@ -51,7 +54,8 @@ const actionStateSetCurrentTimeNegative = `
     "currentTime": -32,
     "seekTime": -1,
     "queue": [],
-    "master": "some-master-client"
+    "master": "some-master-client",
+    "activeClients": []
   }
 }
 `
@@ -65,7 +69,8 @@ const actionStateSetSeekTimeTooNegative = `
     "currentTime": 13,
     "seekTime": -3,
     "queue": [],
-    "master": "some-master-client"
+    "master": "some-master-client",
+    "activeClients": []
   }
 }
 `
@@ -79,7 +84,8 @@ const actionStateSetMasterEmpty = `
     "currentTime": 13,
     "seekTime": -3,
     "queue": [],
-    "master": ""
+    "master": "",
+    "activeClients": []
   }
 }
 `

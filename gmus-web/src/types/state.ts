@@ -9,5 +9,6 @@ export type MusicPlayer = {
   currentTime: number;
   seekTime: number;
   master: string;
+  activeClients: string[];
   queue: number[];
 };

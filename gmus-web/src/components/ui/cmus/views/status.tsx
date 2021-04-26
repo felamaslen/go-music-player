@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { StateContext } from '../../../../context/state';
-import { isMaster } from '../../../../selectors';
+import { isActiveClient, isMaster } from '../../../../selectors';
 
 import { MusicPlayer, Song } from '../../../../types';
 import { formatTime } from '../../../../utils/time';
@@ -60,6 +60,7 @@ export const PlayerStatus: React.FC<Props> = ({ song, ...props }) => {
         </Styled.Time>
         <Styled.ClientName>
           {state.myClientName} [{isMaster(state) ? 'Master' : 'Slave'}]
+          {isActiveClient(state) ? '🔊' : '🔈'}
         </Styled.ClientName>
         &nbsp;
         <StatusIcon {...props} />

@@ -16,6 +16,7 @@ export const nullPlayer: MusicPlayer = {
   currentTime: 0,
   seekTime: -1,
   master: '',
+  activeClients: [],
   queue: [],
 };
 

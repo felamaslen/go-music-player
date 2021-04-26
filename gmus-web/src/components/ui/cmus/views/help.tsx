@@ -31,6 +31,7 @@ const commandsLibrary: Command[] = [
 
 const commandsClientList: Command[] = [
   { command: '<Enter>', description: 'set the selected client to master' },
+  { command: '<Space>', description: 'toggle active state of selected client' },
 ];
 
 const commandsQueue: Command[] = [

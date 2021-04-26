@@ -40,6 +40,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'some-master-client',
+            activeClients: [],
             queue: [],
           },
         };
@@ -54,6 +55,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'some-master-client',
+            activeClients: [],
             queue: [],
           });
         });
@@ -69,6 +71,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'some-master-client',
+            activeClients: [],
             queue: [],
           },
         };
@@ -83,6 +86,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: -1,
             master: 'some-master-client',
+            activeClients: [],
             queue: [],
           });
         });
@@ -98,6 +102,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'other-master-client',
+            activeClients: [],
             queue: [],
           },
         };
@@ -112,6 +117,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: -1,
             master: 'other-master-client',
+            activeClients: [],
             queue: [],
           });
         });
@@ -142,6 +148,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'some-master-client',
+            activeClients: [],
             queue: [],
           },
         };
@@ -156,6 +163,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: -1,
             master: 'some-master-client',
+            activeClients: [],
             queue: [],
           });
         });
@@ -171,6 +179,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'my-client',
+            activeClients: [],
             queue: [],
           },
         };
@@ -185,6 +194,7 @@ describe(globalReducer.name, () => {
             currentTime: 75,
             seekTime: 87,
             master: 'my-client',
+            activeClients: [],
             queue: [],
           });
         });
@@ -254,6 +264,7 @@ describe(globalReducer.name, () => {
           currentTime: 75,
           seekTime: 87,
           master: 'some-master-client',
+          activeClients: [],
           queue: [],
         });
       });
@@ -325,6 +336,7 @@ describe(globalReducer.name, () => {
           currentTime: 31,
           seekTime: -1,
           master: 'some-master-client',
+          activeClients: [],
           queue: [],
         },
         myClientName: 'some-master-client',
@@ -340,6 +352,7 @@ describe(globalReducer.name, () => {
           currentTime: 173,
           seekTime: 173,
           master: 'some-master-client',
+          activeClients: [],
           queue: [],
         });
       });
@@ -378,6 +391,7 @@ describe(globalReducer.name, () => {
         master: 'some-master-client',
         currentTime: 13,
         seekTime: -1,
+        activeClients: [],
         queue: [],
       },
     };

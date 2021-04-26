@@ -1,4 +1,11 @@
-import { masterSet, playPaused, queuePushed, queueRemoved, stateSet } from '../../../../actions';
+import {
+  activeClientToggled,
+  masterSet,
+  playPaused,
+  queuePushed,
+  queueRemoved,
+  stateSet,
+} from '../../../../actions';
 import { ActionKeyPressed, ActionTypeKeyPressed, Keys } from '../../../../hooks/vim';
 
 import { CmusUIState, LibraryModeWindow, Overlay, View } from '../types';
@@ -267,6 +274,27 @@ describe(ActionTypeKeyPressed, () => {
             seekTime: 0,
           }),
         );
+      });
+    });
+  });
+
+  describe('Space bar', () => {
+    const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.space };
+
+    describe('when in client list view', () => {
+      const state: CmusUIState = {
+        ...initialCmusUIState,
+        globalActionSerialNumber: 123,
+        view: View.ClientList,
+        clientList: {
+          active: 'our-client',
+        },
+      };
+
+      it('should set the globalAction to toggle the active state of the given client', () => {
+        expect.assertions(1);
+        const result = cmusUIReducer(state, action);
+        expect(result.globalAction).toStrictEqual(activeClientToggled('our-client'));
       });
     });
   });

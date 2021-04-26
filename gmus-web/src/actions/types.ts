@@ -12,6 +12,7 @@ export enum ActionTypeLocal {
   StateSet = '@@local/STATE_SET',
   Seeked = '@@local/SEEKED',
   MasterSet = '@@local/MASTER_SET',
+  ActiveClientToggled = '@@local/ACTIVE_CLIENT_TOGGLED',
   PlayPaused = '@@local/PLAY_PAUSED',
   SongInfoFetched = '@@local/SONG_INFO_FETCHED',
   QueuePushed = '@@local/QUEUE_PUSHED',
