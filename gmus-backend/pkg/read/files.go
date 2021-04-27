@@ -2,6 +2,7 @@ package read
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -13,9 +14,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
-
-const BATCH_SIZE = 100
-const LOG_EVERY = 100
 
 func ReadMultipleFiles(basePath string, files chan *types.File) chan *types.Song {
 	var db = database.GetConnection()
@@ -62,6 +60,18 @@ func isValidFile(file string) bool {
 	return filepath.Ext(file) == ".ogg"
 }
 
+func GetFileInfo(file os.FileInfo, relativePath string) *types.File {
+	if !isValidFile(file.Name()) {
+		return nil
+	}
+
+	return &types.File{
+		RelativePath: relativePath,
+		ModifiedDate: file.ModTime().Unix(),
+	}
+}
+
+// Utilities to aid directory reading
 func recursiveDirScan(
 	db *sqlx.DB,
 	l *logger.Logger,
@@ -102,10 +112,10 @@ func recursiveDirScan(
 				fileRelativePath,
 				false,
 			)
-		} else if isValidFile(file.Name()) {
-			*allFiles <- &types.File{
-				RelativePath: fileRelativePath,
-				ModifiedDate: file.ModTime().Unix(),
+		} else {
+			validFile := GetFileInfo(file, fileRelativePath)
+			if validFile != nil {
+				*allFiles <- validFile
 			}
 		}
 	}
@@ -179,29 +189,4 @@ func batchFilterFiles(
 			}
 		}
 	}
-}
-
-func ScanDirectory(directory string) chan *types.File {
-	db := database.GetConnection()
-	l := logger.CreateLogger(config.GetConfig().LogLevel)
-
-	filteredOutput := make(chan *types.File)
-	allFiles := make(chan *types.File)
-
-	go func() {
-		batchFilterFiles(db, l, &filteredOutput, &allFiles, directory)
-	}()
-
-	go func() {
-		recursiveDirScan(
-			db,
-			l,
-			&allFiles,
-			directory,
-			"",
-			true,
-		)
-	}()
-
-	return filteredOutput
 }

@@ -80,6 +80,11 @@ set
   ,modified_date = excluded.modified_date
 `
 
+const queryDeleteSongByPath = `
+delete from songs
+where base_path = $1 and relative_path = $2
+`
+
 const querySelectNextSong = `
 select
   s1.id

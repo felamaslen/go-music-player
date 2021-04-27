@@ -10,7 +10,7 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
-var _ = Describe("songs repository", func() {
+var _ = Describe("Songs repository", func() {
 	db := database.GetConnection()
 
 	BeforeEach(func() {
@@ -175,6 +175,33 @@ var _ = Describe("songs repository", func() {
 			It("should update the rows with any changes", func() {
 				Expect(modifiedBatch[0]).To(BeElementOf(result))
 			})
+		})
+	})
+
+	Describe("DeleteSongByPath", func() {
+		BeforeEach(func() {
+			_, err := db.Query(`
+			insert into songs (title, artist, album, duration, base_path, relative_path, modified_date, track_number)
+			values ('Title', 'Artist', 'Album', 123, '/base/path', 'path/to/file.ogg', 10123123, 1)
+			`)
+			if err != nil {
+				panic(err)
+			}
+		})
+
+		It("should delete a song from the database matching the given path", func() {
+			var songs []*types.Song
+
+			db.Select(&songs, "select * from songs where base_path = $1 and relative_path = $2", "/base/path", "path/to/file.ogg")
+			Expect(songs).To(HaveLen(1))
+			Expect(songs[0].Id).NotTo(BeZero())
+
+			songs = []*types.Song{}
+
+			repository.DeleteSongByPath(db, "/base/path", "path/to/file.ogg")
+
+			db.Select(&songs, "select * from songs where base_path = $1 and relative_path = $2", "/base/path", "path/to/file.ogg")
+			Expect(songs).To(HaveLen(0))
 		})
 	})
 })

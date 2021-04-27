@@ -7,6 +7,7 @@ import (
 
 	"github.com/felamaslen/gmus-backend/pkg/config"
 	"github.com/felamaslen/gmus-backend/pkg/logger"
+	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -18,6 +19,13 @@ func StartServer() {
 
 	rdb := redis.NewClient(&redis.Options{Addr: conf.RedisUrl})
 	defer rdb.Close()
+
+	if conf.LibraryWatch {
+		l.Info("Watching library for changes")
+		go read.WatchLibraryRecursive(l, conf.LibraryDirectory)
+	} else {
+		l.Verbose("Not watching library for changes")
+	}
 
 	router := mux.NewRouter()
 

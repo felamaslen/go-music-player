@@ -11,6 +11,7 @@ func GetConfig() config {
 		DatabaseUrl:      getDatabaseUrl(),
 		LogLevel:         getLogLevel(),
 		LibraryDirectory: os.Getenv("LIBRARY_DIRECTORY"),
+		LibraryWatch:     getLibraryWatch(),
 		Host:             getListenHost(),
 		Port:             getPort(),
 		RedisUrl:         getRedisUrl(),

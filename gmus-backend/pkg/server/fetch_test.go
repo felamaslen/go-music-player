@@ -1,4 +1,4 @@
-package services_test
+package server_test
 
 import (
 	"fmt"
@@ -8,18 +8,18 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/felamaslen/gmus-backend/pkg/database"
-	"github.com/felamaslen/gmus-backend/pkg/services"
+	"github.com/felamaslen/gmus-backend/pkg/server"
 	setup "github.com/felamaslen/gmus-backend/pkg/testing"
 )
 
-var _ = Describe("Fetching data", func() {
+var _ = Describe("Fetching functions", func() {
 	db := database.GetConnection()
 
 	BeforeEach(func() {
 		setup.PrepareDatabaseForTesting()
 	})
 
-	Describe("getArtists", func() {
+	Describe("GetPagedArtists", func() {
 		var insertArtists = func(artists []string) {
 			var trackNumbers = make([]int, len(artists))
 			var titles = make([]string, len(artists))
@@ -75,7 +75,7 @@ var _ = Describe("Fetching data", func() {
 
 		Context("when there are no songs", func() {
 			It("should return an empty slice and set more to false", func() {
-				artists, more := services.GetArtists(100, 0)
+				artists, more := server.GetPagedArtists(100, 0)
 
 				Expect(*artists).To(HaveLen(0))
 				Expect(more).To(BeFalse())
@@ -88,7 +88,7 @@ var _ = Describe("Fetching data", func() {
 			})
 
 			It("should return an empty string", func() {
-				artists, more := services.GetArtists(100, 0)
+				artists, more := server.GetPagedArtists(100, 0)
 
 				Expect(*artists).To(HaveLen(1))
 				Expect((*artists)[0]).To(Equal(""))
@@ -102,7 +102,7 @@ var _ = Describe("Fetching data", func() {
 			})
 
 			It("should return an ordered set matching the limit", func() {
-				artists, _ := services.GetArtists(3, 0)
+				artists, _ := server.GetPagedArtists(3, 0)
 
 				Expect(*artists).To(HaveLen(3))
 
@@ -112,21 +112,21 @@ var _ = Describe("Fetching data", func() {
 			})
 
 			It("should set more to true", func() {
-				_, more := services.GetArtists(3, 0)
+				_, more := server.GetPagedArtists(3, 0)
 
 				Expect(more).To(BeTrue())
 			})
 
 			Context("when paging", func() {
 				It("should return the next set of results", func() {
-					artists, _ := services.GetArtists(3, 1)
+					artists, _ := server.GetPagedArtists(3, 1)
 
 					Expect(*artists).To(HaveLen(1))
 					Expect((*artists)[0]).To(Equal("Artist D"))
 				})
 
 				It("should set more to false at the end", func() {
-					_, more := services.GetArtists(3, 1)
+					_, more := server.GetPagedArtists(3, 1)
 
 					Expect(more).To(BeFalse())
 				})

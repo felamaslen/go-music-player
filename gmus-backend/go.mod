@@ -8,6 +8,7 @@ require (
 	github.com/anyhon/engine v0.1.0
 	github.com/dhowden/tag v0.0.0-20200828214007-46e57f75dbfc
 	github.com/elliotchance/redismock v1.5.3
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect

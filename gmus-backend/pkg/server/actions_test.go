@@ -33,7 +33,7 @@ var _ = Describe("Server actions", func() {
 	})
 
 	Describe("PublishActionFromClient", func() {
-		Describe("state set actions", func() {
+		Describe("State set actions", func() {
 			Context("when the action is valid", func() {
 				var action server.Action
 				json.Unmarshal([]byte(actionStateSetValid), &action)

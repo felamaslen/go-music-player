@@ -1,17 +1,39 @@
-package services
+package read
+
+// Scan library directory all at once
 
 import (
 	"github.com/felamaslen/gmus-backend/pkg/config"
 	"github.com/felamaslen/gmus-backend/pkg/database"
 	"github.com/felamaslen/gmus-backend/pkg/logger"
-	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/felamaslen/gmus-backend/pkg/repository"
 	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
-const LOG_EVERY = 100
+func ScanDirectory(directory string) chan *types.File {
+	db := database.GetConnection()
+	l := logger.CreateLogger(config.GetConfig().LogLevel)
 
-const BATCH_SIZE = 100
+	filteredOutput := make(chan *types.File)
+	allFiles := make(chan *types.File)
+
+	go func() {
+		batchFilterFiles(db, l, &filteredOutput, &allFiles, directory)
+	}()
+
+	go func() {
+		recursiveDirScan(
+			db,
+			l,
+			&allFiles,
+			directory,
+			"",
+			true,
+		)
+	}()
+
+	return filteredOutput
+}
 
 func UpsertSongsFromChannel(songs chan *types.Song) {
 	var l = logger.CreateLogger(config.GetConfig().LogLevel)
@@ -64,10 +86,10 @@ func ScanAndInsert(musicDirectory string) {
 	var l = logger.CreateLogger(config.GetConfig().LogLevel)
 
 	l.Info("Scanning directory for files...\n")
-	files := read.ScanDirectory(musicDirectory)
+	files := ScanDirectory(musicDirectory)
 
 	l.Info("Reading files...\n")
-	songs := read.ReadMultipleFiles(musicDirectory, files)
+	songs := ReadMultipleFiles(musicDirectory, files)
 
 	l.Info("Inserting data...\n")
 	UpsertSongsFromChannel(songs)

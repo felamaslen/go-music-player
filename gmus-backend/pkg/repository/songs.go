@@ -99,3 +99,13 @@ func BatchUpsertSongs(db *sqlx.DB, batch *[BATCH_SIZE]*types.Song, batchSize int
 
 	return err
 }
+
+func DeleteSongByPath(db *sqlx.DB, basePath string, relativePath string) (count int64, err error) {
+	result, err := db.Exec(queryDeleteSongByPath, basePath, relativePath)
+	if err != nil {
+		count = 0
+		return
+	}
+	count, err = result.RowsAffected()
+	return
+}

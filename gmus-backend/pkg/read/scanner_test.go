@@ -1,21 +1,102 @@
-package services_test
+package read_test
 
 import (
+	"os"
+	"path"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/felamaslen/gmus-backend/pkg/database"
 	"github.com/felamaslen/gmus-backend/pkg/read"
-	"github.com/felamaslen/gmus-backend/pkg/services"
 	setup "github.com/felamaslen/gmus-backend/pkg/testing"
 	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
-var _ = Describe("Music scanner service", func() {
+var _ = Describe("Scanning directories", func() {
 	db := database.GetConnection()
 
 	BeforeEach(func() {
 		setup.PrepareDatabaseForTesting()
+	})
+
+	Describe("ScanDirectory", func() {
+		var results []*types.File
+
+		var testScanDirectory = func() {
+			results = nil
+			files := read.ScanDirectory(read.TestDirectory)
+
+			done := false
+
+			for !done {
+				select {
+				case result, more := <-files:
+					if more {
+						results = append(results, result)
+					}
+					done = !more
+				}
+			}
+		}
+
+		Context("when the database is empty", func() {
+			BeforeEach(testScanDirectory)
+
+			It("should return a channel with all the files in the directory", func() {
+				Expect(results).To(HaveLen(2))
+
+				if results[0].RelativePath == read.TestSong.RelativePath {
+					Expect(results[0].RelativePath).To(Equal(read.TestSong.RelativePath))
+					Expect(results[1].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+				} else {
+					Expect(results[1].RelativePath).To(Equal(read.TestSong.RelativePath))
+					Expect(results[0].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+				}
+			})
+		})
+
+		Context("when the database already contains one of the files", func() {
+			BeforeEach(func() {
+				info, _ := os.Stat(path.Join(read.TestSong.BasePath, read.TestSong.RelativePath))
+
+				db.MustExec(
+					`
+					insert into songs (title, artist, album, base_path, relative_path, modified_date)
+					values ($1, $2, $3, $4, $5, $6)
+					`,
+					"old title",
+					"old artist",
+					"old album",
+					read.TestSong.BasePath,
+					read.TestSong.RelativePath,
+					info.ModTime().Unix(),
+				)
+
+				testScanDirectory()
+			})
+
+			It("should only return those files which do not exist in the database", func() {
+				Expect(results).To(HaveLen(1))
+				Expect(results[0].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+			})
+		})
+
+		Context("when an error previously occurred scanning one of the files", func() {
+			BeforeEach(func() {
+				db.MustExec(`
+				insert into scan_errors (base_path, relative_path, error)
+				values ($1, $2, $3)
+				`, read.TestSong.BasePath, read.TestSong.RelativePath, "A bad thing happened")
+
+				testScanDirectory()
+			})
+
+			It("should only return those files which did not have errors marked against them", func() {
+				Expect(results).To(HaveLen(1))
+				Expect(results[0].RelativePath).To(Equal(read.TestSongNested.RelativePath))
+			})
+		})
 	})
 
 	Describe("UpsertSongsFromChannel", func() {
@@ -49,7 +130,7 @@ var _ = Describe("Music scanner service", func() {
 				}
 			}()
 
-			services.UpsertSongsFromChannel(songs)
+			read.UpsertSongsFromChannel(songs)
 		}
 
 		Context("when the songs do not already exist in the database", func() {
@@ -153,7 +234,7 @@ var _ = Describe("Music scanner service", func() {
 
 	Describe("ScanAndInsert", func() {
 		It("should recursively scan files from a directory and add them to the database", func() {
-			services.ScanAndInsert(read.TestDirectory)
+			read.ScanAndInsert(read.TestDirectory)
 
 			var songs []types.Song
 			err := db.Select(&songs, `

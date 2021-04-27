@@ -12,7 +12,7 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
-var _ = Describe("scan repository", func() {
+var _ = Describe("Scan repository", func() {
 	db := database.GetConnection()
 
 	BeforeEach(func() {

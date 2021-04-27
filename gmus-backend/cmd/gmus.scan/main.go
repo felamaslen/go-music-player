@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/felamaslen/gmus-backend/pkg/config"
 	"github.com/felamaslen/gmus-backend/pkg/database"
-	"github.com/felamaslen/gmus-backend/pkg/services"
+	"github.com/felamaslen/gmus-backend/pkg/read"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 		panic("Must set LIBRARY_DIRECTORY")
 	}
 
-	services.ScanAndInsert(libraryDirectory)
+	read.ScanAndInsert(libraryDirectory)
 
 	database.EndPool()
 }

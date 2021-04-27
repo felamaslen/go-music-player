@@ -12,7 +12,7 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
-var _ = Describe("reading audio files", func() {
+var _ = Describe("Reading audio files", func() {
 
 	rootDir, _ := os.Getwd()
 	basePath := path.Join(rootDir, read.TestDirectory)

@@ -17,8 +17,28 @@ type ArtistsResponse struct {
 	Artists []string `json:"artists"`
 }
 
+func GetPagedArtists(limit int, page int) (artists *[]string, more bool) {
+	db := database.GetConnection()
+
+	artists, err := repository.SelectPagedArtists(db, limit, limit*page)
+	if err != nil {
+		panic(err)
+	}
+
+	total, err := repository.SelectArtistCount(db)
+	if err != nil {
+		panic(err)
+	}
+
+	more = limit*(1+page) < total
+
+	return
+}
+
 func routeFetchArtists(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
 	db := database.GetConnection()
+	// This returns all artists for now.
+	// TODO: add a query option which uses the above GetPagedArtists function to enable paging
 	artists, err := repository.SelectAllArtists(db)
 	if err != nil {
 		return err
