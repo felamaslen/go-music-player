@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -19,8 +20,8 @@ type Logger struct {
 	Level LogLevel
 }
 
-func (l *Logger) Printf(str string, args ...interface{}) {
-	log.Printf(str, args...)
+func (l *Logger) printf(level string, str string, args ...interface{}) {
+	log.Printf(fmt.Sprintf("[%s] %s", level, str), args...)
 }
 
 func (l *Logger) Fatal(str string, args ...interface{}) {
@@ -29,31 +30,31 @@ func (l *Logger) Fatal(str string, args ...interface{}) {
 
 func (l *Logger) Error(str string, args ...interface{}) {
 	if l.Level >= LevelError {
-		l.Printf(str, args...)
+		l.printf("error", str, args...)
 	}
 }
 
 func (l *Logger) Warn(str string, args ...interface{}) {
 	if l.Level >= LevelWarn {
-		l.Printf(str, args...)
+		l.printf("warn", str, args...)
 	}
 }
 
 func (l *Logger) Info(str string, args ...interface{}) {
 	if l.Level >= LevelInfo {
-		l.Printf(str, args...)
+		l.printf("info", str, args...)
 	}
 }
 
 func (l *Logger) Verbose(str string, args ...interface{}) {
 	if l.Level >= LevelVerbose {
-		l.Printf(str, args...)
+		l.printf("verbose", str, args...)
 	}
 }
 
 func (l *Logger) Debug(str string, args ...interface{}) {
 	if l.Level >= LevelDebug {
-		l.Printf(str, args...)
+		l.printf("debug", str, args...)
 	}
 }
 

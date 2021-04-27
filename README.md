@@ -29,7 +29,11 @@ This is an HTTP API written in Go. It is responsible for implementing the PubSub
 
 ### Scanner
 
-This keeps the database up-to-date, based on a directory containing music files.
+This is a cronjob which periodically scans the library directory, keeping the database up to date.
+
+### Watcher
+
+This watches the library directory in real time, updating the database when it changes.
 
 ### Clients
 

@@ -4,6 +4,8 @@ IMG 	:= ${IMAGE}:${TAG}
 
 build.scan:
 	go build -o bin/gmus.scan ./cmd/gmus.scan
+build.watch:
+	go build -o bin/gmus.watch ./cmd/gmus.watch
 build.migrate:
 	go build -o bin/gmus.migrate ./cmd/gmus.migrate
 build.server:
@@ -11,6 +13,7 @@ build.server:
 
 build:
 	make build.scan
+	make build.watch
 	make build.migrate
 	make build.server
 
@@ -43,5 +46,7 @@ migrate.make:
 
 run.scan:
 	GO_ENV=development go run ./cmd/gmus.scan
+run.watch:
+	GO_ENV=development go run ./cmd/gmus.watch
 run.server:
 	GO_ENV=development go run ./cmd/gmus.server

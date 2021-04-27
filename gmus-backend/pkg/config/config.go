@@ -142,16 +142,10 @@ func getAllowedOrigins() []string {
 	return strings.Split(origins, ",")
 }
 
-func getLibraryWatch() bool {
-	watch, _ := os.LookupEnv("LIBRARY_WATCH")
-	return watch != "false"
-}
-
 type config struct {
 	DatabaseUrl      string
 	LogLevel         logger.LogLevel
 	LibraryDirectory string
-	LibraryWatch     bool
 	Host             string
 	Port             int
 	RedisUrl         string

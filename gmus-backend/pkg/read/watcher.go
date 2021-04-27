@@ -20,6 +20,9 @@ import (
 var watcher *fsnotify.Watcher
 
 func watchDir(path string, fi os.FileInfo, err error) error {
+	if err != nil {
+		return err
+	}
 	if fi.Mode().IsDir() {
 		return watcher.Add(path)
 	}
@@ -38,15 +41,20 @@ func getRelativePath(fileName string, rootDirectory string) (relativePath string
 }
 
 func handleFileRemoveOrRename(l *logger.Logger, db *sqlx.DB, rootDirectory string, event fsnotify.Event) {
-	relativePath, err := getRelativePath(event.Name, rootDirectory)
+	filePath := event.Name
+	relativePath, err := getRelativePath(filePath, rootDirectory)
 	if err != nil {
-		l.Warn("[WATCH] delete error: %v\n", err)
+		l.Error("[WATCH] delete invalid: %v\n", err)
 		return
 	}
 
-	l.Verbose("[WATCH] delete: basePath=%s, relativePath=%s\n", rootDirectory, relativePath)
+	l.Info("[WATCH] delete: basePath=%s, relativePath=%s\n", rootDirectory, relativePath)
+
 	watcher.Remove(event.Name)
-	repository.DeleteSongByPath(db, rootDirectory, relativePath)
+
+	if _, err = repository.DeleteSongByPath(db, rootDirectory, relativePath); err != nil {
+		l.Error("[WATCH] delete error: %v\n", err)
+	}
 	return
 }
 
@@ -59,12 +67,12 @@ var writeWaitMap = map[string]*time.Timer{}
 
 func handleFileOnceWritten(l *logger.Logger, db *sqlx.DB, rootDirectory string, filePath string) {
 	relativePath, err := getRelativePath(filePath, rootDirectory)
-	l.Verbose("[WATCH] create: basePath=%s, relativePath=%s\n", rootDirectory, relativePath)
-
 	if err != nil {
-		l.Warn("[WATCH] invalid path: %v\n", err)
+		l.Error("[WATCH] create invalid: %v\n", err)
 		return
 	}
+
+	l.Info("[WATCH] create: basePath=%s, relativePath=%s\n", rootDirectory, relativePath)
 
 	file, err := os.Stat(filePath)
 	if err != nil {
@@ -116,8 +124,11 @@ func handleFileCreateEvent(l *logger.Logger, db *sqlx.DB, rootDirectory string, 
 		return
 	}
 	if file.IsDir() {
-		l.Verbose("[WATCH] adding directory to watcher: %s\n", filePath)
-		watcher.Add(filePath)
+		l.Info("[WATCH] directory added: %s\n", filePath)
+
+		if err = watcher.Add(filePath); err != nil {
+			l.Error("[WATCH] error adding directory: %v\n", err)
+		}
 	} else {
 		waitUntilFileIsWritten(l, db, rootDirectory, event)
 	}
@@ -136,12 +147,13 @@ func handleWatcherEvent(l *logger.Logger, db *sqlx.DB, rootDirectory string, eve
 	}
 }
 
-func WatchLibraryRecursive(l *logger.Logger, rootDirectory string) {
+func WatchLibraryRecursive(l *logger.Logger, rootDirectory string) error {
 	watcher, _ = fsnotify.NewWatcher()
 	defer watcher.Close()
 
 	if err := filepath.Walk(rootDirectory, watchDir); err != nil {
 		l.Error("[WATCH] walk error: %s\n", err.Error())
+		return err
 	}
 
 	db := database.GetConnection()
@@ -159,4 +171,6 @@ func WatchLibraryRecursive(l *logger.Logger, rootDirectory string) {
 	}()
 
 	<-done
+
+	return fmt.Errorf("Ended")
 }

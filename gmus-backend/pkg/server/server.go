@@ -7,51 +7,53 @@ import (
 
 	"github.com/felamaslen/gmus-backend/pkg/config"
 	"github.com/felamaslen/gmus-backend/pkg/logger"
-	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
 
-func StartServer() {
+func (s *Server) Init() {
+	s.l = logger.CreateLogger(config.GetConfig().LogLevel)
+	s.router = mux.NewRouter()
+
+	healthRoutes(s.l, s.router)
+}
+
+func (s *Server) Listen() {
 	conf := config.GetConfig()
-	l := logger.CreateLogger(conf.LogLevel)
-
-	rdb := redis.NewClient(&redis.Options{Addr: conf.RedisUrl})
-	defer rdb.Close()
-
-	if conf.LibraryWatch {
-		l.Info("Watching library for changes")
-		go read.WatchLibraryRecursive(l, conf.LibraryDirectory)
-	} else {
-		l.Verbose("Not watching library for changes")
-	}
-
-	router := mux.NewRouter()
-
-	healthRoutes(l, router)
-
-	initPubsub(l, rdb, router)
-
-	router.Path("/stream").Methods("GET").HandlerFunc(routeHandler(l, rdb, streamSong))
-
-	router.Path("/artists").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchArtists))
-	router.Path("/albums").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchAlbums))
-	router.Path("/songs").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchSongs))
-
-	router.Path("/song-info").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchSongInfo))
-	router.Path("/multi-song-info").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchMultiSongInfo))
-
-	router.Path("/next-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchNextSong))
-	router.Path("/prev-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchPrevSong))
-
-	port := conf.Port
 
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   conf.AllowedOrigins,
 		AllowCredentials: true,
-	}).Handler(router)
+	}).Handler(s.router)
 
-	l.Info("Starting server on %s:%d\n", conf.Host, port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", conf.Host, port), handler))
+	s.l.Info("Starting server on %s:%d\n", conf.Host, conf.Port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", conf.Host, conf.Port), handler))
+}
+
+func StartServer() {
+	conf := config.GetConfig()
+	l := logger.CreateLogger(conf.LogLevel)
+
+	server := Server{}
+	server.Init()
+
+	rdb := redis.NewClient(&redis.Options{Addr: conf.RedisUrl})
+	defer rdb.Close()
+
+	initPubsub(l, rdb, server.router)
+
+	server.router.Path("/stream").Methods("GET").HandlerFunc(routeHandler(l, rdb, streamSong))
+
+	server.router.Path("/artists").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchArtists))
+	server.router.Path("/albums").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchAlbums))
+	server.router.Path("/songs").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchSongs))
+
+	server.router.Path("/song-info").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchSongInfo))
+	server.router.Path("/multi-song-info").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchMultiSongInfo))
+
+	server.router.Path("/next-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchNextSong))
+	server.router.Path("/prev-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchPrevSong))
+
+	server.Listen()
 }

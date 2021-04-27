@@ -3,8 +3,16 @@ package server
 import (
 	"sync"
 
+	"github.com/felamaslen/gmus-backend/pkg/logger"
+
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
+
+type Server struct {
+	router *mux.Router
+	l      *logger.Logger
+}
 
 type Client struct {
 	name      string
