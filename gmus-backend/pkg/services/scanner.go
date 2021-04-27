@@ -6,18 +6,19 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/logger"
 	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/felamaslen/gmus-backend/pkg/repository"
+	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
 const LOG_EVERY = 100
 
 const BATCH_SIZE = 100
 
-func UpsertSongsFromChannel(songs chan *read.Song) {
+func UpsertSongsFromChannel(songs chan *types.Song) {
 	var l = logger.CreateLogger(config.GetConfig().LogLevel)
 
 	db := database.GetConnection()
 
-	var batch [BATCH_SIZE]*read.Song
+	var batch [BATCH_SIZE]*types.Song
 	var batchSize = 0
 	var numAdded = 0
 

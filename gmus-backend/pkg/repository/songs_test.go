@@ -5,9 +5,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/felamaslen/gmus-backend/pkg/database"
-	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/felamaslen/gmus-backend/pkg/repository"
 	setup "github.com/felamaslen/gmus-backend/pkg/testing"
+	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
 var _ = Describe("songs repository", func() {
@@ -55,7 +55,7 @@ var _ = Describe("songs repository", func() {
 			Expect(err).To(BeNil())
 
 			Expect(*result).To(HaveLen(1))
-			Expect((*result)[0]).To(Equal(&read.Song{
+			Expect((*result)[0]).To(Equal(&types.Song{
 				Id:           int(id),
 				TrackNumber:  7,
 				Title:        "Hey Jude",
@@ -77,7 +77,7 @@ var _ = Describe("songs repository", func() {
 			Expect(err).To(BeNil())
 
 			Expect(*result).To(HaveLen(2))
-			Expect((*result)[0]).To(Equal(&read.Song{
+			Expect((*result)[0]).To(Equal(&types.Song{
 				Id:           int(id),
 				TrackNumber:  7,
 				Title:        "Hey Jude",
@@ -89,7 +89,7 @@ var _ = Describe("songs repository", func() {
 				ModifiedDate: 8876,
 			}))
 
-			Expect((*result)[1]).To(Equal(&read.Song{
+			Expect((*result)[1]).To(Equal(&types.Song{
 				Id:           int(id2),
 				TrackNumber:  13,
 				Title:        "Track 1",
@@ -113,7 +113,7 @@ var _ = Describe("songs repository", func() {
 	})
 
 	Describe("BatchUpsertSongs", func() {
-		songs := [100]*read.Song{
+		songs := [100]*types.Song{
 			{
 				TrackNumber:  1,
 				Title:        "Title A",
@@ -142,7 +142,7 @@ var _ = Describe("songs repository", func() {
 			})
 
 			It("should insert the batch into the database", func() {
-				var result []*read.Song
+				var result []*types.Song
 				db.Select(&result, testQuerySelectAllSongs)
 
 				Expect(result).To(HaveLen(2))
@@ -152,8 +152,8 @@ var _ = Describe("songs repository", func() {
 		})
 
 		Context("when the songs already exist", func() {
-			var result []*read.Song
-			var modifiedBatch [100]*read.Song
+			var result []*types.Song
+			var modifiedBatch [100]*types.Song
 
 			modifiedBatch[0] = songs[0]
 			modifiedBatch[1] = songs[1]
@@ -164,7 +164,7 @@ var _ = Describe("songs repository", func() {
 				repository.BatchUpsertSongs(db, &songs, 2)
 				repository.BatchUpsertSongs(db, &modifiedBatch, 2)
 
-				result = []*read.Song{}
+				result = []*types.Song{}
 				db.Select(&result, testQuerySelectSong12)
 			})
 

@@ -169,3 +169,26 @@ order by
 
 limit 1
 `
+
+const queryInsertScanError = `
+insert into scan_errors (created_at, base_path, relative_path, error)
+values ($1, $2, $3, $4)
+`
+
+const querySelectNewOrUpdatedFiles = `
+with all_files as (
+	select * from unnest($1::varchar[], $2::bigint[])
+	as t(relative_path, modified_date)
+)
+select r.relative_path, r.modified_date
+from all_files r
+left join songs on
+	songs.base_path = $3
+	and songs.relative_path = r.relative_path
+	and songs.modified_date = r.modified_date
+left join scan_errors e on
+	e.base_path = $3
+	and e.relative_path = r.relative_path
+where songs.id is null
+	and e.id is null
+`

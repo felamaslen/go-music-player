@@ -1,15 +1,15 @@
 package repository
 
 import (
-	"github.com/felamaslen/gmus-backend/pkg/read"
+	"github.com/felamaslen/gmus-backend/pkg/types"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
 const BATCH_SIZE = 100
 
-func SelectSong(db *sqlx.DB, ids []int) (songs *[]*read.Song, err error) {
-	songs = &[]*read.Song{}
+func SelectSong(db *sqlx.DB, ids []int) (songs *[]*types.Song, err error) {
+	songs = &[]*types.Song{}
 	var idsArray pq.Int64Array
 	for _, id := range ids {
 		idsArray = append(idsArray, int64(id))
@@ -53,14 +53,14 @@ func SelectAlbumsByArtist(db *sqlx.DB, artist string) (albums *[]string, err err
 	return
 }
 
-func SelectSongsByArtist(db *sqlx.DB, artist string) (songs *[]*read.SongExternal, err error) {
-	songs = &[]*read.SongExternal{}
+func SelectSongsByArtist(db *sqlx.DB, artist string) (songs *[]*types.SongExternal, err error) {
+	songs = &[]*types.SongExternal{}
 	err = db.Select(songs, querySelectSongsByArtist, artist)
 
 	return
 }
 
-func BatchUpsertSongs(db *sqlx.DB, batch *[BATCH_SIZE]*read.Song, batchSize int) error {
+func BatchUpsertSongs(db *sqlx.DB, batch *[BATCH_SIZE]*types.Song, batchSize int) error {
 	var trackNumbers pq.Int64Array
 	var titles pq.StringArray
 	var artists pq.StringArray

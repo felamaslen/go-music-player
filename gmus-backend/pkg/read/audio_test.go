@@ -9,6 +9,7 @@ import (
 
 	"github.com/felamaslen/gmus-backend/pkg/read"
 	_ "github.com/felamaslen/gmus-backend/pkg/testing"
+	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
 var _ = Describe("reading audio files", func() {
@@ -18,14 +19,14 @@ var _ = Describe("reading audio files", func() {
 
 	Context("when the file is ogg vorbis", func() {
 		It("should get the expected info from the file", func() {
-			result, err := read.ReadFile(basePath, &read.File{
+			result, err := read.ReadFile(basePath, &types.File{
 				RelativePath: read.TestSong.RelativePath,
 				ModifiedDate: 102118,
 			})
 
 			Expect(err).To(BeNil())
 
-			Expect(*result).To(Equal(read.Song{
+			Expect(*result).To(Equal(types.Song{
 				TrackNumber:  23,
 				Title:        "Impact Moderato",
 				Artist:       "Kevin MacLeod",

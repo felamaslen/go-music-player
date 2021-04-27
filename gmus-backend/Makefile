@@ -1,6 +1,6 @@
-NAME 	:= docker.fela.space/gmus-backend
+IMAGE := docker.fela.space/gmus-backend
 TAG 	:= $$(git log -1 --pretty=%H)
-IMG 	:= ${NAME}:${TAG}
+IMG 	:= ${IMAGE}:${TAG}
 
 build.scan:
 	go build -o bin/gmus.scan ./cmd/gmus.scan

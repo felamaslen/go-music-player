@@ -7,8 +7,8 @@ import (
 
 	"github.com/felamaslen/gmus-backend/pkg/database"
 	"github.com/felamaslen/gmus-backend/pkg/logger"
-	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/felamaslen/gmus-backend/pkg/repository"
+	"github.com/felamaslen/gmus-backend/pkg/types"
 	"github.com/go-redis/redis"
 	"github.com/jmoiron/sqlx"
 )
@@ -63,8 +63,8 @@ func routeFetchAlbums(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter
 }
 
 type SongsResponse struct {
-	Artist string                `json:"artist"`
-	Songs  *[]*read.SongExternal `json:"songs"`
+	Artist string                 `json:"artist"`
+	Songs  *[]*types.SongExternal `json:"songs"`
 }
 
 func routeFetchSongs(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
@@ -119,7 +119,7 @@ func routeFetchSongInfo(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWrit
 
 	song := (*songs)[0]
 
-	response, err := json.Marshal(read.SongExternal{
+	response, err := json.Marshal(types.SongExternal{
 		Id:          id,
 		TrackNumber: song.TrackNumber,
 		Title:       song.Title,
@@ -161,9 +161,9 @@ func routeFetchMultiSongInfo(l *logger.Logger, rdb redis.Cmdable, w http.Respons
 		return err
 	}
 
-	songsArray := []read.SongExternal{}
+	songsArray := []types.SongExternal{}
 	for _, song := range *songs {
-		songsArray = append(songsArray, read.SongExternal{
+		songsArray = append(songsArray, types.SongExternal{
 			Id:          song.Id,
 			TrackNumber: song.TrackNumber,
 			Title:       song.Title,
@@ -186,14 +186,14 @@ type NullResponse struct {
 	Id int `json:"id"`
 }
 
-func respondWithSongOrNull(db *sqlx.DB, w http.ResponseWriter, song *read.Song) error {
+func respondWithSongOrNull(db *sqlx.DB, w http.ResponseWriter, song *types.Song) error {
 	if song.Id == 0 {
 		response, _ := json.Marshal(NullResponse{})
 		w.Write(response)
 		return nil
 	}
 
-	response, err := json.Marshal(read.SongExternal{
+	response, err := json.Marshal(types.SongExternal{
 		Id:          song.Id,
 		TrackNumber: song.TrackNumber,
 		Title:       song.Title,

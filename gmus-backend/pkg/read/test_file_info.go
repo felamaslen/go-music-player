@@ -1,8 +1,10 @@
 package read
 
+import "github.com/felamaslen/gmus-backend/pkg/types"
+
 const TestDirectory = "pkg/read/testdata"
 
-var TestSong = Song{
+var TestSong = types.Song{
 	TrackNumber:  23,
 	Title:        "Impact Moderato",
 	Artist:       "Kevin MacLeod",
@@ -12,7 +14,7 @@ var TestSong = Song{
 	RelativePath: "file_example_OOG_1MG.ogg",
 }
 
-var TestSongNested = Song{
+var TestSongNested = types.Song{
 	TrackNumber:  14,
 	Title:        "Clementi: Piano Sonata in D major, Op 25 No 6 - Movement 2: Un poco andante",
 	Artist:       "Howard Shelley",

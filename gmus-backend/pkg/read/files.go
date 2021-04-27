@@ -3,10 +3,13 @@ package read
 import (
 	"io/ioutil"
 	"path/filepath"
+	"time"
 
 	config "github.com/felamaslen/gmus-backend/pkg/config"
 	"github.com/felamaslen/gmus-backend/pkg/database"
 	"github.com/felamaslen/gmus-backend/pkg/logger"
+	"github.com/felamaslen/gmus-backend/pkg/repository"
+	"github.com/felamaslen/gmus-backend/pkg/types"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -14,10 +17,11 @@ import (
 const BATCH_SIZE = 100
 const LOG_EVERY = 100
 
-func ReadMultipleFiles(basePath string, files chan *File) chan *Song {
+func ReadMultipleFiles(basePath string, files chan *types.File) chan *types.Song {
+	var db = database.GetConnection()
 	var l = logger.CreateLogger(config.GetConfig().LogLevel)
 
-	songs := make(chan *Song)
+	songs := make(chan *types.Song)
 
 	go func() {
 		defer func() {
@@ -36,6 +40,12 @@ func ReadMultipleFiles(basePath string, files chan *File) chan *Song {
 						songs <- song
 					} else {
 						l.Error("[READ] Error (%s): %v\n", file.RelativePath, err)
+						repository.InsertScanError(db, &types.ScanError{
+							CreatedAt:    time.Now(),
+							BasePath:     basePath,
+							RelativePath: file.RelativePath,
+							Error:        err.Error(),
+						})
 					}
 				} else {
 					return
@@ -55,7 +65,7 @@ func isValidFile(file string) bool {
 func recursiveDirScan(
 	db *sqlx.DB,
 	l *logger.Logger,
-	allFiles *chan *File,
+	allFiles *chan *types.File,
 	rootDirectory string,
 	relativePath string,
 	isRoot bool,
@@ -93,7 +103,7 @@ func recursiveDirScan(
 				false,
 			)
 		} else if isValidFile(file.Name()) {
-			*allFiles <- &File{
+			*allFiles <- &types.File{
 				RelativePath: fileRelativePath,
 				ModifiedDate: file.ModTime().Unix(),
 			}
@@ -104,13 +114,13 @@ func recursiveDirScan(
 func batchFilterFiles(
 	db *sqlx.DB,
 	l *logger.Logger,
-	filteredOutput *chan *File,
-	allFiles *chan *File,
+	filteredOutput *chan *types.File,
+	allFiles *chan *types.File,
 	basePath string,
 ) {
 	defer close(*filteredOutput)
 
-	var batch [BATCH_SIZE]*File
+	var batch [BATCH_SIZE]*types.File
 	var batchSize = 0
 	var numFiltered = 0
 
@@ -129,32 +139,13 @@ func batchFilterFiles(
 			modifiedDates = append(modifiedDates, batch[i].ModifiedDate)
 		}
 
-		newOrUpdatedFiles, err := db.Queryx(
-			`
-      select r.relative_path, r.modified_date
-      from (
-        select * from unnest($1::varchar[], $2::bigint[])
-        as t(relative_path, modified_date)
-      ) r
-
-      left join songs on
-        songs.base_path = $3
-        and songs.relative_path = r.relative_path
-        and songs.modified_date = r.modified_date
-
-      where songs.id is null
-      `,
-			relativePaths,
-			modifiedDates,
-			basePath,
-		)
-
+		newOrUpdatedFiles, err := repository.SelectNewOrUpdatedFiles(db, relativePaths, modifiedDates, basePath)
 		if err != nil {
 			l.Fatal("[FILTER] Fatal error! %v\n", err)
 		}
 
 		for newOrUpdatedFiles.Next() {
-			var file File
+			var file types.File
 			newOrUpdatedFiles.StructScan(&file)
 
 			l.Verbose("[NEW] %s\n", file.RelativePath)
@@ -190,12 +181,12 @@ func batchFilterFiles(
 	}
 }
 
-func ScanDirectory(directory string) chan *File {
+func ScanDirectory(directory string) chan *types.File {
 	db := database.GetConnection()
 	l := logger.CreateLogger(config.GetConfig().LogLevel)
 
-	filteredOutput := make(chan *File)
-	allFiles := make(chan *File)
+	filteredOutput := make(chan *types.File)
+	allFiles := make(chan *types.File)
 
 	go func() {
 		batchFilterFiles(db, l, &filteredOutput, &allFiles, directory)

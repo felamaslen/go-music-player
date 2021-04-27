@@ -8,6 +8,7 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/read"
 	"github.com/felamaslen/gmus-backend/pkg/services"
 	setup "github.com/felamaslen/gmus-backend/pkg/testing"
+	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
 var _ = Describe("Music scanner service", func() {
@@ -18,14 +19,14 @@ var _ = Describe("Music scanner service", func() {
 	})
 
 	Describe("UpsertSongsFromChannel", func() {
-		var songs chan *read.Song
+		var songs chan *types.Song
 
 		var testScanSongs = func() {
-			songs = make(chan *read.Song)
+			songs = make(chan *types.Song)
 
 			go func() {
 				defer close(songs)
-				songs <- &read.Song{
+				songs <- &types.Song{
 					TrackNumber:  7,
 					Title:        "Hey Jude",
 					Artist:       "The Beatles",
@@ -36,7 +37,7 @@ var _ = Describe("Music scanner service", func() {
 					ModifiedDate: 8876,
 				}
 
-				songs <- &read.Song{
+				songs <- &types.Song{
 					TrackNumber:  11,
 					Title:        "Starman",
 					Artist:       "David Bowie",
@@ -61,7 +62,7 @@ var _ = Describe("Music scanner service", func() {
 			})
 
 			It("should insert both songs", func() {
-				var songs []read.Song
+				var songs []types.Song
 
 				db.Select(&songs, `
 	select track_number, title, artist, album, duration, base_path, relative_path, modified_date
@@ -69,7 +70,7 @@ var _ = Describe("Music scanner service", func() {
 	order by title
 	`)
 
-				Expect(songs[0]).To(Equal(read.Song{
+				Expect(songs[0]).To(Equal(types.Song{
 					TrackNumber:  7,
 					Title:        "Hey Jude",
 					Artist:       "The Beatles",
@@ -80,7 +81,7 @@ var _ = Describe("Music scanner service", func() {
 					ModifiedDate: 8876,
 				}))
 
-				Expect(songs[1]).To(Equal(read.Song{
+				Expect(songs[1]).To(Equal(types.Song{
 					TrackNumber:  11,
 					Title:        "Starman",
 					Artist:       "David Bowie",
@@ -122,7 +123,7 @@ var _ = Describe("Music scanner service", func() {
 			})
 
 			It("should upsert the existing item", func() {
-				var songs []read.Song
+				var songs []types.Song
 				db.Select(&songs, `
 	select
 	  track_number
@@ -154,7 +155,7 @@ var _ = Describe("Music scanner service", func() {
 		It("should recursively scan files from a directory and add them to the database", func() {
 			services.ScanAndInsert(read.TestDirectory)
 
-			var songs []read.Song
+			var songs []types.Song
 			err := db.Select(&songs, `
 	select title, artist, album, duration, base_path, relative_path
 	from songs
@@ -164,7 +165,7 @@ var _ = Describe("Music scanner service", func() {
 
 			Expect(songs).To(HaveLen(2))
 
-			Expect(read.Song{
+			Expect(types.Song{
 				Title:        read.TestSong.Title,
 				Artist:       read.TestSong.Artist,
 				Album:        read.TestSong.Album,
@@ -173,7 +174,7 @@ var _ = Describe("Music scanner service", func() {
 				RelativePath: read.TestSong.RelativePath,
 			}).To(BeElementOf(songs))
 
-			Expect(read.Song{
+			Expect(types.Song{
 				Title:        read.TestSongNested.Title,
 				Artist:       read.TestSongNested.Artist,
 				Album:        read.TestSongNested.Album,

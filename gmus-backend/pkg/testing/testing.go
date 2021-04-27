@@ -27,4 +27,5 @@ func PrepareDatabaseForTesting() {
 	db := database.GetConnection()
 
 	db.MustExec("truncate table songs")
+	db.MustExec("truncate table scan_errors")
 }

@@ -1,4 +1,4 @@
-package read
+package types
 
 type Song struct {
 	Id           int    `db:"id"`
