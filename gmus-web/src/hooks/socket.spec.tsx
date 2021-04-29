@@ -1,5 +1,6 @@
 import { act, fireEvent, render, RenderResult, waitFor } from '@testing-library/react';
 import WS from 'jest-websocket-mock';
+import * as nanoid from 'nanoid';
 import React, { Dispatch } from 'react';
 import * as storageHooks from 'react-storage-hooks';
 
@@ -9,9 +10,7 @@ import { GlobalState } from '../reducer';
 
 import { useOnMessage, useDispatchWithEffects, useSocket } from './socket';
 
-jest.mock('nanoid', () => ({
-  nanoid: (): string => 'A5v3D',
-}));
+jest.mock('nanoid');
 
 describe(useOnMessage.name, () => {
   const dispatch: Dispatch<AnyAction> = jest.fn();
@@ -152,6 +151,11 @@ describe(useDispatchWithEffects.name, () => {
 });
 
 describe(useSocket.name, () => {
+  let nanoidMock: jest.SpyInstance;
+  beforeEach(() => {
+    nanoidMock = jest.spyOn(nanoid, 'nanoid').mockReturnValue('A5v3D');
+  });
+
   afterEach(WS.clean);
 
   const onMessage = jest.fn();
@@ -375,6 +379,13 @@ describe(useSocket.name, () => {
   describe('when an error occurs', () => {
     let server: WS;
     beforeEach(() => {
+      nanoidMock.mockRestore();
+      jest
+        .spyOn(nanoid, 'nanoid')
+        .mockReturnValueOnce('called-once-from-storedname')
+        .mockReturnValueOnce('a1234')
+        .mockReturnValue('notthis');
+
       server = new WS('ws://my-api.url:1234/pubsub');
     });
 
@@ -397,18 +408,30 @@ describe(useSocket.name, () => {
 
     it('should reconnect automatically', async () => {
       expect.assertions(1);
-      await setupError();
+      const { unmount } = await setupError();
 
       await server.connected;
 
       server.send('foo');
 
       expect(onMessage).toHaveBeenCalledTimes(1);
+      act(() => {
+        unmount();
+      });
+    });
+
+    it('should use the same name when reconnecting', async () => {
+      expect.assertions(1);
+      await setupError();
+
+      const res = await server.connected;
+
+      expect(res.url).toBe('ws://my-api.url:1234/pubsub?client-name=my-client-name-a1234');
     });
 
     it('should set error to true but keep the identified state', async () => {
       expect.hasAssertions();
-      const { getByTestId } = await setupError();
+      const { getByTestId, unmount } = await setupError();
 
       expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
         expect.objectContaining({
@@ -441,6 +464,9 @@ describe(useSocket.name, () => {
             identified: true,
           }),
         );
+      });
+      act(() => {
+        unmount();
       });
     });
   });

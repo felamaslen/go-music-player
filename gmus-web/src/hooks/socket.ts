@@ -103,6 +103,8 @@ export function useSocket(onMessage: OnMessage, onLogin: (name: string) => void)
     let cancelled = false;
     let ws: WebSocket | undefined;
 
+    const uniqueTempName = getUniqueName(tempName);
+
     const connectIfPossible = (): void => {
       if (!tempName) {
         setState((last) => ({ ...last, connecting: false, error: false }));
@@ -111,7 +113,6 @@ export function useSocket(onMessage: OnMessage, onLogin: (name: string) => void)
 
       setState((last) => ({ ...last, connecting: true }));
 
-      const uniqueTempName = getUniqueName(tempName);
       ws = new WebSocket(`${getPubsubUrl()}?client-name=${uniqueTempName}`);
 
       ws.onopen = (): void => {
@@ -133,6 +134,9 @@ export function useSocket(onMessage: OnMessage, onLogin: (name: string) => void)
       ws.onmessage = onMessage;
 
       ws.onclose = (): void => {
+        if (cancelled) {
+          return;
+        }
         setState((last) => {
           clearTimeout(connectAttemptTimer.current);
           connectAttemptTimer.current = setTimeout(
