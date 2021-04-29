@@ -398,7 +398,11 @@ describe(useSocket.name, () => {
       await server.connected;
 
       act(() => {
-        server.error();
+        server.close({
+          code: 1001,
+          reason: 'Server went away',
+          wasClean: false,
+        });
       });
 
       server = new WS('ws://my-api.url:1234/pubsub');
@@ -429,14 +433,13 @@ describe(useSocket.name, () => {
       expect(res.url).toBe('ws://my-api.url:1234/pubsub?client-name=my-client-name-a1234');
     });
 
-    it('should set error to true but keep the identified state', async () => {
+    it('should keep the identified state', async () => {
       expect.hasAssertions();
       const { getByTestId, unmount } = await setupError();
 
       expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
         expect.objectContaining({
           ready: false,
-          error: true,
           connecting: false,
           identified: true,
         }),
@@ -446,7 +449,6 @@ describe(useSocket.name, () => {
         expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
           expect.objectContaining({
             ready: false,
-            error: true,
             connecting: true,
             identified: true,
           }),
@@ -459,7 +461,6 @@ describe(useSocket.name, () => {
         expect(JSON.parse(getByTestId('hook-result').innerHTML)).toStrictEqual(
           expect.objectContaining({
             ready: true,
-            error: false,
             connecting: false,
             identified: true,
           }),

@@ -133,12 +133,21 @@ export function useSocket(onMessage: OnMessage, onLogin: (name: string) => void)
 
       ws.onmessage = onMessage;
 
-      ws.onclose = (): void => {
+      ws.onclose = (event): void => {
         if (cancelled) {
           return;
         }
         setState((last) => {
           clearTimeout(connectAttemptTimer.current);
+          if (event.wasClean) {
+            return {
+              ...last,
+              socket: null,
+              connecting: false,
+              tempName: '',
+            };
+          }
+
           connectAttemptTimer.current = setTimeout(
             connectIfPossible,
             getConnectAttemptDelayMs(last.connectAttemptNumber),
