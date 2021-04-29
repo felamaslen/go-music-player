@@ -13,9 +13,8 @@ import {
   songInfoFetched,
   stateSet,
 } from '../actions';
-import { globalReducer, GlobalState, initialState } from '../reducer';
+import { GlobalState, initialState } from '../reducer';
 import { Song } from '../types';
-import { MusicPlayer } from '../types/state';
 import { globalEffects } from './effects';
 
 describe(globalEffects.name, () => {
@@ -28,7 +27,7 @@ describe(globalEffects.name, () => {
     it('should create a remote state set action', () => {
       expect.assertions(1);
 
-      const localPlayer: MusicPlayer = {
+      const localPlayer = {
         songId: 123,
         playing: false,
         currentTime: 83,
@@ -41,11 +40,11 @@ describe(globalEffects.name, () => {
 
       const action = stateSet(localPlayer);
 
-      const result = globalEffects(globalReducer(state, action), action);
+      const result = globalEffects(state, action);
 
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
-        payload: { ...localPlayer, seekTime: 83 },
+        payload: { ...state.player, ...localPlayer },
       });
     });
   });

@@ -1,13 +1,14 @@
 import {
   ActionQueueOrdered,
   ActionQueuePushed,
+  ActionStateSetLocal,
   ActionTypeLocal,
   ActionTypeRemote,
   LocalAction,
   RemoteAction,
 } from '../actions';
 import { GlobalState } from '../reducer/types';
-import { isMaster } from '../selectors';
+import { getNextPlayerStateFromAction, isMaster } from '../selectors';
 
 const reverseInArray = <T>(array: T[], index: number): T[] => [
   ...array.slice(0, Math.max(0, index)),
@@ -39,20 +40,24 @@ function pushToQueue(state: GlobalState, action: ActionQueuePushed): RemoteActio
   };
 }
 
-function sendStateUpdateToServer(state: GlobalState): RemoteAction | null {
-  if (!state.player.master) {
+function sendStateUpdateToServer(
+  state: GlobalState,
+  action: ActionStateSetLocal,
+): RemoteAction | null {
+  const nextPlayer = getNextPlayerStateFromAction(state.player, action.payload);
+  if (!state.player.master && !nextPlayer?.master) {
     return null;
   }
   return {
     type: ActionTypeRemote.StateSet,
-    payload: state.player,
+    payload: nextPlayer,
   };
 }
 
 export function globalEffects(state: GlobalState, action: LocalAction): RemoteAction | null {
   switch (action.type) {
     case ActionTypeLocal.StateSet:
-      return sendStateUpdateToServer(state);
+      return sendStateUpdateToServer(state, action);
 
     case ActionTypeLocal.Seeked:
       if (!state.player.master) {

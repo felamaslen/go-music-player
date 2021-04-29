@@ -43,7 +43,9 @@ export function useDispatchWithEffects(
         localStorage.removeItem(clientNameKey);
       } else {
         setLastAction(action);
-        dispatch(action);
+        setImmediate(() => {
+          dispatch(action);
+        });
       }
     },
     [dispatch, socket],

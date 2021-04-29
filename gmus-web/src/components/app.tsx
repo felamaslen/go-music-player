@@ -58,25 +58,21 @@ export const App: React.FC<Props> = ({
     isDesktop,
   ]);
 
-  const shouldPlay = isActiveClient(state) && !!state.player.songId;
-  const wasPlaying = useRef<boolean>(false);
+  const shouldLoadAudio = isActiveClient(state) && !!state.player.songId;
+  const didLoadAudio = useRef<boolean>(false);
   const [seekTime, setSeekTime] = useState<number>(-1);
   useEffect(() => {
-    if (shouldPlay && !wasPlaying.current) {
-      wasPlaying.current = true;
+    if (shouldLoadAudio && !didLoadAudio.current) {
+      didLoadAudio.current = true;
       setSeekTime(state.player.seekTime === -1 ? state.player.currentTime : state.player.seekTime);
-    } else if (state.player.seekTime !== -1) {
-      setSeekTime(state.player.seekTime);
+    } else if (!shouldLoadAudio && didLoadAudio.current) {
+      didLoadAudio.current = false;
     }
-
-    if (!shouldPlay && wasPlaying.current) {
-      wasPlaying.current = false;
-    }
-  }, [shouldPlay, state.player.currentTime, state.player.seekTime]);
+  }, [shouldLoadAudio, state.player.currentTime, state.player.seekTime]);
 
   return (
     <>
-      {shouldPlay && (
+      {shouldLoadAudio && (
         <Player
           src={getSongUrl(state.player.songId as number)}
           playing={state.player.playing}

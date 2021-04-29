@@ -57,7 +57,7 @@ describe(useDispatchWithEffects.name, () => {
 
   const state = ({ my: 'state' } as unknown) as GlobalState;
 
-  const dispatch: Dispatch<AnyAction> = jest.fn();
+  const dispatch = jest.fn();
 
   const socket = ({
     send: jest.fn(),
@@ -91,15 +91,17 @@ describe(useDispatchWithEffects.name, () => {
         globalEffectsSpy = jest.spyOn(effects, 'globalEffects').mockReturnValueOnce(null);
       });
 
-      it('should dispatch the action to the local store', () => {
-        expect.assertions(2);
+      it('should dispatch the action to the local store', async () => {
+        expect.hasAssertions();
         const { getByText } = render(<TestComponent />);
+        expect(dispatch).not.toHaveBeenCalled();
         act(() => {
           fireEvent.click(getByText('Dispatch!'));
         });
 
-        expect(dispatch).toHaveBeenCalledTimes(1);
-        expect(dispatch).toHaveBeenCalledWith(someAction);
+        await waitFor(() => {
+          expect(dispatch).toHaveBeenCalledWith(someAction);
+        });
       });
 
       it('should not send a message to the socket', () => {
@@ -118,15 +120,18 @@ describe(useDispatchWithEffects.name, () => {
         globalEffectsSpy = jest.spyOn(effects, 'globalEffects').mockReturnValueOnce(someEffect);
       });
 
-      it('should dispatch the action to the local store', () => {
-        expect.assertions(2);
+      it('should dispatch the action to the local store', async () => {
+        expect.hasAssertions();
+
         const { getByText } = render(<TestComponent />);
+        expect(dispatch).not.toHaveBeenCalled();
         act(() => {
           fireEvent.click(getByText('Dispatch!'));
         });
 
-        expect(dispatch).toHaveBeenCalledTimes(1);
-        expect(dispatch).toHaveBeenCalledWith(someAction);
+        await waitFor(() => {
+          expect(dispatch).toHaveBeenCalledWith(someAction);
+        });
       });
 
       it('should send a message to the socket', () => {

@@ -59,9 +59,7 @@ node {
     }
 
     stage('Deploy') {
-      if (env.BRANCH_NAME == "master") {
-        sh 'LIBRARY_DIRECTORY=$GMUS_LIBRARY_DIRECTORY ./k8s/deploy.sh'
-      }
+      sh 'LIBRARY_DIRECTORY=$GMUS_LIBRARY_DIRECTORY ./k8s/deploy.sh'
     }
   }
 }
