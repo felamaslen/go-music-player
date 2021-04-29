@@ -24,6 +24,7 @@ export const Keys = {
   K: 'k',
   P: 'P',
   p: 'p',
+  S: 's',
   Z: 'z',
 };
 

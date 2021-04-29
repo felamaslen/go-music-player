@@ -120,10 +120,16 @@ void onRemoteMessage(Controller controller, String message) {
       nextPlayer.master = action['payload']['master'];
       nextPlayer.songId = action['payload']['songId'];
       nextPlayer.playing = action['payload']['playing'];
+      nextPlayer.shuffleMode = action['payload']['shuffleMode'];
 
       nextPlayer.queue = [];
       for (var i = 0; i < action['payload']['queue'].length; i++) {
         nextPlayer.queue.add(action['payload']['queue'][i]);
+      }
+
+      nextPlayer.activeClients = [];
+      for (var i = 0; i < action['payload']['activeClients'].length; i++) {
+        nextPlayer.activeClients.add(action['payload']['activeClients'][i]);
       }
 
       controller.player.value = nextPlayer;

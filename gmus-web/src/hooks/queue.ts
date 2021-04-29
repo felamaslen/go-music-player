@@ -9,16 +9,16 @@ import { getApiUrl } from '../utils/url';
 import { useRequestCallback } from './request';
 
 function useNextOrPrevSong(
-  key: 'next' | 'prev',
+  key: 'next' | 'prev' | 'shuffle',
   dispatch: Dispatch<LocalAction>,
-): [(songId: number) => void, boolean] {
+): [(songId: number | null) => void, boolean] {
   const sendRequest = useCallback(
-    (axios: AxiosInstance, id: number): Promise<AxiosResponse<Song | NullSong>> =>
-      axios.get(`${getApiUrl()}/${key}-song?id=${id}`),
+    (axios: AxiosInstance, id: number | null): Promise<AxiosResponse<Song | NullSong>> =>
+      axios.get(`${getApiUrl()}/${key}-song${id === null ? '' : `?id=${id}`}`),
     [key],
   );
 
-  const [onRequest, response, loading] = useRequestCallback<number, Song | NullSong>({
+  const [onRequest, response, loading] = useRequestCallback<number | null, Song | NullSong>({
     sendRequest,
   });
 
@@ -37,7 +37,9 @@ function useNextOrPrevSong(
   return [debouncedRequest, loading];
 }
 
-export function usePlayQueue(): {
+export function usePlayQueue(
+  shuffleMode: boolean,
+): {
   onNext: () => void;
   onPrev: () => void;
   loading: boolean;
@@ -47,7 +49,10 @@ export function usePlayQueue(): {
     player: { queue, songId },
   } = useContext(StateContext);
 
-  const [onRequestNext, loadingNext] = useNextOrPrevSong('next', dispatch);
+  const [onRequestNext, loadingNext] = useNextOrPrevSong(
+    shuffleMode ? 'shuffle' : 'next',
+    dispatch,
+  );
   const [onRequestPrev, loadingPrev] = useNextOrPrevSong('prev', dispatch);
 
   const loading = loadingNext || loadingPrev;

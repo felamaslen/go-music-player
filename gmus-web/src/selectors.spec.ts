@@ -1,5 +1,5 @@
 import { ActionTypeRemote, stateSet } from './actions';
-import { GlobalState, initialState } from './reducer';
+import { GlobalState, initialState, nullPlayer } from './reducer';
 import { isActiveClient, isFromOurselves, isMaster, willBeMaster } from './selectors';
 
 describe('isMaster', () => {
@@ -139,12 +139,16 @@ describe('isFromOurselves', () => {
 });
 
 describe('willBeMaster', () => {
-  describe('when the action will cause the current client to be master', () => {
+  describe.each`
+    type                | action
+    ${'object-based'}   | ${stateSet({ master: 'a-slave-client' })}
+    ${'function-based'} | ${stateSet(() => ({ master: 'a-slave-client' }))}
+  `('when the $type action will cause the current client to be master', ({ action }) => {
     it('should return true', () => {
       expect.assertions(1);
-      expect(
-        willBeMaster({ myClientName: 'a-slave-client' }, stateSet({ master: 'a-slave-client' })),
-      ).toBe(true);
+      expect(willBeMaster({ player: nullPlayer, myClientName: 'a-slave-client' }, action)).toBe(
+        true,
+      );
     });
   });
 

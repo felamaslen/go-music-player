@@ -32,3 +32,20 @@ func GetPrevSong(db *sqlx.DB, nextSongId int) (prevSong *types.Song, err error) 
 	}
 	return
 }
+
+func GetShuffledSong(db *sqlx.DB, currentSongId *int) (shuffledSong *types.Song, err error) {
+	shuffledSong = &types.Song{}
+
+	if currentSongId == nil {
+		err = db.QueryRowx(querySelectFirstShuffledSong).StructScan(shuffledSong)
+	} else {
+		err = db.QueryRowx(querySelectNextShuffledSong, *currentSongId).StructScan(shuffledSong)
+	}
+
+	if err != nil && err == sql.ErrNoRows {
+		err = nil
+		shuffledSong = &types.Song{Id: 0}
+	}
+
+	return
+}

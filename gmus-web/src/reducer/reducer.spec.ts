@@ -41,6 +41,7 @@ describe(globalReducer.name, () => {
             master: 'some-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           },
         };
 
@@ -56,6 +57,7 @@ describe(globalReducer.name, () => {
             master: 'some-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           });
         });
       });
@@ -72,6 +74,7 @@ describe(globalReducer.name, () => {
             master: 'some-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           },
         };
 
@@ -87,6 +90,7 @@ describe(globalReducer.name, () => {
             master: 'some-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           });
         });
       });
@@ -103,6 +107,7 @@ describe(globalReducer.name, () => {
             master: 'other-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           },
         };
 
@@ -118,6 +123,7 @@ describe(globalReducer.name, () => {
             master: 'other-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           });
         });
       });
@@ -149,6 +155,7 @@ describe(globalReducer.name, () => {
             master: 'some-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           },
         };
 
@@ -164,6 +171,7 @@ describe(globalReducer.name, () => {
             master: 'some-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           });
         });
       });
@@ -180,6 +188,7 @@ describe(globalReducer.name, () => {
             master: 'my-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           },
         };
 
@@ -195,6 +204,7 @@ describe(globalReducer.name, () => {
             master: 'my-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           });
         });
       });
@@ -265,6 +275,7 @@ describe(globalReducer.name, () => {
           master: 'some-master-client',
           activeClients: [],
           queue: [],
+          shuffleMode: false,
         });
       });
 
@@ -286,6 +297,27 @@ describe(globalReducer.name, () => {
             seekTime: -1,
             songId: 3,
             playing: true,
+          });
+        });
+      });
+
+      describe('when the state update is a function', () => {
+        const actionFn = stateSet((last) => ({
+          ...last,
+          currentTime: (last.currentTime ?? 0) + 4,
+        }));
+
+        it('should set the state from the given function', () => {
+          expect.assertions(1);
+          const result = globalReducer(stateMaster, actionFn);
+
+          expect(result.player).toStrictEqual<MusicPlayer>({
+            ...nullPlayer,
+            master: 'some-master-client',
+            seekTime: -1,
+            songId: null,
+            playing: false,
+            currentTime: 31 + 4,
           });
         });
       });
@@ -337,6 +369,7 @@ describe(globalReducer.name, () => {
           master: 'some-master-client',
           activeClients: [],
           queue: [],
+          shuffleMode: false,
         },
         myClientName: 'some-master-client',
       };
@@ -353,6 +386,7 @@ describe(globalReducer.name, () => {
           master: 'some-master-client',
           activeClients: [],
           queue: [],
+          shuffleMode: false,
         });
       });
     });
@@ -392,6 +426,7 @@ describe(globalReducer.name, () => {
         seekTime: -1,
         activeClients: [],
         queue: [],
+        shuffleMode: false,
       },
     };
 

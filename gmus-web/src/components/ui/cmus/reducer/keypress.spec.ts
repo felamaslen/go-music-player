@@ -1,5 +1,6 @@
 import {
   activeClientToggled,
+  LocalAction,
   masterSet,
   playPaused,
   queuePushed,
@@ -7,6 +8,7 @@ import {
   stateSet,
 } from '../../../../actions';
 import { ActionKeyPressed, ActionTypeKeyPressed, Keys } from '../../../../hooks/vim';
+import { globalReducer, initialState } from '../../../../reducer';
 
 import { CmusUIState, LibraryModeWindow, Overlay, View } from '../types';
 
@@ -113,6 +115,20 @@ describe(ActionTypeKeyPressed, () => {
         delta: -1,
         serialNumber: 1,
       });
+    });
+  });
+
+  describe(Keys.S, () => {
+    const action: ActionKeyPressed = { type: ActionTypeKeyPressed, key: Keys.S };
+
+    it('should toggle the shuffle value', () => {
+      expect.assertions(2);
+      const result = cmusUIReducer(initialCmusUIState, action);
+      const { globalAction } = result;
+      const globalResult = globalReducer(initialState, globalAction as LocalAction);
+      expect(globalResult.player.shuffleMode).toBe(true);
+      const nextGlobalResult = globalReducer(globalResult, globalAction as LocalAction);
+      expect(nextGlobalResult.player.shuffleMode).toBe(false);
     });
   });
 

@@ -63,6 +63,8 @@ export const PlayerStatus: React.FC<Props> = ({ song, ...props }) => {
           {isActiveClient(state) ? '🔊' : '🔈'}
         </Styled.ClientName>
         &nbsp;
+        {state.player.shuffleMode ? 'S' : ' '}
+        &nbsp;
         <StatusIcon {...props} />
       </Styled.PlayStatus>
     </Styled.StatusContainer>

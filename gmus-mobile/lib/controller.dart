@@ -11,18 +11,22 @@ class Player {
   double currentTime = 0;
   double seekTime = -1;
   String master;
+  List<String> activeClients = [];
   int songId;
   bool playing = false;
   List<int> queue = [];
+  bool shuffleMode = false;
 
   Map<String, dynamic> stringify() {
     return {
+      'songId': this.songId,
+      'playing': this.playing,
       'currentTime': this.currentTime,
       'seekTime': this.seekTime,
       'master': this.master,
-      'songId': this.songId,
-      'playing': this.playing,
+      'activeClients': this.activeClients,
       'queue': this.queue,
+      'shuffleMode': this.shuffleMode,
     };
   }
 }

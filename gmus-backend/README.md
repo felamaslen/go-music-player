@@ -79,3 +79,7 @@ Fetches next song info.
 #### `GET /prev-song?id=<id>`
 
 Fetches previous song info.
+
+#### `GET /shuffle-song?id=<id>`
+
+Fetches shuffled song info. Note that `id` is an optional query parameter specifying the currently playing song.

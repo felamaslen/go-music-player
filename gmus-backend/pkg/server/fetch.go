@@ -10,7 +10,6 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/repository"
 	"github.com/felamaslen/gmus-backend/pkg/types"
 	"github.com/go-redis/redis"
-	"github.com/jmoiron/sqlx"
 )
 
 type ArtistsResponse struct {
@@ -206,7 +205,7 @@ type NullResponse struct {
 	Id int `json:"id"`
 }
 
-func respondWithSongOrNull(db *sqlx.DB, w http.ResponseWriter, song *types.Song) error {
+func respondWithSongOrNull(w http.ResponseWriter, song *types.Song) error {
 	if song.Id == 0 {
 		response, _ := json.Marshal(NullResponse{})
 		w.Write(response)
@@ -242,7 +241,7 @@ func routeFetchNextSong(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWrit
 		return err
 	}
 
-	if err := respondWithSongOrNull(db, w, nextSong); err != nil {
+	if err := respondWithSongOrNull(w, nextSong); err != nil {
 		return err
 	}
 	return nil
@@ -260,7 +259,30 @@ func routeFetchPrevSong(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWrit
 		return err
 	}
 
-	if err := respondWithSongOrNull(db, w, prevSong); err != nil {
+	if err := respondWithSongOrNull(w, prevSong); err != nil {
+		return err
+	}
+	return nil
+}
+
+func routeFetchShuffledSong(l *logger.Logger, rdb redis.Cmdable, w http.ResponseWriter, r *http.Request) error {
+	idRaw := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idRaw)
+	db := database.GetConnection()
+
+	var song *types.Song
+
+	if err != nil || id < 1 {
+		// No (valid) song ID passed; fetch any random song
+		song, err = repository.GetShuffledSong(db, nil)
+	} else {
+		song, err = repository.GetShuffledSong(db, &id)
+	}
+
+	if err != nil {
+		return err
+	}
+	if err = respondWithSongOrNull(w, song); err != nil {
 		return err
 	}
 	return nil

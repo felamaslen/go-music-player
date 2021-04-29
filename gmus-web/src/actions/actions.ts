@@ -1,3 +1,4 @@
+import { SetStateAction } from 'react';
 import { Song } from '../types';
 import { Member, MusicPlayer } from '../types/state';
 import { ActionErrorOccurred } from './error';
@@ -23,12 +24,14 @@ export const nameSet = (name: string): ActionNameSet => ({
 
 export type ActionStateSetLocal = ActionLocal<
   ActionTypeLocal.StateSet,
-  Omit<Partial<MusicPlayer>, 'seekTime'>
+  SetStateAction<Omit<Partial<MusicPlayer>, 'seekTime'>>
 >;
 
-export const stateSet = (state: Partial<MusicPlayer> = {}): ActionStateSetLocal => ({
+export const stateSet = (
+  payload: SetStateAction<Partial<MusicPlayer>> = {},
+): ActionStateSetLocal => ({
   type: ActionTypeLocal.StateSet,
-  payload: state,
+  payload,
 });
 
 export type ActionSeeked = ActionLocal<ActionTypeLocal.Seeked, number>;

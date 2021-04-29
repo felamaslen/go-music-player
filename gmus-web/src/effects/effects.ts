@@ -39,24 +39,28 @@ function pushToQueue(state: GlobalState, action: ActionQueuePushed): RemoteActio
   };
 }
 
-export function globalEffects(prevState: GlobalState, action: LocalAction): RemoteAction | null {
+function sendStateUpdateToServer(state: GlobalState): RemoteAction | null {
+  if (!state.player.master) {
+    return null;
+  }
+  return {
+    type: ActionTypeRemote.StateSet,
+    payload: state.player,
+  };
+}
+
+export function globalEffects(state: GlobalState, action: LocalAction): RemoteAction | null {
   switch (action.type) {
     case ActionTypeLocal.StateSet:
-      if (!prevState.player.master && !action.payload.master) {
-        return null;
-      }
-      return {
-        type: ActionTypeRemote.StateSet,
-        payload: { ...prevState.player, ...action.payload },
-      };
+      return sendStateUpdateToServer(state);
 
     case ActionTypeLocal.Seeked:
-      if (!prevState.player.master) {
+      if (!state.player.master) {
         return null;
       }
       return {
         type: ActionTypeRemote.StateSet,
-        payload: { ...prevState.player, seekTime: action.payload },
+        payload: { ...state.player, seekTime: action.payload },
       };
 
     case ActionTypeLocal.MasterSet:
@@ -64,8 +68,8 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
         return {
           type: ActionTypeRemote.StateSet,
           payload: {
-            ...prevState.player,
-            seekTime: prevState.player.currentTime,
+            ...state.player,
+            seekTime: state.player.currentTime,
             master: action.payload,
           },
         };
@@ -74,10 +78,10 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
       return {
         type: ActionTypeRemote.StateSet,
         payload: {
-          ...prevState.player,
+          ...state.player,
           playing: false,
           seekTime: -1,
-          master: prevState.myClientName,
+          master: state.myClientName,
         },
       };
 
@@ -85,10 +89,10 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
       return {
         type: ActionTypeRemote.StateSet,
         payload: {
-          ...prevState.player,
-          activeClients: prevState.player.activeClients.includes(action.payload)
-            ? prevState.player.activeClients.filter((client) => client !== action.payload)
-            : [...prevState.player.activeClients, action.payload],
+          ...state.player,
+          activeClients: state.player.activeClients.includes(action.payload)
+            ? state.player.activeClients.filter((client) => client !== action.payload)
+            : [...state.player.activeClients, action.payload],
         },
       };
 
@@ -96,19 +100,19 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
       return {
         type: ActionTypeRemote.StateSet,
         payload: {
-          ...prevState.player,
-          playing: !prevState.player.playing,
+          ...state.player,
+          playing: !state.player.playing,
         },
       };
 
     case ActionTypeLocal.SongInfoFetched:
-      if (isMaster(prevState) || !action.payload.replace || !prevState.player.master) {
+      if (isMaster(state) || !action.payload.replace || !state.player.master) {
         return null;
       }
       return {
         type: ActionTypeRemote.StateSet,
         payload: {
-          ...prevState.player,
+          ...state.player,
           songId: action.payload.song?.id ?? null,
           playing: !!action.payload.song,
           currentTime: 0,
@@ -117,37 +121,37 @@ export function globalEffects(prevState: GlobalState, action: LocalAction): Remo
       };
 
     case ActionTypeLocal.QueuePushed:
-      return pushToQueue(prevState, action);
+      return pushToQueue(state, action);
     case ActionTypeLocal.QueueShifted:
-      if (!prevState.player.master) {
+      if (!state.player.master) {
         return null;
       }
       return {
         type: ActionTypeRemote.StateSet,
         payload: {
-          ...prevState.player,
-          queue: prevState.player.queue.slice(1),
-          playing: !!prevState.player.queue[0],
-          songId: prevState.player.queue[0],
+          ...state.player,
+          queue: state.player.queue.slice(1),
+          playing: !!state.player.queue[0],
+          songId: state.player.queue[0],
           currentTime: 0,
           seekTime: 0,
         },
       };
     case ActionTypeLocal.QueueRemoved:
-      if (!prevState.player.master) {
+      if (!state.player.master) {
         return null;
       }
       return {
         type: ActionTypeRemote.StateSet,
         payload: {
-          ...prevState.player,
-          queue: prevState.player.queue.filter((id) => id !== action.payload),
+          ...state.player,
+          queue: state.player.queue.filter((id) => id !== action.payload),
         },
       };
     case ActionTypeLocal.QueueOrdered:
       return {
         type: ActionTypeRemote.StateSet,
-        payload: { ...prevState.player, queue: reorderQueue(prevState.player.queue, action) },
+        payload: { ...state.player, queue: reorderQueue(state.player.queue, action) },
       };
 
     default:

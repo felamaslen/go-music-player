@@ -7,6 +7,7 @@ import (
 	"github.com/felamaslen/gmus-backend/pkg/database"
 	"github.com/felamaslen/gmus-backend/pkg/repository"
 	"github.com/felamaslen/gmus-backend/pkg/testing"
+	"github.com/felamaslen/gmus-backend/pkg/types"
 )
 
 var _ = Describe("Player repository", func() {
@@ -144,6 +145,51 @@ var _ = Describe("Player repository", func() {
 
 				Expect(err).To(BeNil())
 				Expect(song.Id).To(BeZero())
+			})
+		})
+	})
+
+	Describe("GetShuffledSong", func() {
+		It("should return a random song", func() {
+			result, _ := repository.GetShuffledSong(db, &ids[0])
+			Expect(result).NotTo(BeNil())
+			Expect(result.Id).To(BeElementOf(ids))
+		})
+
+		It("should not return the given song", func() {
+			// Iterate 10 times to be quite confident - it's not a mathematical proof
+			// but it doesn't need to be
+			for i := 0; i < 10; i++ {
+				result0, _ := repository.GetShuffledSong(db, &ids[0])
+				result4, _ := repository.GetShuffledSong(db, &ids[4])
+
+				Expect(result0).NotTo(BeNil())
+				Expect(result4).NotTo(BeNil())
+
+				Expect(result0.Id).NotTo(Equal(ids[0]))
+				Expect(result4.Id).NotTo(Equal(ids[4]))
+			}
+		})
+
+		Context("when no currentSongId is given", func() {
+			It("should return a random song", func() {
+				result, _ := repository.GetShuffledSong(db, nil)
+				Expect(result).NotTo(BeNil())
+				Expect(result.Id).To(BeElementOf(ids))
+			})
+		})
+
+		Context("when there are no songs in the database", func() {
+			BeforeEach(func() {
+				db.MustExec(`truncate songs`)
+			})
+
+			It("should return an empty result", func() {
+				result, err := repository.GetShuffledSong(db, nil)
+				Expect(err).To(BeNil())
+				Expect(result).To(Equal(&types.Song{
+					Id: 0,
+				}))
 			})
 		})
 	})

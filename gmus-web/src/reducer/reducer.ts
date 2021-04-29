@@ -6,7 +6,12 @@ import {
   ActionTypeRemote,
   AnyAction,
 } from '../actions';
-import { isFromOurselves, isMaster, willBeMaster } from '../selectors';
+import {
+  getNextPlayerStateFromAction,
+  isFromOurselves,
+  isMaster,
+  willBeMaster,
+} from '../selectors';
 import { MusicPlayer } from '../types/state';
 import { GlobalState } from './types';
 
@@ -18,6 +23,7 @@ export const nullPlayer: MusicPlayer = {
   master: '',
   activeClients: [],
   queue: [],
+  shuffleMode: false,
 };
 
 export const initialState: GlobalState = {
@@ -41,8 +47,10 @@ function onRemoteStateSet(state: GlobalState, action: ActionStateSetRemote): Glo
 }
 
 function onLocalStateSet(state: GlobalState, action: ActionStateSetLocal): GlobalState {
-  const nextPlayer: MusicPlayer = { ...state.player, ...action.payload };
-
+  const nextPlayer = getNextPlayerStateFromAction(state.player, action.payload);
+  if (!nextPlayer) {
+    return state;
+  }
   if (isMaster(state)) {
     return { ...state, player: nextPlayer };
   }

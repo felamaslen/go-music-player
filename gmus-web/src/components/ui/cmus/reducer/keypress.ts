@@ -159,6 +159,12 @@ export function handleKeyPress(state: CmusUIState, action: ActionKeyPressed): Cm
     case Keys.Z:
       return { ...state, skipSong: { delta: -1, serialNumber: state.skipSong.serialNumber + 1 } };
 
+    case Keys.S:
+      return withGlobalAction(
+        state,
+        stateSet((last) => ({ shuffleMode: !last.shuffleMode })),
+      );
+
     case Keys.C:
       return withGlobalAction(state, playPaused());
 

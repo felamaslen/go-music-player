@@ -50,7 +50,7 @@ export const App: React.FC<Props> = ({
     [dispatch],
   );
 
-  const { onNext, onPrev } = usePlayQueue();
+  const { onNext, onPrev } = usePlayQueue(state.player.shuffleMode);
 
   const isDesktop = useMediaQuery({ query: '(min-device-width: 1280px)' });
 

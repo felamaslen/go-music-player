@@ -55,5 +55,7 @@ func StartServer() {
 	server.router.Path("/next-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchNextSong))
 	server.router.Path("/prev-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchPrevSong))
 
+	server.router.Path("/shuffle-song").Methods("GET").HandlerFunc(routeHandler(l, rdb, routeFetchShuffledSong))
+
 	server.Listen()
 }

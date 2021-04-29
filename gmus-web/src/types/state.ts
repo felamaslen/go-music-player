@@ -11,4 +11,5 @@ export type MusicPlayer = {
   master: string;
   activeClients: string[];
   queue: number[];
+  shuffleMode: boolean;
 };

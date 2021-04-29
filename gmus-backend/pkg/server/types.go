@@ -51,4 +51,5 @@ type MusicPlayer struct {
 	Master        string    `json:"master" validate:"required"`
 	ActiveClients *[]string `json:"activeClients" validate:"required"`
 	Queue         *[]int    `json:"queue" validate:"required"`
+	ShuffleMode   bool      `json:"shuffleMode" validate:"-"`
 }

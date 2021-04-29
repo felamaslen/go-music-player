@@ -70,6 +70,7 @@ describe(useMaster.name, () => {
         master: 'master-client-a',
         activeClients: [],
         queue: [],
+        shuffleMode: false,
       },
     };
 

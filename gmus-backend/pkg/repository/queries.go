@@ -175,6 +175,33 @@ order by
 limit 1
 `
 
+const querySelectFirstShuffledSong = `
+select
+	s.id
+	,s.track_number
+	,s.title
+	,s.artist
+	,s.album
+	,s.duration
+from songs s
+limit 1
+offset floor(random() * (select count(*) from songs))
+`
+
+const querySelectNextShuffledSong = `
+select
+	s.id
+	,s.track_number
+	,s.title
+	,s.artist
+	,s.album
+	,s.duration
+from songs s
+where s.id != $1
+limit 1
+offset floor(random() * greatest(0, ((select count(*) from songs) - 1)))
+`
+
 const queryInsertScanError = `
 insert into scan_errors (created_at, base_path, relative_path, error)
 values ($1, $2, $3, $4)

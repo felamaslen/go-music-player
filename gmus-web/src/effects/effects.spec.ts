@@ -13,13 +13,18 @@ import {
   songInfoFetched,
   stateSet,
 } from '../actions';
-import { GlobalState, initialState } from '../reducer';
+import { globalReducer, GlobalState, initialState } from '../reducer';
 import { Song } from '../types';
 import { MusicPlayer } from '../types/state';
 import { globalEffects } from './effects';
 
 describe(globalEffects.name, () => {
   describe(ActionTypeLocal.StateSet, () => {
+    const state: GlobalState = {
+      ...initialState,
+      myClientName: 'my-client-name',
+    };
+
     it('should create a remote state set action', () => {
       expect.assertions(1);
 
@@ -28,23 +33,19 @@ describe(globalEffects.name, () => {
         playing: false,
         currentTime: 83,
         seekTime: 87,
-        master: 'my-client',
+        master: 'my-client-name',
         activeClients: [],
         queue: [],
-      };
-
-      const prevState: GlobalState = {
-        ...initialState,
-        myClientName: 'my-client-name',
+        shuffleMode: false,
       };
 
       const action = stateSet(localPlayer);
 
-      const result = globalEffects(prevState, action);
+      const result = globalEffects(globalReducer(state, action), action);
 
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
-        payload: localPlayer,
+        payload: { ...localPlayer, seekTime: 83 },
       });
     });
   });
@@ -60,6 +61,7 @@ describe(globalEffects.name, () => {
         master: 'my-client-name',
         activeClients: [],
         queue: [],
+        shuffleMode: false,
       },
       myClientName: 'my-client-name',
     };
@@ -102,6 +104,7 @@ describe(globalEffects.name, () => {
         master: 'some-master-went-away',
         activeClients: [],
         queue: [],
+        shuffleMode: false,
       },
       myClientName: 'my-client-name',
     };
@@ -122,6 +125,7 @@ describe(globalEffects.name, () => {
           master: 'my-client-name',
           activeClients: [],
           queue: [],
+          shuffleMode: false,
         },
       });
     });
@@ -141,6 +145,7 @@ describe(globalEffects.name, () => {
             master: 'other-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           },
         });
       });
@@ -213,6 +218,7 @@ describe(globalEffects.name, () => {
           master: 'some-master-client',
           activeClients: [],
           queue: [],
+          shuffleMode: false,
         },
         myClientName,
       };
@@ -231,6 +237,7 @@ describe(globalEffects.name, () => {
             master: 'some-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           },
         });
       });
@@ -248,6 +255,7 @@ describe(globalEffects.name, () => {
         master: 'some-master-client',
         activeClients: [],
         queue: [],
+        shuffleMode: false,
       },
       myClientName: 'some-master-client',
     };
@@ -281,6 +289,7 @@ describe(globalEffects.name, () => {
             master: 'some-master-client',
             activeClients: [],
             queue: [],
+            shuffleMode: false,
           },
         });
       });

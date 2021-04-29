@@ -28,7 +28,7 @@ void main() {
       });
 
       group(STATE_SET, () {
-        String message = '{"type":"STATE_SET","payload":{"master":"new-master-client","songId":7123,"currentTime":10.843,"seekTime":23.001,"playing":false,"queue":[9750]}}';
+        String message = '{"type":"STATE_SET","payload":{"master":"new-master-client","activeClients":["some-client"],"songId":7123,"currentTime":10.843,"seekTime":23.001,"playing":false,"queue":[9750],"shuffleMode":true}}';
 
         test('player state should be updated', () {
           Controller controller = Controller();
@@ -39,6 +39,7 @@ void main() {
           expect(controller.player.value.currentTime, 10.843);
           expect(controller.player.value.seekTime, 23.001);
           expect(controller.player.value.playing, false);
+          expect(controller.player.value.shuffleMode, true);
         });
 
         test('queue should be updated', () {
@@ -47,6 +48,14 @@ void main() {
 
           expect(controller.player.value.queue.length, 1);
           expect(controller.player.value.queue[0], 9750);
+        });
+
+        test('active clients should be updated', () {
+          Controller controller = Controller();
+          onRemoteMessage(controller, message);
+
+          expect(controller.player.value.activeClients.length, 1);
+          expect(controller.player.value.activeClients[0], 'some-client');
         });
       });
     });
@@ -60,7 +69,7 @@ void main() {
 
             controller.playPause();
 
-            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":null,"playing":true,"queue":[]}}')).called(1);
+            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"songId":null,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
           });
         });
 
@@ -72,7 +81,7 @@ void main() {
 
             controller.playPause();
 
-            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":182,"playing":false,"queue":[]}}')).called(1);
+            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"songId":182,"playing":false,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
           });
         });
       });
@@ -83,7 +92,7 @@ void main() {
           controller.player.value.playing = false;
           controller.playPause();
 
-          verifyNever(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":null,"playing":true,"queue":[]}}'));
+          verifyNever(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"songId":null,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}'));
         });
       });
     });
@@ -95,7 +104,7 @@ void main() {
 
           controller.playSong(871);
 
-          verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","songId":871,"playing":true,"queue":[]}}')).called(1);
+          verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"songId":871,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
         });
       });
 
