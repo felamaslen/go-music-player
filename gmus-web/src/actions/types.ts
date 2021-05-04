@@ -1,3 +1,7 @@
+import type { SetStateAction } from 'react';
+
+import type { MusicPlayer } from '../types';
+
 // Remote actions - these only come FROM the socket
 export enum ActionTypeRemote {
   StateSet = 'STATE_SET',
@@ -29,6 +33,11 @@ export interface Action<T extends string = string, P = unknown> {
 export type ActionRemote<T extends ActionTypeRemote = ActionTypeRemote, P = unknown> = Action<
   T,
   P
-> & { fromClient?: string | null };
+> & { priority: number; fromClient?: string | null };
 
 export type ActionLocal<T extends ActionTypeLocal = ActionTypeLocal, P = unknown> = Action<T, P>;
+
+export type LocalStateSetPayload = {
+  payload: SetStateAction<Partial<MusicPlayer>>;
+  priority?: number;
+};

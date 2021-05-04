@@ -94,6 +94,7 @@ class Controller extends GetxController {
     if (!this._isMaster()) {
       this.socket.dispatch(jsonEncode({
         'type': actions.STATE_SET,
+        'priority': 0,
         'payload': this.player.value.stringify(),
       }));
     }
@@ -111,6 +112,7 @@ class Controller extends GetxController {
 
     this.socket.dispatch(jsonEncode({
       'type': actions.STATE_SET,
+      'priority': 0,
       'payload': this.player.value.stringify(),
     }));
   }

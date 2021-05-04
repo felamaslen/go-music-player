@@ -33,6 +33,7 @@ function pushToQueue(state: GlobalState, action: ActionQueuePushed): RemoteActio
   }
   return {
     type: ActionTypeRemote.StateSet,
+    priority: 0,
     payload: {
       ...state.player,
       queue: nextQueue,
@@ -50,6 +51,7 @@ function sendStateUpdateToServer(
   }
   return {
     type: ActionTypeRemote.StateSet,
+    priority: action.payload.priority ?? 0,
     payload: nextPlayer,
   };
 }
@@ -65,6 +67,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
       }
       return {
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: { ...state.player, seekTime: action.payload },
       };
 
@@ -72,6 +75,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
       if (action.payload) {
         return {
           type: ActionTypeRemote.StateSet,
+          priority: 0,
           payload: {
             ...state.player,
             seekTime: state.player.currentTime,
@@ -82,6 +86,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
 
       return {
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...state.player,
           playing: false,
@@ -93,6 +98,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
     case ActionTypeLocal.ActiveClientToggled:
       return {
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...state.player,
           activeClients: state.player.activeClients.includes(action.payload)
@@ -104,6 +110,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
     case ActionTypeLocal.PlayPaused:
       return {
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...state.player,
           playing: !state.player.playing,
@@ -116,6 +123,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
       }
       return {
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...state.player,
           songId: action.payload.song?.id ?? null,
@@ -133,6 +141,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
       }
       return {
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...state.player,
           queue: state.player.queue.slice(1),
@@ -148,6 +157,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
       }
       return {
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...state.player,
           queue: state.player.queue.filter((id) => id !== action.payload),
@@ -156,6 +166,7 @@ export function globalEffects(state: GlobalState, action: LocalAction): RemoteAc
     case ActionTypeLocal.QueueOrdered:
       return {
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: { ...state.player, queue: reorderQueue(state.player.queue, action) },
       };
 

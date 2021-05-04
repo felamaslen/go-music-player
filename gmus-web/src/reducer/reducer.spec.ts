@@ -33,6 +33,7 @@ describe(globalReducer.name, () => {
         const actionFromOtherClient: ActionStateSetRemote = {
           type: ActionTypeRemote.StateSet,
           fromClient: 'other-client',
+          priority: 0,
           payload: {
             songId: 123,
             playing: true,
@@ -58,6 +59,23 @@ describe(globalReducer.name, () => {
             activeClients: [],
             queue: [],
             shuffleMode: false,
+          });
+        });
+
+        describe('when the priority was 1', () => {
+          const actionWithLowerPriority: ActionStateSetRemote = {
+            ...actionFromOtherClient,
+            priority: 1,
+          };
+
+          it('should only update the currentTime', () => {
+            expect.assertions(1);
+            const result = globalReducer(stateMaster, actionWithLowerPriority);
+
+            expect(result.player).toStrictEqual<MusicPlayer>({
+              ...stateMaster.player,
+              currentTime: 75,
+            });
           });
         });
       });

@@ -37,8 +37,20 @@ function shouldSetSeekTime(state: GlobalState, action: ActionStateSetRemote): bo
   return willBeMaster(state, action) && !(isMaster(state) && isFromOurselves(state, action));
 }
 
+function getNextRemotePlayer(
+  existingPlayer: MusicPlayer,
+  action: ActionStateSetRemote,
+): MusicPlayer {
+  if (!action.payload) {
+    return action.priority > 0 ? existingPlayer : nullPlayer;
+  }
+  return action.priority > 0
+    ? { ...existingPlayer, currentTime: action.payload.currentTime }
+    : action.payload;
+}
+
 function onRemoteStateSet(state: GlobalState, action: ActionStateSetRemote): GlobalState {
-  const nextPlayer = action.payload ?? nullPlayer;
+  const nextPlayer = getNextRemotePlayer(state.player, action);
   const seekTime = shouldSetSeekTime(state, action) ? nextPlayer.seekTime : -1;
 
   const nextPlayerWithSeekTime: MusicPlayer = { ...nextPlayer, seekTime };

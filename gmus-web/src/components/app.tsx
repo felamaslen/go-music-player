@@ -45,7 +45,7 @@ export const App: React.FC<Props> = ({
 
   const onTimeUpdate = useCallback(
     (currentTime: number): void => {
-      dispatch(stateSet({ currentTime }));
+      dispatch(stateSet({ currentTime }, 1));
     },
     [dispatch],
   );

@@ -38,12 +38,13 @@ describe(globalEffects.name, () => {
         shuffleMode: false,
       };
 
-      const action = stateSet(localPlayer);
+      const action = stateSet(localPlayer, 3);
 
       const result = globalEffects(state, action);
 
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
+        priority: 3,
         payload: { ...state.player, ...localPlayer },
       });
     });
@@ -85,6 +86,7 @@ describe(globalEffects.name, () => {
 
         expect(result).toStrictEqual<ActionStateSetRemote>({
           type: ActionTypeRemote.StateSet,
+          priority: 0,
           payload: { ...state.player, seekTime: 776 },
         });
       });
@@ -116,6 +118,7 @@ describe(globalEffects.name, () => {
 
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           songId: 123,
           playing: false,
@@ -136,6 +139,7 @@ describe(globalEffects.name, () => {
 
         expect(result).toStrictEqual<ActionStateSetRemote>({
           type: ActionTypeRemote.StateSet,
+          priority: 0,
           payload: {
             songId: 123,
             playing: true,
@@ -169,6 +173,7 @@ describe(globalEffects.name, () => {
 
         expect(result).toStrictEqual<ActionStateSetRemote>({
           type: ActionTypeRemote.StateSet,
+          priority: 0,
           payload: expect.objectContaining({
             activeClients: ['other-client'],
           }),
@@ -191,6 +196,7 @@ describe(globalEffects.name, () => {
 
         expect(result).toStrictEqual<ActionStateSetRemote>({
           type: ActionTypeRemote.StateSet,
+          priority: 0,
           payload: expect.objectContaining({
             activeClients: expect.arrayContaining(['some-client', 'other-client']),
           }),
@@ -228,6 +234,7 @@ describe(globalEffects.name, () => {
 
         expect(result).toStrictEqual<ActionStateSetRemote>({
           type: ActionTypeRemote.StateSet,
+          priority: 0,
           payload: {
             songId: 123,
             playing: false,
@@ -280,6 +287,7 @@ describe(globalEffects.name, () => {
 
         expect(result).toStrictEqual<ActionStateSetRemote>({
           type: ActionTypeRemote.StateSet,
+          priority: 0,
           payload: {
             songId: 185,
             playing: true,
@@ -319,6 +327,7 @@ describe(globalEffects.name, () => {
       );
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...initialState.player,
           master: 'some-master',
@@ -354,6 +363,7 @@ describe(globalEffects.name, () => {
       const result = globalEffects(stateWithQueue, action);
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...initialState.player,
           master: 'some-master',
@@ -382,6 +392,7 @@ describe(globalEffects.name, () => {
 
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...initialState.player,
           master: 'some-master',
@@ -410,6 +421,7 @@ describe(globalEffects.name, () => {
 
       expect(result).toStrictEqual<ActionStateSetRemote>({
         type: ActionTypeRemote.StateSet,
+        priority: 0,
         payload: {
           ...initialState.player,
           master: 'some-master',

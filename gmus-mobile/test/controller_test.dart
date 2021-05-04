@@ -69,7 +69,7 @@ void main() {
 
             controller.playPause();
 
-            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"songId":null,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
+            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","priority":0,"payload":{"songId":null,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
           });
         });
 
@@ -81,7 +81,7 @@ void main() {
 
             controller.playPause();
 
-            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"songId":182,"playing":false,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
+            verify(controller.socket.channel.sink.add('{"type":"STATE_SET","priority":0,"payload":{"songId":182,"playing":false,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
           });
         });
       });
@@ -92,7 +92,7 @@ void main() {
           controller.player.value.playing = false;
           controller.playPause();
 
-          verifyNever(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"songId":null,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}'));
+          verifyNever(controller.socket.channel.sink.add('{"type":"STATE_SET","priority":0,"payload":{"songId":null,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}'));
         });
       });
     });
@@ -104,7 +104,7 @@ void main() {
 
           controller.playSong(871);
 
-          verify(controller.socket.channel.sink.add('{"type":"STATE_SET","payload":{"songId":871,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
+          verify(controller.socket.channel.sink.add('{"type":"STATE_SET","priority":0,"payload":{"songId":871,"playing":true,"currentTime":0.0,"seekTime":-1.0,"master":"other-client-name-master","activeClients":[],"queue":[],"shuffleMode":false}}')).called(1);
         });
       });
 

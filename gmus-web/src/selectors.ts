@@ -4,11 +4,12 @@ import { MusicPlayer } from './types';
 
 export function getNextPlayerStateFromAction(
   player: MusicPlayer | undefined,
-  payload: ActionStateSetLocal['payload'] | null,
+  action: ActionStateSetLocal['payload'] | ActionStateSetRemote | null,
 ): MusicPlayer | null {
-  if (!(payload && player)) {
+  if (!(action && player)) {
     return null;
   }
+  const { payload } = action;
   if (typeof payload === 'function') {
     return { ...player, ...payload(player) };
   }
@@ -26,15 +27,23 @@ export const isFromOurselves = (
   action: ActionRemote,
 ): boolean => state.myClientName === action.fromClient;
 
+const isLocalStateSet = (
+  action: ActionStateSetLocal | ActionStateSetRemote,
+): action is ActionStateSetLocal => Reflect.has(action.payload ?? {}, 'priority');
+
 export const willBeMaster = (
   state: Partial<GlobalState> & Pick<GlobalState, 'myClientName'>,
-  action: ActionStateSetLocal | ActionStateSetRemote,
+  fullAction: ActionStateSetLocal | ActionStateSetRemote,
 ): boolean => {
+  const action: ActionStateSetLocal['payload'] | ActionStateSetRemote = isLocalStateSet(fullAction)
+    ? fullAction.payload
+    : fullAction;
+
   const actionHasMaster =
     typeof action.payload === 'function' ? !!action.payload({}).master : !!action.payload?.master;
   return (
     actionHasMaster &&
-    state.myClientName === getNextPlayerStateFromAction(state.player, action.payload)?.master
+    state.myClientName === getNextPlayerStateFromAction(state.player, action)?.master
   );
 };
 

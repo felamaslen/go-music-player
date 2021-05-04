@@ -1,8 +1,15 @@
-import { SetStateAction } from 'react';
-import { Song } from '../types';
-import { Member, MusicPlayer } from '../types/state';
-import { ActionErrorOccurred } from './error';
-import { ActionLocal, ActionRemote, ActionTypeLocal, ActionTypeRemote } from './types';
+import type { SetStateAction } from 'react';
+
+import type { Song } from '../types';
+import type { Member, MusicPlayer } from '../types/state';
+import type { ActionErrorOccurred } from './error';
+import {
+  ActionLocal,
+  ActionRemote,
+  ActionTypeLocal,
+  ActionTypeRemote,
+  LocalStateSetPayload,
+} from './types';
 
 export * from './types';
 
@@ -22,16 +29,14 @@ export const nameSet = (name: string): ActionNameSet => ({
   payload: name,
 });
 
-export type ActionStateSetLocal = ActionLocal<
-  ActionTypeLocal.StateSet,
-  SetStateAction<Omit<Partial<MusicPlayer>, 'seekTime'>>
->;
+export type ActionStateSetLocal = ActionLocal<ActionTypeLocal.StateSet, LocalStateSetPayload>;
 
 export const stateSet = (
   payload: SetStateAction<Partial<MusicPlayer>> = {},
+  priority = 0,
 ): ActionStateSetLocal => ({
   type: ActionTypeLocal.StateSet,
-  payload,
+  payload: { payload, priority },
 });
 
 export type ActionSeeked = ActionLocal<ActionTypeLocal.Seeked, number>;
